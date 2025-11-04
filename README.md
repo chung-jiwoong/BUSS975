@@ -61,3 +61,9 @@ Hypothesis: [Slides](https://chung-jiwoong.github.io/BUSS975/notes/00_Review/00_
 **Lecture 5: Natural Experiments**
 [Slides1](https://chung-jiwoong.github.io/BUSS975/notes/06_NE/06_natural_experiments_part1.pdf), 
 [Slides2](https://chung-jiwoong.github.io/BUSS975/notes/06_NE/06_natural_experiments_part2.pdf)
+
+
+
+
+**Lecture 6: Regression Discontinuity**
+[Slides1](https://chung-jiwoong.github.io/BUSS975/notes/08_RDD/08_regression_discontinuity.pdf)
