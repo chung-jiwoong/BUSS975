@@ -64,6 +64,9 @@ Hypothesis: [Slides](https://chung-jiwoong.github.io/BUSS975/notes/00_Review/00_
 
 
 
-
 **Lecture 6: Regression Discontinuity**
 [Slides1](https://chung-jiwoong.github.io/BUSS975/notes/08_RDD/08_regression_discontinuity.pdf)
+
+
+**Lecture 7: Common errors**
+[Slides1](https://chung-jiwoong.github.io/BUSS975/notes/09_Common/09_common_limits.pdf)
