@@ -4,14 +4,6 @@ Course materials for BUSS975, including lecture slides, notes, exercises, and se
 
 > Lecture notes are continuously updated. Please check for the latest version before each class.
 
-## At a Glance
-
-| Area | Topics |
-| --- | --- |
-| Foundations | Introduction, probability, expectation, estimation, hypothesis testing |
-| Core Methods | Linear regression, causality, panel data |
-| Identification | Instrumental variables, natural experiments, regression discontinuity, matching |
-| Research Practice | Common errors and limitations |
 
 ## Course Materials
 
