@@ -1,6 +1,15 @@
-# BUSS975 Sample PhD Comprehensive Exam: Suggested Solutions
-
-This key is written as a grading guide. Strong answers do not need to match the wording exactly, but they should contain the core logic, assumptions, and formulas.
+---
+title: "BUSS975 Sample PhD Comprehensive Exam: Suggested Solutions"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+---
 
 ## Question 1. Regression Foundations, CEF, and Inference (12 points)
 

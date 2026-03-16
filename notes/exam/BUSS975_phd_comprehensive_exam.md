@@ -1,13 +1,8 @@
-# BUSS975 Sample PhD Comprehensive Exam
-
-This sample exam is based on the topics and examples covered in the BUSS975 course materials in this repository.
-
-## Suggested Administration
-
-- Level: PhD
-- Suggested time: 5 hours
-- Total points: 100
-- Instructions: Answer all questions. State assumptions clearly, define notation when needed, and distinguish identification from estimation and inference.
+---
+title: "BUSS975 Sample PhD Comprehensive Exam"
+format:
+  pdf
+---
 
 ## Question 1. Regression Foundations, CEF, and Inference (12 points)
 
@@ -97,4 +92,3 @@ A researcher studies whether ESG disclosure increases firm value. She runs a cro
 2. For each threat, briefly explain why it matters.
 3. Propose a stronger research design using one of the methods emphasized in this course.
 
-## End of Exam
