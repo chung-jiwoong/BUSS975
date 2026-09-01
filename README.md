@@ -1,14 +1,40 @@
 # BUSS975: Causal Inference in Financial Research
 
-Course materials for BUSS975, including lecture slides, notes, exercises, and selected datasets.
+Course materials for BUSS975, including lecture slides and problem sets.
 
-> Lecture notes are continuously updated. Please check for the latest version before each class.
+- Lecture notes are continuously updated. Please check for the latest version before each class.
+
+## Lecture Notes
+
+| Topic | Slides | Problem Set |
+|---|---|---|
+| 1. Causality and Potential Outcomes | [Slides][caus-pdf] | PS |
+| 2. Directed Acyclic Graphs | [Slides][dag-pdf] | PS |
+| 3. Unconfoundedness | [Slides][unc-pdf] | |
+
+---
+
+[base-io]: https://chung-jiwoong.github.io/BUSS975
+
+[caus-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/01_Causality/01_causality.pdf
+[caus-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/01_Causality/01_causality_PS.pdf
+
+[dag-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/02_DAG/02_dag.pdf
+[dag-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/02_DAG/02_dag_PS.pdf
+
+[unc-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/03_Unconfoundedness/03_unconfoundedness.pdf
+
+<!--
+
+Upcoming topics -- uncomment each row as the material is published.
+
+| 4. Instrumental Variables | [View][iv-pdf] | [Problems][iv-ps] |
+| 5. Regression Discontinuity | [View][rdd-pdf] | [Problems][rdd-ps] |
+| 6. Difference-in-Differences | [View][did-pdf] | [Problems][did-ps] |
 
 
-## Course Materials
+2025 course materials (now in archive2025/, no longer published):
 
-| Lecture | Materials |
-| --- | --- |
 | Introduction | [Slides](https://chung-jiwoong.github.io/BUSS975/notes/00_Introduction/00_Introduction.pdf) \| [Notes](https://chung-jiwoong.github.io/BUSS975/notes/00_Introduction/Intro.pdf) \| [Exercise](https://chung-jiwoong.github.io/BUSS975/notes/00_Introduction/00_introduction_PS.pdf) |
 | Review: Probability | [Slides](https://chung-jiwoong.github.io/BUSS975/notes/00_Review/00_review_A.pdf) \| [Notes](https://chung-jiwoong.github.io/BUSS975/notes/00_Review/review_A.pdf) \| [Exercise](https://chung-jiwoong.github.io/BUSS975/notes/00_Review/00_review_A_PS.pdf) |
 | Review: Expectation | [Slides](https://chung-jiwoong.github.io/BUSS975/notes/00_Review/00_review_B.pdf) \| [Notes](https://chung-jiwoong.github.io/BUSS975/notes/00_Review/review_B.pdf) \| [Exercise](https://chung-jiwoong.github.io/BUSS975/notes/00_Review/00_review_B_PS.pdf) |
@@ -22,3 +48,9 @@ Course materials for BUSS975, including lecture slides, notes, exercises, and se
 | Regression Discontinuity | [Slides](https://chung-jiwoong.github.io/BUSS975/notes/08_RDD/08_regression_discontinuity.pdf) |
 | Common Errors | [Slides](https://chung-jiwoong.github.io/BUSS975/notes/09_Common/09_common_limits.pdf) |
 | Matching | [Slides](https://chung-jiwoong.github.io/BUSS975/notes/10_Matching/10_matching.pdf) |
+
+-->
+
+## References
+
+- Scott Cunningham, *Causal Inference: The Remix* (2nd ed.): <https://mixtape.scunning.com>

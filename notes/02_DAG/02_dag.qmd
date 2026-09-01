@@ -1,0 +1,851 @@
+---
+title: "Directed Acyclic Graphs"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+author: "Professor Ji-Woong Chung"
+institute: "Korea University"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    slide-level: 2
+    toc: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \setbeamertemplate{navigation symbols}{}
+        \setbeamertemplate{footline}[frame number]
+        \setbeamertemplate{itemize items}[circle]
+        \setbeamertemplate{itemize subitem}[triangle]
+        \setbeamercolor{frametitle}{fg=black}
+        \setbeamerfont{frametitle}{series=\bfseries}
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+        \usepackage{tikz}
+        \usetikzlibrary{arrows.meta,positioning,calc}
+        \tikzset{
+          dnode/.style={circle,draw,thick,minimum size=9mm,inner sep=1pt,font=\small},
+          unode/.style={circle,draw,thick,dashed,minimum size=9mm,inner sep=1pt,font=\small},
+          bnode/.style={rectangle,draw,thick,fill=gray!25,minimum size=9mm,inner sep=3pt,font=\small},
+          de/.style={-{Stealth[length=2.2mm]},thick},
+          dde/.style={-{Stealth[length=2.2mm]},thick,dashed}
+        }
+        % shrink code input (fancyvrb) and code output (verbatim)
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\scriptsize}
+        \makeatletter
+        \def\verbatim@font{\scriptsize\ttfamily}
+        \makeatother
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+---
+
+## Acknowledgments and readings
+
+- These slides are based on Scott Cunningham, *Causal Inference: The Remix* (2nd ed.), Chapter 3, "Directed Acyclic Graphs."
+  - Free online: `https://mixtape.scunning.com`
+- The backdoor criterion and the adjustment formula follow Pearl (2009).
+
+## Outline
+
+1. Why graphs?
+2. DAG notation
+3. Three elemental structures
+4. Backdoor paths and adjustment
+5. Collider bias
+6. Bad controls
+7. Neutral controls and precision
+8. What DAGs cannot do
+
+# Why Graphs?
+
+## Where we left off
+
+- Last lecture: a causal effect is a property of the data **plus the assignment mechanism**.
+- The potential outcomes framework gave us:
+  - precise **estimands** --- $ATE$, $ATT$, $ATU$;
+  - a decomposition of what goes wrong --- selection bias and heterogeneity bias;
+  - a gold standard --- randomization, which makes $(Y^1,Y^0) \indep D$.
+- What it did **not** give us: a systematic way to answer the single most common question in empirical work.
+
+\begin{center}
+\emph{``What should I control for?''}
+\end{center}
+
+## The question every referee asks
+
+- A typical referee report: *"The authors should control for firm size, leverage, industry, and profitability."*
+- Is that good advice? The honest answer in most papers is: **nobody knows**.
+- Common (bad) heuristics:
+  - "Control for everything you have." --- Wrong, and this lecture shows why.
+  - "Control for anything correlated with both $D$ and $Y$." --- Closer, but still wrong.
+  - "More controls make the estimate more credible." --- Emphatically wrong.
+- Adding a control can **remove** bias, **add** bias, or **flip the sign** of your estimate.
+- To tell which, you need a language for your assumptions about the data-generating process.
+
+## What a DAG is for
+
+- A **directed acyclic graph** is a picture of your causal assumptions.
+- Once drawn, it delivers --- mechanically, by rules you can check ---
+  - which variables you **must** control for,
+  - which variables you **must not** control for,
+  - whether your causal effect is identified **at all** from observational data.
+- The DAG does not tell you whether your assumptions are *true*. Nothing does.
+- What it does is make them **explicit, communicable, and refutable** --- so a referee can disagree with your *assumptions* rather than your *taste in controls*.
+
+## This lecture ...
+
+By the end you will be able to explain, precisely, why the following is true:
+
+\vspace{0.5em}
+
+\begin{center}
+\emph{You can run a perfectly randomized experiment, add one perfectly measured\\
+control variable, and get an estimate with the wrong sign.}
+\end{center}
+
+\vspace{0.5em}
+
+- We will simulate exactly this in §6, "Bad Controls."
+- If controlling for things can do that, "control for everything" is not a strategy --- it is a coin flip.
+
+# DAG Notation
+
+## Nodes and arrows
+
+- A DAG has **nodes** (random variables) and **directed edges** (arrows).
+- An arrow $X \to Y$ means: $X$ exerts a **direct causal effect** on $Y$ --- direct meaning *not* routed through any other variable in the graph.
+
+\begin{center}
+\begin{tikzpicture}[node distance=22mm]
+\node[dnode] (D) {$D$};
+\node[dnode, right=of D] (Y) {$Y$};
+\draw[de] (D) -- (Y);
+\end{tikzpicture}
+\end{center}
+
+- Read: relationship lending ($D$) affects firm investment ($Y$).
+- The graph is **non-parametric**: it says nothing about magnitude, sign, linearity, or functional form. Only *whether* an effect exists.
+
+## The missing arrow is the assumption
+
+- Drawing an arrow is a weak claim: "$X$ may affect $Y$."
+- **Omitting** an arrow is a strong claim: "$X$ has *no* effect on $Y$, for any unit, of any size."
+- This is the opposite of how we usually read a regression table, and it is the most important thing to remember about DAGs.
+- So the interesting content of a DAG is in the arrows you **did not draw**.
+- Corollary: a DAG with arrows everywhere is honest but useless --- nothing is identified. Progress requires exclusions, and exclusions require **institutional knowledge**.
+
+## Acyclicity
+
+- "Acyclic" = no directed path leads from a variable back to itself.
+- Forbidden:
+
+\begin{center}
+\begin{tikzpicture}[node distance=20mm]
+\node[dnode] (D) {$D$};
+\node[dnode, right=of D] (Y) {$Y$};
+\draw[de] (D) to[bend left=25] (Y);
+\draw[de] (Y) to[bend left=25] (D);
+\end{tikzpicture}
+\end{center}
+
+- This is a real restriction for finance, where equilibrium feedback is everywhere: leverage and performance, price and demand, coverage and returns.
+- The usual fix is **time**: $\text{Leverage}_t \to \text{Perf}_{t+1} \to \text{Leverage}_{t+2}$ is acyclic.
+- Genuine simultaneity is beyond what a DAG can express. We return to this in §8.
+
+## Observed and unobserved variables
+
+- Solid circle = **observed**; dashed circle = **unobserved**.
+
+\begin{center}
+\begin{tikzpicture}[node distance=18mm]
+\node[dnode] (D) {$D$};
+\node[dnode, right=32mm of D] (Y) {$Y$};
+\node[unode, above right=10mm and 6mm of D] (U) {$U$};
+\draw[de] (D) -- (Y);
+\draw[dde] (U) -- (D);
+\draw[dde] (U) -- (Y);
+\end{tikzpicture}
+\end{center}
+
+- $U$ might be managerial talent, firm culture, private information, or local demand.
+- The distinction matters enormously: a variable you cannot measure cannot be conditioned on, so it cannot be used to block anything.
+- Much of this course is about what to do when a $U$ like this exists.
+
+## Paths
+
+- A **path** is any sequence of edges connecting two nodes, *ignoring the direction of the arrows*.
+- A **directed (causal) path** follows the arrows from start to finish.
+
+\begin{center}
+\begin{tikzpicture}[node distance=18mm]
+\node[dnode] (D) {$D$};
+\node[dnode, right=of D] (M) {$M$};
+\node[dnode, right=of M] (Y) {$Y$};
+\node[dnode, above=12mm of M] (X) {$X$};
+\draw[de] (D) -- (M);
+\draw[de] (M) -- (Y);
+\draw[de] (X) -- (D);
+\draw[de] (X) -- (Y);
+\end{tikzpicture}
+\end{center}
+
+- $D \to M \to Y$ is a directed path (this is the causal effect).
+- $D \leftarrow X \to Y$ is a path but **not** a directed path --- yet it still generates correlation between $D$ and $Y$.
+- **Association flows along paths regardless of arrow direction. Causation flows only along directed paths.** 
+
+## Where DAGs come from
+
+- A DAG is **not** derived from the data. The data cannot tell you which way the arrows point.
+- It comes from: economic theory, institutional detail, prior empirical work, and knowledge of how *your specific dataset* was assembled.
+- Two researchers with different institutional knowledge will draw different DAGs and reach different conclusions --- and that is the point. The disagreement is now **visible and arguable**.
+- Practical advice: draw the DAG *before* you run the regression. If you cannot draw it, you do not yet understand your identification strategy.
+
+## Controlling for is not setting
+
+- A recurring confusion, worth naming before we build the machinery.
+- **Controlling for $X$** filters the data: "among firms that *happen* to have $X = x$." The population changes --- we keep a subpopulation, which may be special in ways we cannot see.
+- **Setting $X$** intervenes: "if we *assigned* $X = x$ to every firm." The population stays fixed; only $X$ moves.
+- Prediction needs only the first. Causal inference needs the second.
+- In graph terms, setting $X$ means **deleting every arrow into $X$** --- $X$ is no longer caused by its parents; it is caused by us.
+  - That is exactly what a randomized experiment does physically: the coin, not the firm's characteristics, becomes the parent of $D$.
+  - It is why randomization needs no controls. There are no arrows left to block.
+
+## Ratings predict default; ratings do not prevent it
+
+- Let $Y = 1$ if a firm defaults within five years, and let $X$ be its credit rating.
+- **Filtering**: among AAA issuers, default is rare. Ratings are superb *predictors* --- selling this number is a profitable business.
+- **Setting**: suppose a regulator relabelled every junk issuer AAA. Default rates would barely move. The label is not the cash flows.
+- Filtering **selects** firms that were already creditworthy; setting **changes the label** and leaves creditworthiness untouched.
+- The causal effect is not exactly zero --- ratings do move borrowing costs, covenant triggers, and forced buying and selling by investors whose mandates are rating-based --- but nothing like the AAA-to-junk gap.
+  - (Kisgen and Strahan 2010: when the SEC certified DBRS in 2003, yields moved **39bp per notch** --- the label alone, with fundamentals unchanged.)
+- Ask of any empirical result: *is this a filter, or an intervention?*
+
+# Three Elemental Structures
+
+## Every DAG is built from three pieces
+
+Any path, however long, is a chain of three-node segments of exactly three types.
+
+\begin{center}
+\begin{tikzpicture}
+% chain
+\node[dnode] (D1) at (0,0) {$D$};
+\node[dnode] (M1) at (1.4,0) {$M$};
+\node[dnode] (Y1) at (2.8,0) {$Y$};
+\draw[de] (D1) -- (M1);
+\draw[de] (M1) -- (Y1);
+\node[font=\small] at (1.4,-1.0) {\textbf{Chain} (mediator)};
+% fork
+\node[dnode] (D2) at (4.4,0) {$D$};
+\node[dnode] (Y2) at (6.4,0) {$Y$};
+\node[dnode] (X2) at (5.4,1.2) {$X$};
+\draw[de] (X2) -- (D2);
+\draw[de] (X2) -- (Y2);
+\node[font=\small] at (5.4,-1.0) {\textbf{Fork} (confounder)};
+% collider
+\node[dnode] (D3) at (8.0,1.2) {$D$};
+\node[dnode] (Y3) at (10.0,1.2) {$Y$};
+\node[dnode] (C3) at (9.0,0) {$C$};
+\draw[de] (D3) -- (C3);
+\draw[de] (Y3) -- (C3);
+\node[font=\small] at (9.0,-1.0) {\textbf{Collider}};
+\end{tikzpicture}
+\end{center}
+
+- A **collider** on a path is a node where two arrowheads meet: $\to C \leftarrow$.
+- Whether a node is a collider is a property of the **path**, not of the variable.
+
+## Chain: $D \to M \to Y$
+
+- $M$ is a **mediator**: the causal effect of $D$ travels *through* it.
+- The path is **open** by default --- $D$ and $Y$ are correlated, and the correlation is causal.
+- Conditioning on $M$ **closes** the path --- and thereby destroys the very effect you are trying to measure.
+- Finance example: a credit shock raises investment, which raises employment.
+  - $\text{Credit} \to \text{Investment} \to \text{Employment}$.
+  - Controlling for investment when estimating the effect of credit on employment removes most of the answer.
+- **Do not control for mediators** when you want the total effect.
+
+## Fork: $D \leftarrow X \to Y$
+
+- $X$ is a **confounder**: a common cause of both treatment and outcome.
+- The path is **open** by default --- $D$ and $Y$ are correlated, but the correlation is **not** causal.
+- Conditioning on $X$ **closes** the path and removes the bias.
+- This is exactly omitted variable bias from last lecture, drawn as a picture.
+- Finance example: firm quality drives both whether a firm has a lending relationship and how much it invests.
+- **Do control for confounders** --- if you can measure them.
+
+## Collider: $D \to C \leftarrow Y$
+
+- $C$ is a **collider**: a common *effect* of treatment and outcome.
+- The path is **closed** by default --- $D$ and $Y$ are *not* correlated through it.
+- Conditioning on $C$ **opens** the path and *creates* a correlation that did not exist.
+- This is the one with no counterpart in your regression training, and it is where most damage is done.
+- Finance example: skill and luck are independent, but both determine whether a fund survives. Study only survivors and skill and luck become correlated.
+- **Do not control for colliders** --- and note that "control for" includes *sample selection*.
+
+## The one table to memorize
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+& & \textbf{Association} & \textbf{Conditioning} & \textbf{Should} \\
+Structure & Shape & \textbf{flows already?} & \textbf{on middle node} & \textbf{you?} \\
+\midrule
+Chain (mediator)  & $D \to M \to Y$        & Yes, \emph{causal}   & \textbf{blocks} it & \textbf{No} \\
+Fork (confounder) & $D \leftarrow X \to Y$ & Yes, \emph{spurious} & \textbf{blocks} it & \textbf{Yes} \\
+Collider          & $D \to C \leftarrow Y$ & No                   & \textbf{opens} it  & \textbf{No} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+- Column 3 asks whether $D$ and $Y$ are *already* correlated through this structure; column 4, what conditioning does to that.
+- Only the **fork** is worth conditioning on: it is the only structure where association flows and is *not* the effect you want.
+- Mediators and colliders are both "leave alone" --- for opposite reasons. Blocking a mediator deletes the answer; opening a collider invents one.
+- Conditioning on a **descendant** of a collider partially opens it too. A proxy for a collider is still a collider.
+
+# Backdoor Paths and the Backdoor Criterion
+
+## Backdoor paths
+
+- A **backdoor path** is a path connecting $D$ and $Y$ that begins with an arrow pointing *into* $D$.
+- Compare: $D \to Y$ leaves $D$ through an arrow pointing *out*, so it is a front-door --- the causal path.
+- Backdoor paths generate correlation without causation --- "back doors" through which association leaks.
+- Identification strategy in one sentence:
+
+\begin{center}
+\emph{Leave every directed path from $D$ to $Y$ open.\\
+Close every backdoor path.}
+\end{center}
+
+- The **backdoor criterion**: a set of variables $\mathbf{Z}$ identifies the causal effect of $D$ on $Y$ if
+  1. $\mathbf{Z}$ blocks every backdoor path from $D$ to $Y$, and
+  2. $\mathbf{Z}$ contains no descendant of $D$.
+- Condition 2 is what rules out mediators and post-treatment colliders.
+
+## A DAG: Example
+
+Effect of a bank **relationship** ($D$) on firm **investment** ($Y$).
+
+\begin{center}
+\begin{tikzpicture}[node distance=16mm]
+\node[dnode] (D) {$D$};
+\node[dnode, right=42mm of D] (Y) {$Y$};
+\node[unode, above=16mm of $(D)!0.5!(Y)$] (Q) {$Q$};
+\node[dnode, above left=8mm and 4mm of D] (S) {$S$};
+\node[dnode, below=14mm of $(D)!0.5!(Y)$] (E) {$E$};
+\draw[de] (D) -- (Y);
+\draw[dde] (Q) -- (D);
+\draw[dde] (Q) -- (Y);
+\draw[de] (S) -- (D);
+\draw[dde] (Q) -- (S);
+\draw[de] (E) -- (D);
+\draw[de] (E) -- (Y);
+\end{tikzpicture}
+\end{center}
+
+\vspace{-0.3em}
+
+- $Q$ = firm quality (**unobserved**), $S$ = firm size, $E$ = local economic conditions.
+
+## Enumerate the paths
+
+From the previous DAG:
+
+1. $D \to Y$ --- **directed**. Leave open; this is the estimand.
+2. $D \leftarrow Q \to Y$ --- backdoor, open (fork at $Q$).
+3. $D \leftarrow S \leftarrow Q \to Y$ --- backdoor, open (chain then fork).
+4. $D \leftarrow E \to Y$ --- backdoor, open (fork at $E$).
+
+\vspace{0.5em}
+
+- Conditioning on $\{Q, E\}$ blocks paths 2, 3, and 4. Identified.
+- But $Q$ is **unobserved**. So the achievable set is $\{S, E\}$:
+  - blocks path 3 (at $S$) and path 4 (at $E$),
+  - leaves path 2 **open**.
+- Conclusion: the effect is **not identified** by controlling for observables. 
+- That conclusion --- reached before running anything --- is the DAG earning its keep.
+
+## Simulation: the fork, and closing it
+
+$Q \to D$, $Q \to Y$, $D \to Y$ with a true effect of $2$.
+
+```{r}
+#| echo: true
+set.seed(975)
+n    <- 100000
+qual <- rnorm(n)                    # firm quality (the confounder)
+D    <- 0.6 * qual + rnorm(n)       # relationship lending
+Y    <- 2 * D + 1.5 * qual + rnorm(n)   # TRUE effect of D on Y is 2
+
+b <- function(f) unname(coef(lm(f))[2])
+round(c(naive = b(Y ~ D), control_Q = b(Y ~ D + qual)), 3)
+```
+
+- Leaving the backdoor open: the estimate is too large by about $0.66$.
+- Blocking it at $Q$: we recover the truth. This is OVB from last lecture, now read off a graph.
+- Here "blocking" just means putting $Q$ in the regression. There is a more general way to do it --- reweighting rather than regressing --- which we take up with **inverse probability weighting** in the DiD lecture.
+
+<!-- DEFERRED TO THE DiD LECTURE. The reweighting point lands better alongside
+     inverse probability weighting and doubly-robust DiD, where it is actually used.
+
+## Adjustment: what to actually compute
+
+- The criterion says *which* set to condition on. It does not say what to **compute**.
+- If $\mathbf{Z}$ satisfies the backdoor criterion, the **adjustment formula** is
+$$
+E[Y^d] \;=\; \sum_z \underbrace{E[Y \mid D{=}d,\, Z{=}z]}_{\text{observable}} \; \underbrace{P(Z{=}z)}_{\textbf{marginal}}
+$$
+- Compare the naive comparison, which is just the law of total expectation:
+$$
+E[Y \mid D{=}d] \;=\; \sum_z E[Y \mid D{=}d,\, Z{=}z] \; \underbrace{P(Z{=}z \mid D{=}d)}_{\textbf{conditional}}
+$$
+- **Same ingredients. Different weights.** The naive version weights each stratum by how common it is *within the treated group*; adjustment weights it by how common it is *in the whole population*.
+- When $Z \indep D$ --- as under randomization --- the two weightings are identical, and the naive comparison is already right.
+
+## A numerical example
+
+Fifty small firms, fifty large. Small firms are much more likely to be treated.
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+Stratum & $n$ treated ($Y$) & $n$ untreated ($Y$) & Effect within stratum \\
+\midrule
+Small & 40 \quad ($Y = 4$) & 10 \quad ($Y = 2$) & $+2$ \\
+Large & 10 \quad ($Y = 10$) & 40 \quad ($Y = 8$) & $+2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- The effect is $+2$ **in every stratum**, so the true $ATE$ is $+2$.
+- Naive comparison:
+$$
+E[Y|D{=}1] = \tfrac{40(4) + 10(10)}{50} = 5.2, \qquad
+E[Y|D{=}0] = \tfrac{10(2) + 40(8)}{50} = 6.8, \qquad SDO = -1.6
+$$
+- The naive number is **negative** when the truth is $+2$. Nothing is mismeasured.
+
+## Why: the weights differ
+
+- Stratum weights used by the two calculations:
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+& $P(\text{small})$ & $P(\text{small} \mid D{=}1)$ & $P(\text{small} \mid D{=}0)$ \\
+\midrule
+Weight on small firms & $0.5$ & $\mathbf{0.8}$ & $\mathbf{0.2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- The treated group is $80\%$ small firms; the control group is $80\%$ large firms. Large firms have higher $Y$ for reasons unrelated to treatment, so the controls look better.
+- Adjustment re-weights **both** arms to the same population, $P(\text{small}) = 0.5$:
+$$
+E[Y^1] = 4(0.5) + 10(0.5) = 7, \qquad E[Y^0] = 2(0.5) + 8(0.5) = 5, \qquad ATE = +2 \;\checkmark
+$$
+- That is the entire content of "controlling for $Z$": **compare like with like, then average over the population you care about.**
+- Running a regression of $Y$ on $D$ and $Z$ is a parametric shortcut to this. It assumes linearity and returns a *variance-weighted* average of strata rather than the population-weighted one --- identical when effects are homogeneous, different when they are not. That gap resurfaces in the staggered DiD literature.
+
+-->
+
+## Multiple valid strategies
+
+- Often several different sets satisfy the backdoor criterion.
+- Any of them gives an **unbiased** estimate --- so choose among them on **precision**.
+- Rule of thumb: prefer the set that includes strong predictors of $Y$.
+  - They do not change identification; they shrink residual variance and tighten standard errors.
+- This is the legitimate version of "add controls to make the estimate sharper" --- legitimate precisely because you verified the backdoor criterion *first*.
+- The illegitimate version, adding controls and hoping, is what the rest of this lecture is about.
+
+# Collider Bias
+
+## Colliders create correlation out of nothing
+
+- The claim that surprises people: conditioning on a collider makes **independent** variables dependent.
+- Intuition. Suppose a fund survives only if $\text{skill} + \text{luck}$ is high enough.
+  - Among survivors, a manager with low skill *must* have had high luck --- otherwise they would not be in the sample.
+  - So within survivors, skill and luck are **negatively** correlated, though they are independent in the population.
+- Nothing was manipulated, no arrow was drawn. The correlation is manufactured entirely by **who is in the sample**.
+
+## Survivorship as a collider
+
+\begin{center}
+\begin{tikzpicture}[node distance=18mm]
+\node[dnode] (S) {Skill};
+\node[dnode, right=34mm of S] (L) {Luck};
+\node[bnode, below=14mm of $(S)!0.5!(L)$] (V) {Survive};
+\draw[de] (S) -- (V);
+\draw[de] (L) -- (V);
+\draw[dde, <->, gray] (S) to[bend left=18] node[above,font=\small,black]{induced} (L);
+\end{tikzpicture}
+\end{center}
+
+- Grey box = we conditioned on it (here, by studying only surviving funds).
+- Skill $\to$ Survive $\leftarrow$ Luck is a collider. It was closed. We opened it.
+
+## Simulation: the surviving-fund fallacy
+
+```{r}
+#| echo: true
+set.seed(975)
+n     <- 100000
+skill <- rnorm(n)                       # independent...
+luck  <- rnorm(n)                       # ...by construction
+perf  <- skill + luck
+surv  <- perf > quantile(perf, 0.80)    # only the top 20% survive
+
+round(c(cor_all       = cor(skill, luck),
+        cor_survivors = cor(skill[surv], luck[surv])), 3)
+```
+
+\vspace{-0.5em}
+
+```{r}
+#| echo: true
+round(c(slope_all       = unname(coef(lm(perf ~ skill))[2]),
+        slope_survivors = unname(coef(lm(perf[surv] ~ skill[surv]))[2])), 3)
+```
+
+- Skill and luck: independent in the population, correlated $-0.64$ among survivors.
+- The return to skill looks like $0.36$ instead of $1.00$ --- understated by nearly two thirds.
+
+## This is not a hypothetical
+
+- The same structure appears throughout empirical finance, usually unnoticed:
+  - **Fund performance studies** on surviving funds.
+  - **Compustat / Execucomp**: a firm appears only if it listed and survived. Listing is caused by size, quality, and opportunity --- a collider.
+  - **M\&A studies** conditioned on **completed** deals: completion is caused by bidder synergies *and* target resistance.
+  - **Rated firms only**: a firm is rated when it chooses to issue public debt.
+  - **IPO samples**: going public is a common effect of quality and market conditions.
+- Empirical finance treats these as a list of separate warnings --- survivorship bias, sample coverage, deal completion. They are **one structural error**: conditioning on a collider.
+- The DAG turns a folklore checklist into a rule you can check.
+
+<!--
+## So what do you do about it?
+
+No single fix. Roughly in order of how convincing they are:
+
+1. **Find data without the selection.** Regulatory filings, private-firm registries. Expensive --- and often the highest-return move in the project.
+2. **Model the selection.** Heckman-type joint estimation --- but it buys identification with an exclusion restriction. The assumption moved; it did not vanish.
+3. **Reweight.** Estimate the probability of appearing in the sample; weight by its inverse.
+4. **Bound it.** Report how large the selection effect must be to overturn the result.
+5. **Narrow the claim.** Say the estimand is the effect *among survivors*, and stop. Often the honest answer.
+
+\vspace{0.2em}
+
+- What does **not** work: more controls, or more data from the same selected population.
+- (1)--(3) try to *undo* conditioning --- far harder than never conditioning. Hence: draw the DAG **before** pulling the data.
+-->
+
+
+## Selection *is* conditioning
+
+- Emphasize: you do not need to type a variable into a regression to condition on it.
+- You condition on a variable whenever you
+  - include it as a control,
+  - stratify or match on it,
+  - **drop observations** based on it,
+  - or use a dataset that was **assembled** using it.
+- The last one is the dangerous case, because it is invisible in your code.
+
+\vspace{0.3em}
+
+**Example.** Your sample is the CRSP--Compustat merged file. A firm appears only if it (i) listed on a US exchange and (ii) filed accounts that got matched. Both are consequences of size, age, and quality --- the same things driving your outcome. You conditioned on a collider without writing a single line of code that mentions it.
+
+\vspace{0.3em}
+
+- Practical advice: write *how the sample was constructed* into the DAG, as nodes. Sample-construction filters are conditioning statements.
+
+## Sign reversal: the classic example
+
+- Cunningham's example, following Pearl: does gender discrimination lower wages?
+- Discrimination pushes women into lower-paying occupations, *and* lowers pay directly. Ability raises both occupation and wage.
+
+\begin{center}
+\begin{tikzpicture}
+\node[dnode] (F) at (0,0) {$F$};
+\node[dnode] (W) at (5.4,0) {$W$};
+\node[bnode] (O) at (2.7,-1.3) {$O$};
+\node[unode] (A) at (2.7,1.2) {$A$};
+\draw[de] (F) -- (W);
+\draw[de] (F) -- (O);
+\draw[dde] (A) -- (O);
+\draw[dde] (A) -- (W);
+\node[font=\small] at (2.7,-2.2) {$F$ = female, $O$ = occupation, $A$ = ability (unobserved), $W$ = wage};
+\end{tikzpicture}
+\end{center}
+
+- $O$ is a **collider** on $F \to O \leftarrow A \to W$. It is also a **mediator** on $F \to O \to W$.
+- Controlling for it does both bad things at once: blocks part of the real effect, and opens a spurious path.
+
+## Simulating the sign reversal
+
+```{r}
+#| echo: true
+set.seed(975)
+n       <- 10000
+female  <- rbinom(n, 1, 0.5)
+ability <- rnorm(n)                                    # unobserved in practice
+occ     <- 1 + 2*ability - 2*female  + rnorm(n)        # discrimination -> worse occupation
+wage    <- 1 - 1*female + 1*occ + 2*ability + rnorm(n) # direct effect of discrimination = -1
+
+b <- function(f) unname(coef(lm(f))[2])
+round(c(none        = b(wage ~ female),
+        occ_only    = b(wage ~ female + occ),
+        occ_ability = b(wage ~ female + occ + ability)), 3)
+```
+
+- True **direct** effect $= -1$; true **total** effect $= -1 + 1\times(-2) = -3$.
+
+## Reading the sign reversal
+
+- **No controls** $\approx -3$: recovers the *total* effect. Correct, if total is what you want.
+- **Control for occupation** $\approx +0.6$: **the sign flips.** Within an occupation, a woman must have had higher ability to get there --- so the female dummy now partly proxies for ability, which raises wages.
+- **Control for occupation and ability** $\approx -1$: recovers the direct effect, because conditioning on $A$ closes the path that conditioning on $O$ opened.
+- The rescue only worked because ability was **observable in the simulation**. In your data it is not.
+- The finance version is exactly this shape: study a shock's effect on firm value, control for leverage, and unobserved quality does the work that ability does here.
+
+# Bad Controls
+
+## The bad control problem
+
+- A **bad control** is a variable that is itself affected by the treatment.
+- Last lecture we previewed this and deferred the explanation. Here it is:
+  - if $D \to X$, then $X$ is a descendant of $D$;
+  - conditioning on it violates part 2 of the backdoor criterion;
+  - it either blocks part of the causal effect (if $X$ is a mediator) or opens a collider path (if $X$ has another parent).
+- The second case is the nasty one, because it can happen even when $D$ was **randomly assigned**.
+
+## Randomization does not protect you
+
+\begin{center}
+\begin{tikzpicture}[node distance=18mm]
+\node[dnode] (D) {$D$};
+\node[dnode, right=42mm of D] (Y) {$Y$};
+\node[bnode, below=15mm of $(D)!0.5!(Y)$] (L) {$L$};
+\node[unode, above right=10mm and 10mm of D] (A) {$A$};
+\draw[de] (D) -- (Y);
+\draw[de] (D) -- (L);
+\draw[dde] (A) -- (L);
+\draw[dde] (A) -- (Y);
+\end{tikzpicture}
+\end{center}
+
+- $D$ = credit supply shock (**randomly assigned**), $Y$ = investment, $L$ = leverage, $A$ = firm quality (unobserved).
+- Nothing points into $D$: there are **no backdoor paths**. The naive regression is already correct.
+- But $L$ is a collider on $D \to L \leftarrow A \to Y$. Control for leverage and you open it.
+
+## Simulation: how to ruin an experiment
+
+```{r}
+#| echo: true
+set.seed(975)
+n <- 100000
+D <- rnorm(n)                     # credit shock -- RANDOMLY ASSIGNED
+A <- rnorm(n)                     # firm quality -- unobserved
+L <- D + A + rnorm(n)             # leverage -- affected by treatment
+Y <- 1 * D + 3 * A + rnorm(n)     # TRUE effect of D on Y is +1
+
+b <- function(f) unname(coef(lm(f))[2])
+round(c(no_controls     = b(Y ~ D),
+        control_L       = b(Y ~ D + L),
+        control_L_and_A = b(Y ~ D + L + A)), 3)
+```
+
+- Treatment was randomized. The true effect is $+1$. One control variable turns it into $-0.5$.
+- Nothing here is mismeasured, nonlinear, or small-sample. $n = 100{,}000$ and the bias is structural.
+
+## Reading the damage
+
+- Without controls: $D$ is randomized, no backdoor exists, estimate $\approx 1$. Correct.
+- Adding $L$: opens $D \to L \leftarrow A \to Y$, and the estimate drops to $-0.5$.
+- Adding $A$ as well: closes the newly opened path, restoring $+1$ --- but $A$ is unobserved in any real study.
+- The lesson is not "leverage is a bad control." It is:
+
+\begin{center}
+\emph{Whether a variable is a good control is not a property of the variable.\\
+It is a property of its position in the graph.}
+\end{center}
+
+<!--
+## Where the $-0.5$ comes from
+
+- The simulation was $L = D + A + e_L$ and $Y = \beta D + \gamma A + e_Y$, with $D, A, e_L, e_Y$ independent, $\mathrm{var}(D) = \mathrm{var}(A) = 1$.
+- Regress $Y$ on $D$ **and** $L$. The needed moments are
+$$
+\mathrm{var}(D) = 1, \quad \mathrm{cov}(D,L) = 1, \quad \mathrm{var}(L) = 2 + \sigma_L^2,
+\quad \mathrm{cov}(D,Y) = \beta, \quad \mathrm{cov}(L,Y) = \beta + \gamma
+$$
+- Solving the two normal equations for the coefficient on $D$:
+$$
+b_D \;=\; \frac{\beta(2+\sigma_L^2) - (\beta+\gamma)}{(2+\sigma_L^2) - 1}
+     \;=\; \beta \;-\; \frac{\gamma}{1+\sigma_L^2}
+$$
+- With $\beta = 1$, $\gamma = 3$, $\sigma_L^2 = 1$: $\; b_D = 1 - \tfrac{3}{2} = -0.5$. \checkmark
+- The bias term $-\gamma/(1+\sigma_L^2)$ says the damage grows with $\gamma$ (how strongly the unobservable drives $Y$) and shrinks as $L$ gets noisier --- a noisier collider is a weaker one.
+-->
+
+
+## Bad controls in finance
+
+Common post-treatment controls, and what they do:
+
+- **Leverage / firm size / Tobin's Q** in a study of a shock that plausibly moves them.
+- **Analyst coverage** when studying disclosure --- disclosure changes coverage.
+- **Deal completion** in M\&A --- completion is post-announcement.
+- **Survival to $t+1$** in any panel with attrition.
+- **Post-treatment industry classification** for firms that change industries after treatment.
+
+\vspace{0.4em}
+
+- The operational rule from last lecture, now justified: **controls must be determined before treatment**.
+- When in doubt, report the specification without the questionable control. If the estimate moves a lot, you have learned something --- and you must explain which specification the DAG supports.
+
+# Neutral Controls and Precision
+
+## Not every control matters
+
+- Some variables are neither confounders nor colliders. Conditioning on them changes nothing about bias.
+- Two useful cases:
+  - $X \to Y$ only (a predictor of the outcome, unrelated to $D$): **harmless and helpful** --- it reduces residual variance and tightens standard errors.
+  - $X \to D$ only (a predictor of treatment, unrelated to $Y$): **harmless but harmful in practice** --- it absorbs variation in $D$ and *inflates* standard errors.
+- The second is the seed of the weak-instrument and "overcontrolling" problems you will meet in the IV lecture.
+
+## Precision: the setup
+
+\begin{center}
+\begin{tikzpicture}
+\node[dnode] (D)  at (0,0)     {$D$};
+\node[dnode] (Y)  at (6,0)     {$Y$};
+\node[dnode] (X1) at (2,1.7)   {$X_1$};
+\node[dnode] (X2) at (4,1.7)   {$X_2$};
+\node[dnode] (X4) at (-1.7,1.7) {$X_4$};
+\node[dnode] (X3) at (7.7,1.7)  {$X_3$};
+\draw[de] (D) -- (Y);
+\draw[de] (X1) -- (D);
+\draw[de] (X1) -- (Y);
+\draw[de] (X2) -- (D);
+\draw[de] (X2) -- (Y);
+\draw[de] (X4) -- (D);
+\draw[de] (X3) -- (Y);
+\end{tikzpicture}
+\end{center}
+
+- $X_1, X_2$ are **confounders** --- they point at both $D$ and $Y$. Any valid set must include them.
+- $X_3$ points at $Y$ only. $X_4$ points at $D$ only. Neither sits on a backdoor path, so **neither is needed** for identification.
+- All three sets below therefore satisfy the backdoor criterion. They differ only in precision.
+
+## Precision: simulating three valid strategies
+
+```{r}
+#| echo: true
+set.seed(975)
+sim <- function() {
+  n  <- 1000
+  x1 <- rnorm(n); x2 <- rnorm(n)                 # confounders: -> D and -> Y
+  x3 <- rnorm(n)                                 # predicts Y only
+  x4 <- rnorm(n)                                 # predicts D only
+  D  <- 0.5*x1 + 0.5*x2 + 1.5*x4 + rnorm(n)
+  Y  <- 2*D + 2*x1 + 2*x2 + 4*x3 + rnorm(n)      # TRUE effect = 2
+  b  <- function(f) unname(coef(lm(f))[2])
+  c(minimal = b(Y ~ D + x1 + x2),
+    plus_x3 = b(Y ~ D + x1 + x2 + x3),
+    plus_x4 = b(Y ~ D + x1 + x2 + x4))
+}
+r <- replicate(1000, sim())
+round(rbind(mean = apply(r, 1, mean), sd = apply(r, 1, sd)), 4)
+```
+
+## Reading the precision results
+
+- All three are **unbiased** --- every mean is $2.000$. Identification is settled; only variance differs.
+- Adding $X_3$, which predicts **only $Y$**, cuts the standard deviation from $0.074$ to $0.017$ --- four times sharper. It soaks up residual variance without touching identification.
+- Adding $X_4$, which predicts **only $D$**, raises it to $0.130$ --- nearly twice as noisy. It absorbs the variation in $D$ you were relying on.
+- Same bias, a sevenfold spread in precision.
+- **Practical guidance**:
+  1. First use the DAG to find sets that identify the effect. That is about *bias*.
+  2. Then, among those sets, prefer strong predictors of $Y$ and avoid strong predictors of $D$ alone. That is about *variance*.
+- Never reverse the order. Choosing controls by what tightens the standard error is how sign flips get published.
+- The $X_4$ case is the seed of the weak-instrument problem in the IV lecture: an instrument is a variable that predicts $D$ and nothing else.
+
+# What DAGs Cannot Do
+
+## Honest limitations
+
+1. **DAGs do not test assumptions.** A DAG is an argument, not evidence. The data cannot tell you which way an arrow points.
+2. **DAGs are non-parametric.** They tell you *whether* an effect is identified, never how large it is, nor the functional form, nor the estimator.
+3. **DAGs are acyclic.** Genuine simultaneity --- the equilibrium feedback that pervades finance --- cannot be drawn. Time-indexing helps; it does not always suffice.
+4. **DAGs say nothing about magnitude.** A technically open backdoor path with a tiny effect may matter less than a closed one. The graph is binary; the world is not.
+5. **DAGs do not choose estimands.** $ATE$ versus $ATT$ is a potential outcomes question.
+
+## DAGs and potential outcomes are complements
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+Potential outcomes is better for & DAGs are better for \\
+\midrule
+Defining estimands ($ATE$, $ATT$, $ATU$) & Choosing what to control for \\
+Heterogeneous effects, $\delta_i$        & Spotting colliders and bad controls \\
+Deriving estimators and their bias       & Communicating a design in one picture \\
+Inference and standard errors            & Proving an effect is \emph{not} identified \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.5em}
+
+- Use the DAG to decide your specification; use potential outcomes to say what the coefficient means.
+- A referee-proof paper does both, and says so explicitly.
+
+## How to use this in your own work
+
+1. Draw the DAG **before** the regression --- including how the sample was built.
+2. Mark unobserved variables with dashes. Be honest about what you cannot measure.
+3. List every path from $D$ to $Y$. Classify each: directed, or backdoor.
+4. Find a set satisfying the backdoor criterion. If none exists using observables, **say so** --- and go find a research design (IV, RDD, DiD) instead of more controls.
+5. Among valid sets, pick for precision.
+6. Put the DAG in the paper. Referees can then argue about your assumptions, which is the argument worth having.
+
+# Wrapping Up
+
+## Summary [Part 1]
+
+- A DAG is a picture of your causal assumptions; the **missing** arrows carry the content.
+- **Association flows along all paths; causation flows only along directed paths.**
+- Three structures, and the whole calculus follows from them:
+  - **Chain** $D \to M \to Y$: open; conditioning closes it. Do not control for mediators.
+  - **Fork** $D \leftarrow X \to Y$: open; conditioning closes it. Do control for confounders.
+  - **Collider** $D \to C \leftarrow Y$: closed; conditioning **opens** it. Never control for colliders.
+- **Backdoor criterion**: block every backdoor path, and condition on no descendant of $D$.
+
+## Summary [Part 2]
+
+- **Collider bias is real and large.** Independent variables became correlated at $-0.64$ purely through sample selection; the return to skill fell from $1.00$ to $0.36$.
+- **Selection is conditioning.** Dropping observations, or using a dataset assembled on a criterion, conditions just as surely as a regression control does.
+- **Randomization does not immunize you**: a randomized treatment with one post-treatment control produced $-0.5$ when the truth was $+1$.
+- Whether a control is good is a property of its **position in the graph**, not of the variable.
+- Identify first (bias), then choose among valid sets (variance). Never the reverse.
+- Next lecture: potential outcomes and DAGs both assumed we could condition our way to identification. What if we cannot? --- **Unconfoundedness and matching**.
+
+## References
+
+\footnotesize
+
+- Cunningham, S. *Causal Inference: The Remix*, Ch. 3.
+- Pearl, J. (2009). *Causality: Models, Reasoning, and Inference*, 2nd ed. Cambridge University Press.
+- Pearl, J. and D. Mackenzie (2018). *The Book of Why*. Basic Books.
+- Cinelli, C., A. Forney, and J. Pearl (2024). A Crash Course in Good and Bad Controls. *Sociological Methods & Research* 53, 1071--1104.
+- Angrist, J. and J.-S. Pischke (2009). *Mostly Harmless Econometrics*, §3.2.3. Princeton University Press.
+- Elwert, F. and C. Winship (2014). Endogenous Selection Bias: The Problem of Conditioning on a Collider Variable. *Annual Review of Sociology* 40, 31--53.
+- Kisgen, D. and P. Strahan (2010). Do Regulations Based on Credit Ratings Affect a Firm's Cost of Capital? *Review of Financial Studies* 23, 4324--4347.

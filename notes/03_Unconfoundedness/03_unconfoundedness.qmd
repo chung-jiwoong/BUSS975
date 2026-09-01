@@ -1,0 +1,2023 @@
+---
+title: "Unconfoundedness"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+author: "Professor Ji-Woong Chung"
+institute: "Korea University"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    slide-level: 2
+    toc: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \setbeamertemplate{navigation symbols}{}
+        \setbeamertemplate{footline}[frame number]
+        \setbeamertemplate{itemize items}[circle]
+        \setbeamertemplate{itemize subitem}[triangle]
+        \setbeamercolor{frametitle}{fg=black}
+        \setbeamerfont{frametitle}{series=\bfseries}
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+        \usepackage{tikz}
+        \usetikzlibrary{arrows.meta,positioning,calc}
+        \tikzset{
+          dnode/.style={circle,draw,thick,minimum size=9mm,inner sep=1pt,font=\small},
+          unode/.style={circle,draw,thick,dashed,minimum size=9mm,inner sep=1pt,font=\small},
+          bnode/.style={rectangle,draw,thick,fill=gray!25,minimum size=9mm,inner sep=3pt,font=\small},
+          de/.style={-{Stealth[length=2.2mm]},thick},
+          dde/.style={-{Stealth[length=2.2mm]},thick,dashed}
+        }
+        % shrink code input (fancyvrb) and code output (verbatim)
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\scriptsize}
+        \makeatletter
+        \def\verbatim@font{\scriptsize\ttfamily}
+        \makeatother
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+---
+
+## Acknowledgments and readings
+
+- These slides follow Scott Cunningham, *Causal Inference: The Remix* (2nd ed.), Chapter 5, "Unconfoundedness."
+  - Free online: `https://mixtape.scunning.com`
+- The Titanic example, the covariate taxonomy, and the NSW discussion are Cunningham's.
+- The comparison of matching with regression, and the discussion of what matching cannot do, are adapted from Todd Gormley's lecture notes.
+
+## Outline
+
+1. Introduction: what actually resolves bias
+2. Confounders, covariates, and colliders
+3. Identification assumptions
+4. Subclassification
+5. Exact matching
+6. Nearest-neighbour matching
+7. Inference with matching
+8. Bias correction
+9. Propensity scores
+10. Regression
+11. What matching cannot do
+12. The NSW demonstration
+
+# Introduction
+
+## Where we left off
+
+- Lecture 2 gave us a rule for **which** variables to condition on: block every backdoor path, condition on no descendant of $D$.
+- It was silent on two things:
+  - What if the variables that would close the backdoors are **unobserved**? (Usually the case.)
+  - Given a valid set, **how** do we actually condition --- and does it matter?
+- This lecture takes the optimistic branch: **suppose the confounders are observed**. What then?
+- The methods --- subclassification, matching, propensity scores, regression --- are all answers to "how." They differ less than their names suggest.
+
+<!--
+## Two rivers of causal inference
+
+Cunningham opens the chapter with a piece of intellectual history, because it explains why this material is contested.
+
+\begin{center}
+\begin{tabular}{p{5.4cm}p{5.4cm}}
+\toprule
+\textbf{The statistics tradition} & \textbf{The labor economics tradition} \\
+Rubin, Imbens, Abadie & Card, Angrist, Krueger \\
+\midrule
+Model the \emph{assignment mechanism}; adjust for covariates & Find an \emph{external} source of variation \\
+Unconfoundedness, matching, propensity scores & IV, RDD, DiD \\
+``Which covariates make treatment as-if random?'' & ``What shock assigned treatment for us?'' \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+- The Princeton school was, in Cunningham's words, "pretty skeptical that unconfoundedness based methods could on their own successfully eliminate selection bias in observational work."
+- Empirical finance drinks from both rivers. You need to know why each camp distrusts the other.
+-->
+
+
+## Treatment assignment mechanisms resolve bias, not models
+
+Recall Lecture 1's decomposition. It is an **identity** --- true in every dataset, experimental or not:
+
+$$
+\underbrace{E[Y|D{=}1] - E[Y|D{=}0]}_{SDO}
+\;=\; ATE
+\;+\; \underbrace{E[Y^0|D{=}1] - E[Y^0|D{=}0]}_{\text{selection on levels}}
+\;+\; \underbrace{(1-\pi)(ATT - ATU)}_{\text{selection on gains}}
+$$
+
+- Nothing here is an assumption. The identity holds whatever you do.
+- **A regression cannot delete the last two terms.** No functional form, no set of fixed effects, no clustering choice touches them.
+- What deletes them is a **claim about how treatment was assigned**.
+
+## What randomization actually did
+
+- Under $(Y^1,Y^0) \indep D$, we were permitted to *deduce*:
+$$
+E[Y^0|D{=}1] = E[Y^0|D{=}0], \qquad E[Y^1|D{=}1] = E[Y^1|D{=}0]
+$$
+- The first kills selection on levels. Both together kill $ATT - ATU$. What is left is the $ATE$.
+- The deductions came from the **assignment mechanism**, not from any estimator. We then *inserted* them into a statistical model.
+<!--- Cunningham's line, worth memorising:-->
+
+\vspace{0.3em}
+\begin{center}
+\emph{The statistical model alone cannot resolve bias --- the statistical model matched with the assignment mechanism can.}
+\end{center}
+
+## Why this framing matters
+
+- Randomization is an **assignment mechanism**, not a statistical model. A regression is a **statistical model**, not an assignment mechanism.
+- Confusing the two produces the most common error in empirical finance: believing that a long enough control list is itself an identification strategy.
+- Unconfoundedness is this lecture's assignment mechanism. It says treatment was assigned **as if at random within strata of $X$**.
+- Everything that follows --- subclassification, matching, propensity scores, regression --- is a statistical model that becomes credible *only* if you can defend that mechanism.
+- So the order of business is: defend the mechanism first, choose the estimator second. 
+
+## The bet we are making
+
+\begin{center}
+\begin{tikzpicture}
+\node[dnode] (D) at (0,0)   {$D$};
+\node[dnode] (Y) at (4.6,0) {$Y$};
+\node[dnode] (X) at (2.3,1.5) {$X$};
+\draw[de] (D) -- (Y);
+\draw[de] (X) -- (D);
+\draw[de] (X) -- (Y);
+\end{tikzpicture}
+\end{center}
+
+- Everything rests on one claim: **there is no dashed circle**. No unobserved $U$ pointing at both $D$ and $Y$.
+- That claim is **not testable**. No diagnostic, balance table, or specification test can establish it.
+- It is defended with institutional knowledge, not statistics --- which is why this lecture spends as much time on *what could go wrong* as on estimators.
+- The literature calls it **unconfoundedness**, **conditional independence (CIA)**, or **selection on observables**. Same thing.
+
+# Confounders, Covariates, and Colliders
+
+## A worked DAG: first class on the Titanic
+
+- **Question**: did a first-class ticket ($D$) raise your chance of surviving ($Y$)?
+- The raw comparison is stark: $62.5\%$ of first-class passengers survived, versus $27.1\%$ of everyone else --- a gap of $35.4$ percentage points.
+- But the *"women and children first"* rule was actually enforced, and first-class cabins were closer to the boat deck.
+- So **sex** and **age** drive both who bought a first-class ticket and who got into a lifeboat. Textbook confounding.
+- We use this because the data are real, complete, and small enough to compute by hand --- and because the confounders are not in dispute.
+
+## The Titanic DAG
+
+\begin{center}
+\begin{tikzpicture}
+\node[dnode] (D) at (0,0)     {$D$};
+\node[dnode] (M) at (2.2,0)   {$M$};
+\node[dnode] (Y) at (4.4,0)   {$Y$};
+\node[dnode] (W) at (1.1,1.7) {$W$};
+\node[dnode] (C) at (3.3,1.7) {$C$};
+\node[dnode] (F) at (2.2,-1.9){$F$};
+\node[dnode] (S) at (6.6,1.2) {$S$};
+\draw[de] (D) -- (M); \draw[de] (M) -- (Y);
+\draw[de] (D) to[bend right=40] (Y);
+\draw[de] (W) -- (D); \draw[de] (W) -- (Y);
+\draw[de] (C) -- (D); \draw[de] (C) -- (Y);
+\draw[de] (D) -- (F); \draw[de] (Y) -- (F);
+\draw[de] (S) -- (Y);
+\end{tikzpicture}
+\end{center}
+
+\vspace{-0.3em}
+
+\footnotesize
+$D$ first class \quad $Y$ survival \quad $W$ sex \quad $C$ age \quad $M$ lifeboat \quad $F$ fame \quad $S$ swimming
+
+\normalsize
+
+- Backdoor paths: $D \leftarrow W \rightarrow Y$ and $D \leftarrow C \rightarrow Y$. Both **open**. Condition on $\{W,C\}$ and both close.
+- $F$ is a **collider**: $D \rightarrow F \leftarrow Y$. Already closed; conditioning on it *opens* it.
+- $M$ is a **mediator**: first class sat nearer the boat deck. It is *part of* the effect, not a confounder of it.
+
+## Four kinds of variable
+
+\begin{center}
+\begin{tabular}{llp{6.5cm}}
+\toprule
+Type & Example & What conditioning does \\
+\midrule
+\textbf{Confounder}       & $W$ sex, $C$ age & \textbf{Required.} Closes a backdoor path. \\
+\textbf{Collider}         & $F$ fame         & \textbf{Forbidden.} Opens a closed path. \\
+\textbf{Neutral / precision} & $S$ swimming  & Optional. No bias either way; shrinks the standard error. \\
+\textbf{Mediator}         & $M$ lifeboat    & \textbf{Forbidden} for the total effect. Blocks the causal path. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+- Only one of these four rows is about bias *reduction*. Two are about bias *creation*.
+- Note $S$: it predicts the outcome but not treatment. Free precision --- the honest case for controls that are not confounders.
+- $M$ is the subtle one. Conditioning on it asks: *did first class help, holding fixed the main way it helped?* Near zero --- and the wrong question.
+- The categories are properties of the **graph**, not the variable. Press coverage *before* boarding would not be a collider.
+
+## The same DAG in corporate finance
+
+Effect of a **bank credit line** ($D$) on **firm investment** ($Y$):
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Titanic & Finance analogue & Rule \\
+\midrule
+$W$, $C$ sex, age  & Firm size, industry, credit rating & Condition on \\
+$F$ fame           & \emph{Subsequent} analyst coverage & Never condition on \\
+$S$ swimming       & Pre-period export-market demand    & Optional, improves precision \\
+$M$ lifeboat       & Amount actually drawn on the line  & Never condition on \\
+--- & Unobserved managerial quality & The thing that sinks you \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+- Analyst coverage is the finance collider you will meet: it responds *both* to the financing event and to firm performance.
+- The drawn amount is the mediator a referee will *ask* you for --- "surely control for how much they actually borrowed." That removes the channel you are trying to measure.
+- The last row has no Titanic counterpart, and that is the whole problem. On the Titanic we know the confounders are sex and age. In finance we rarely do.
+
+## Covariate selection without a DAG
+
+In practice you rarely have expert consensus on the full graph. Three working rules:
+
+1. **Include variables you are confident are confounders.** Prior knowledge about the assignment mechanism is the input, not the data.
+2. **Include pre-treatment variables that strongly predict the outcome.** These are either confounders or precision-improvers like $S$. Crucially, they are *probably not colliders* --- a variable measured before treatment cannot be caused by it.
+3. **Exclude anything that might be an outcome.** If you are unsure, exclude everything measured after treatment.
+
+\vspace{0.3em}
+
+- Rule 2 does most of the work in practice, and rule 3 is the one most often violated in finance.
+- "Pre-treatment" is doing heavy lifting in rule 2. It is a timing argument, and timing is checkable.
+
+<!--
+## Placebo analysis
+
+The one *empirical* check on a covariate strategy:
+
+- Run your specification on a period **before treatment occurred**, where the effect is known to be zero by construction.
+- If your covariate set produces a "significant effect" of the program when the program did not yet exist, the strategy is not credible.
+- This does not validate unconfoundedness. Passing is necessary, not sufficient --- it can only detect a strategy that is *already* broken.
+- Related finance practice: pre-trend plots, lagged-treatment coefficients, and outcomes that the treatment could not plausibly move.
+
+\vspace{0.3em}
+\begin{center}
+\emph{A placebo test can refute your design. It can never confirm it.}
+\end{center}
+
+## A placebo test in action
+
+**Setting.** Firms get a bank credit line ($D$) at $t=0$; outcome is investment. You observe
+size $S$ but not quality $Q$ or a transitory shock $Z$. You control for $S$ only.
+
+**The test.** Regress the *pre-treatment* outcome $Y_{-1}$ on $D$ and $S$. Treatment did not
+exist yet, so the true coefficient is **zero by construction**.
+
+\vspace{0.3em}
+
+Two worlds, identical in every draw except **what drives selection into treatment**:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+ & Selection driven by & Does it move $Y_{-1}$? \\
+\midrule
+\textbf{Persistent} confounder & $Q$ --- firm quality, always present & \textbf{Yes} \\
+\textbf{Transitory} confounder & $Z$ --- a shock arriving at $t=0$   & \textbf{No} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.3em}
+
+- Both violate unconfoundedness. Both bias the estimate. Only one leaves a trace in the past.
+
+## Running the placebo
+
+```{r}
+#| echo: true
+n <- 5000
+sim <- function(persistent) {
+  set.seed(975)                                 # same draws in both worlds
+  Q <- rnorm(n); S <- rnorm(n); Z <- rnorm(n)   # Q, Z UNOBSERVED; S observed
+  drv <- if (persistent) Q else Z               # what drives selection into D
+  D   <- as.integer(0.9 * drv + 0.9 * S + rnorm(n) > 0)
+  Ypre  <- Q + S + rnorm(n)                     # BEFORE treatment exists
+  Ypost <- Q + S + 1.5 * Z + 2 * D + rnorm(n)   # true effect = 2
+  pl <- coef(summary(lm(Ypre  ~ D + S)))["D", ] # the PLACEBO regression
+  po <- coef(summary(lm(Ypost ~ D + S)))["D", ] # the real regression
+  round(c(placebo = pl[[1]], plac_t = pl[[3]], estimate = po[[1]]), 2)
+}
+rbind(persistent = sim(TRUE), transitory = sim(FALSE))
+```
+
+\vspace{0.2em}
+
+- Column 1--2: the placebo coefficient and its $t$. Column 3: the estimate you would publish. **Truth is 2.**
+
+## Reading the placebo
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+ & Placebo coef. ($t$) & Verdict & Published estimate \\
+\midrule
+Persistent confounder & $1.10$ \; $(t = 26.5)$  & \textbf{FAILS} & $3.07$ \; (bias $+1.07$) \\
+Transitory confounder & $-0.01$ \; $(t = -0.2)$ & \textbf{PASSES} & $3.61$ \; (bias $+1.61$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+- Row 1 is the success story: a $t$ of $26.5$ on an effect that **cannot exist**. The design is caught before you publish it.
+- Row 2 is the warning. The placebo is immaculate --- $t = -0.2$, exactly what a clean design looks like --- and the estimate is off by $1.61$.
+- **The design that passed is more biased than the design that failed.** Passing bought you nothing.
+- Why: a placebo can only detect confounders that were *already moving the outcome* before treatment. A shock arriving *with* treatment is invisible to it, and those are common in finance --- a credit-supply shock, a rating change, a new CEO.
+
+## What to take from this
+
+- **Run it anyway.** It is nearly free, and row 1 is a real failure mode that it really does catch.
+- **Report it honestly.** "The placebo passes" is evidence of *absence of one kind of problem*, not evidence your design is sound.
+- Never write "the placebo test confirms our identifying assumption." It cannot. Write: *"we find no evidence of differential pre-treatment trends."*
+- The corresponding finance practices --- pre-trend plots, lagged-treatment coefficients, unaffected outcomes --- all share this same asymmetry, and all get over-claimed in the same way.
+
+\vspace{0.3em}
+\begin{center}
+\emph{Failing is informative. Passing is merely not-yet-refuted.}
+\end{center}
+-->
+
+
+# Identification Assumptions
+
+## Selecting the target parameter
+
+Before estimating anything, decide *whose* effect you want.
+
+$$
+ATE = E[Y^1 - Y^0], \quad
+ATT = E[Y^1 - Y^0 \mid D{=}1], \quad
+ATU = E[Y^1 - Y^0 \mid D{=}0]
+$$
+
+- Cunningham's example: a polio vaccine. The three parameters answer three different policy questions.
+  - $ATE$: what if we vaccinate **everyone**?
+  - $ATT$: how much did the vaccine help **those who took it**?
+  - $ATU$: what would happen if we reached **the currently unvaccinated**?
+- These coincide only under constant treatment effects. With heterogeneity they differ, sometimes a lot.
+- **The estimand is a choice you make about the policy question.**
+
+## Which parameter does the question need?
+
+\begin{center}
+\begin{tabular}{p{5.6cm}l}
+\toprule
+Finance question & Parameter \\
+\midrule
+Should the regulator extend this mandate to all firms? & $ATE$ \\
+Did the firms that adopted IFRS benefit from it? & $ATT$ \\
+Would forcing non-adopters to adopt help them? & $ATU$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+- Note the third row: it is the *expansion* question, and it is almost never the one your data can answer well.
+- Papers routinely estimate the $ATT$ and then write policy conclusions that require the $ATE$ or $ATU$. Watch for this in referee reports --- including your own.
+
+## Unconfoundedness is a version of independence
+
+- **Strong unconfoundedness:**
+$$
+(Y^1, Y^0) \;\indep\; D \;\mid\; X
+$$
+- Compare Lecture 1's randomization assumption, $(Y^1,Y^0) \indep D$, with no conditioning.
+- In words: among units with the *same* $X$, treatment is as good as randomly assigned. It is **conditional randomization**.
+- This is the assignment mechanism from §1, stratum by stratum:
+$$
+\begin{aligned}
+E[Y^1 \mid X{=}x] &= E[Y^1 \mid D{=}1, X{=}x] = E[Y^1 \mid D{=}0, X{=}x] \\[0.7em]
+E[Y^0 \mid X{=}x] &= E[Y^0 \mid D{=}1, X{=}x] = E[Y^0 \mid D{=}0, X{=}x]
+\end{aligned}
+$$
+- Strong because it's conditional independence with respect to **both** potential outcomes.
+
+## What the assumption buys: plug-in
+
+- The fundamental problem of causal inference is that $Y^1$ and $Y^0$ are never both observed.
+- Unconfoundedness lets us **replace a missing counterfactual with an observed outcome** from a comparable unit:
+
+$$
+\underbrace{E[Y^0 \mid D{=}1, X{=}x]}_{\text{never observed}}
+\;=\;
+\underbrace{E[Y^0 \mid D{=}0, X{=}x]}_{\text{observed}}
+\;=\;
+\underbrace{E[Y \mid D{=}0, X{=}x]}_{\text{in your data}}
+$$
+
+- The first equality is the **assumption**. The second is the switching equation --- pure definition.
+- Every method in this lecture is a different way of executing that substitution.
+- So switching estimators cannot rescue a design: all of them lean on the first equality, and none of them can test it. **Identification** credibility is common to all.
+- They *do* differ downstream --- functional form, extrapolation into thin regions, which strata get weight. Those are **estimation** differences; §11 returns to them.
+
+## Unconfoundedness is controversial
+
+- Read literally, the assumption says: firms with identical observables effectively **flip a coin** over a major financial decision.
+- Every model of optimizing behaviour says otherwise. Firms choose treatment *because* they expect to benefit --- Lecture 1's selection on gains. <!--, and what the literature calls **essential heterogeneity**.-->
+- This is the deepest objection, and it comes from economics, not statistics. <!--The Princeton river was built on it. It may be at least partly for this reason that the Princeton group tended to favor methods where treatments were assigned to units from the outside, as opposed to treatments that were conditionally random.-->
+- It is not a reason never to use these methods. It is a reason to state, explicitly, why *your* setting escapes it.
+<!-- Unconfoundness means "no confounders." If you're confident that there is no confounder (think of it as omitted variables) in your research design, you proceed. Otherwise, don't. -->
+
+## Guido W. Imbens's three defences
+
+1. **Statistical motivation.** It is the natural starting point. <!-- the benchmark you must argue *away* from, and the one a reader will assume you considered.-->
+2. **It is an empirical question.** With enough institutional knowledge, the relevant $X$ may genuinely be measurable. Whether it is depends on the setting, not on econometrics.
+3. **Objectives differ.** The decision-maker optimizes over something *other than your outcome*. A firm choosing a credit line optimizes liquidity and covenant slack --- not the investment measure you happen to study.
+
+\vspace{0.3em}
+
+- Defence 3 is the strongest available, and worth naming explicitly when you use it.
+- It also tells you when the design *fails*: when the agent is optimizing over precisely your outcome variable.
+
+## Road map: two routes through this chapter
+
+Everything ahead assumes unconfoundedness. The methods split on **what they do when a treated unit has no comparable control.**
+
+\begin{center}
+\begin{tabular}{lp{4.3cm}p{4.3cm}}
+\toprule
+ & \textbf{Route 1: interpolation} & \textbf{Route 2: extrapolation} \\
+\midrule
+Rests on       & Common support & Functional form \\
+Fills the gap by & It does not --- it refuses & Projecting the fitted model into it \\
+Methods        & Subclassification, matching, propensity scores & Regression \\
+Sections       & §4--§9 & §10 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+<!--
+\vspace{0.3em}
+
+- Route 1 buys **honesty**: it cannot compare units with no counterpart, so it stops.
+- Route 2 buys **coverage**: it always returns a number --- including where the data are silent.
+- The routes meet in §8 and in doubly-robust estimators, which use a model only to patch small gaps.
+
+## Interpolation versus extrapolation
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 3.3
+set.seed(975)
+par(mar = c(4, 4.2, 1.0, 1), cex = 0.85)
+mu0 <- function(x) 2 + 0.5 * x + 0.25 * x^2
+nc <- 260; nt <- 180
+Xc <- runif(nc, 0, 6);  Yc <- mu0(Xc) + rnorm(nc, 0, 1.6)
+Xt <- runif(nt, 2, 10)
+fit <- lm(Yc ~ Xc); g <- seq(0, 10, 0.05)
+pred <- coef(fit)[1] + coef(fit)[2] * g
+plot(NULL, xlim = c(0, 10), ylim = c(0, 46), xlab = "covariate  X",
+     ylab = expression(Y^0), main = "", yaxt = "n")
+axis(2, at = seq(0, 40, 10))
+rect(2, -5, 6, 38, col = "#4D9DE022", border = NA)
+segments(c(2, 6), -5, c(2, 6), 38, col = "#4D9DE0", lty = 3)
+points(Xc, Yc, pch = 16, col = "#00000040", cex = 0.55)
+segments(Xt, 40.5, Xt, 42.5, col = "#B2182B60", lwd = 0.8)
+text(5, 44.6, "where the treated units are", col = "#B2182B", cex = 0.82)
+lines(g, mu0(g), lwd = 2.4, col = "black")
+lines(g[g <= 6], pred[g <= 6], lwd = 2.4, col = "#E1A100")
+lines(g[g >= 6], pred[g >= 6], lwd = 2.4, col = "#E1A100", lty = 2)
+arrows(9, coef(fit)[1] + coef(fit)[2] * 9, 9, mu0(9),
+       code = 3, length = 0.045, col = "#B2182B", lwd = 1.4)
+text(9, 30.5, "bias", col = "#B2182B", cex = 0.82, adj = c(0.5, 0))
+text(4, 35, "common support", col = "#2A6F9E", cex = 0.85)
+text(8.2, 5, "no controls here", col = "#B2182B", cex = 0.85)
+legend("topleft", c(expression(paste("truth  ", mu^0, (X))),
+                    "linear fit on controls", "controls", "extrapolated"),
+       col = c("black", "#E1A100", "#00000060", "#E1A100"),
+       lty = c(1, 1, NA, 2), pch = c(NA, NA, 16, NA), lwd = c(2.4, 2.4, NA, 2.4),
+       bty = "n", cex = 0.78)
+```
+
+\vspace{-0.4em}
+
+\footnotesize
+Inside the band, both groups exist: the counterfactual is **interpolated** from nearby controls. Past $X = 6$ there are no controls at all --- the dashed line is the model talking, not the data, and it misses the truth by $8.2$.
+-->
+
+
+## Common support
+
+- Unconfoundedness alone is not enough. You also need units to compare.
+- **Strong common support** (needed for the $ATE$):
+$$
+0 < \Pr(D=1 \mid X = x) < 1 \quad \text{for all } x
+$$
+  At every value of $X$, both treated and untreated units must exist.
+<!-- - Cunningham's jigsaw analogy: **unconfoundedness is the blueprint; common support is whether the pieces are actually in the box.**
+- A perfect blueprint is useless if a piece is missing --- and a complete box is useless if the blueprint is wrong. -->
+
+## The two assumptions differ in kind
+
+\begin{center}
+\begin{tabular}{ll}
+\toprule
+\textbf{Unconfoundedness} & \textbf{Common support} \\
+\midrule
+Untestable & \textbf{Verifiable in your data} \\
+Defended with institutional knowledge & Checked with a histogram \\
+Failure $\Rightarrow$ bias & Failure $\Rightarrow$ extrapolation \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+- You can have one without the other, and the failures look nothing alike.
+- Common support is the assumption you have **no excuse** for not checking --- and the one most papers skip.
+- This distinction is the key to the NSW debate at the end of this lecture.
+
+## Weighting treatment effects under unconfoundedness
+
+Put the two assumptions together and the $ATE$ becomes computable. 
+
+$$
+\begin{aligned}
+ATE(x) &= E\big[\,Y^1 \mid X{=}x\,\big] - E\big[\,Y^0 \mid X{=}x\,\big] \\
+       &= \underbrace{E\big[\,Y^1 \mid D{=}1, X{=}x\,\big] - E\big[\,Y^0 \mid D{=}0, X{=}x\,\big]}_{\text{unconfoundedness --- used on \emph{both} terms}} \\
+       &= \underbrace{E\big[\,Y \mid D{=}1, X{=}x\,\big] - E\big[\,Y \mid D{=}0, X{=}x\,\big]}_{\text{switching equation}} \\[0.3em]
+ATE    &= \underbrace{\sum_x \Big( E[Y \mid D{=}1, X{=}x] - E[Y \mid D{=}0, X{=}x] \Big)\Pr(X{=}x)}_{\text{iterated expectations; common support}}
+\end{aligned}
+$$
+
+- $ATE(x)$ is the effect **within stratum $x$** --- *conditional average treatment effect* (CATE). The last line averages those with **population** weights.
+- **Unconfoundedness is used twice**, once for $Y^1$ and once for $Y^0$. That is precisely why the $ATE$ needs the *strong* version.
+
+
+## A three-stratum example
+
+Suppose the effect on mortality differs by age group, and the groups are equally sized:
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Stratum & Effect in stratum (pp) & $\Pr(X = x)$ \\
+\midrule
+Young       & $80$  & $1/3$ \\
+Middle-aged & $55$  & $1/3$ \\
+Old         & $100$ & $1/3$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+$$
+\begin{aligned}
+  \widehat{\mathit{ATE}} &= \frac{N_y}{N} \times SDO_{y} +
+  \frac{N_m}{N} \times SDO_{m} + \frac{N_o}{N} \times SDO_{o} \\
+  &= \frac{1}{3} \times 80 + \frac{1}{3} \times 55 + \frac{1}{3} \times 100 \\
+  &= 78.33
+\end{aligned}
+$$
+
+
+- The $ATE$ is a number **no stratum experiences**. It describes a population, not a unit.
+
+
+## Estimating the ATT under weaker assumptions
+
+- A weaker assumption suffices if you only want the $ATT$:
+$$
+Y^0 \;\indep\; D \;\mid\; X
+$$
+- Only the **untreated** potential outcome must be independent of treatment.
+- It allows firms to *anticipate their own gains* $Y^1$ and select on them, while assuming they do not select on how they would have done anyway.
+  - In finance that ordering is often defensible. A firm knows its expected benefit from a credit line better than it knows its counterfactual path without one.
+- **Weak common support**: Controls must exist wherever treated units do --- but not conversely.
+$$
+  \Pr(D = 0 \mid X) > 0 \quad \text{for all } X \text{ such that }
+  \Pr(D = 1 \mid X) > 0 
+$$
+
+## Why the asymmetry makes sense
+
+$$
+\begin{aligned}
+ATT(x) &= E[Y^1 \mid D{=}1, X{=}x] - E[Y^0 \mid D{=}1, X{=}x] \\[0.3em]
+       &= \underbrace{E[Y \mid D{=}1, X{=}x]}_{\text{switching equation}} - E[Y^0 \mid D{=}1, X{=}x] \\[0.3em]
+       &= E[Y \mid D{=}1, X{=}x] - \underbrace{E[Y \mid D{=}0, X{=}x]}_{\text{weak unconfoundedness}} \\[0.4em]
+ATT    &= \underbrace{\sum_x \Big( E[Y \mid D{=}1, X{=}x] - E[Y \mid D{=}0, X{=}x] \Big)\Pr(X{=}x \mid D{=}1)}_{\text{common support, wherever treated units live}}
+\end{aligned}
+$$
+
+- Weighting by $\Pr(X \mid D{=}1)$ --- covariates **among the treated** --- is what makes it the $ATT$: strata with no treated units get zero weight.
+- **Rule**: if you can only defend the weak version, your estimand is the $ATT$. Say so.
+<!-- - This is the single most common honest retreat in observational finance, and it costs you nothing to state clearly.-->
+
+# Subclassification
+
+## Cochran's method
+
+- The oldest estimator here, and the most transparent. Three steps:
+  1. **Stratify** on $X$.
+  2. Compute the treated-minus-control difference **within** each stratum.
+  3. **Average** the strata, weighting by whatever the estimand requires.
+- No functional form is assumed. Within a stratum, units are identical on $X$ by construction.
+- The weights define the estimand:
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Estimand & Weight stratum $k$ by & Interpretation \\
+\midrule
+$ATE$ & $n_k / N$                      & population share \\
+$ATT$ & $n_{k,\text{treated}} / N_{\text{treated}}$   & treated share \\
+$ATU$ & $n_{k,\text{untreated}} / N_{\text{untreated}}$ & control share \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+## The Titanic: the raw comparison
+
+- Treated: 325 first-class passengers, $62.5\%$ survived.
+- Control: 1,876 others, $27.1\%$ survived.
+$$
+SDO = 62.5 - 27.1 = 35.4 \text{ percentage points}
+$$
+- Taken at face value: a first-class ticket nearly *tripled* your survival odds.
+- But the first-class cabins held a very different mix of people. Sex and age are confounders, and we can see them directly.
+- Stratify on $\{$sex, age$\}$: four strata, and every one of them is occupied.
+
+## The four strata
+
+\begin{center}
+\begin{tabular}{lrrrrr}
+\toprule
+Stratum & $n$ & first class & survival, 1st & survival, other & difference \\
+\midrule
+Adult male   & 1,667 & 175 & $32.6\%$  & $18.8\%$ & $13.7$ pp \\
+Adult female &   425 & 144 & $97.2\%$  & $62.6\%$ & $34.6$ pp \\
+Male child   &    64 &   5 & $100.0\%$ & $40.7\%$ & $59.3$ pp \\
+Female child &    45 &   1 & $100.0\%$ & $61.4\%$ & $38.6$ pp \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+- Every within-stratum difference is **smaller than the $35.4$ pp raw gap.** Confounding was inflating the estimate.
+- Look at the composition: $76\%$ of all passengers were adult males --- the stratum with the *smallest* effect --- but only $54\%$ of first class.
+- Note the last stratum: **one** first-class female child. Remember her; she returns shortly.
+
+## Three estimands, three answers
+
+Same four differences. Only the weights change.
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Weight on & Adult male & Adult female & Male child & Female child \\
+\midrule
+$ATE$ (population share)  & $0.757$ & $0.193$ & $0.029$ & $0.020$ \\
+$ATT$ (treated share)     & $0.538$ & $0.443$ & $0.015$ & $0.003$ \\
+$ATU$ (control share)     & $0.795$ & $0.150$ & $0.031$ & $0.023$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.3em}
+
+$$
+\widehat{ATE} = 19.6 \text{ pp}, \qquad
+\widehat{ATT} = 23.8 \text{ pp}, \qquad
+\widehat{ATU} = 18.9 \text{ pp}
+$$
+
+- The raw $35.4$ pp falls to roughly **20 pp** once composition is held fixed. Nearly half the headline gap was confounding.
+- $ATT > ATE$ because first class was disproportionately adult *female* --- the stratum with a large effect.
+
+<!--
+## Subclassification in six lines
+
+```{r}
+#| echo: true
+d  <- transform(as.data.frame(Titanic), D = Class == "1st")
+tt <- xtabs(Freq ~ Sex + Age + D + Survived, d)
+n  <- tt[, , , "Yes"] + tt[, , , "No"]      # cell sizes
+r  <- tt[, , , "Yes"] / n                   # survival rates
+del <- r[, , "TRUE"] - r[, , "FALSE"]       # within-stratum differences
+round(c(ATE = weighted.mean(del, n[, , "TRUE"] + n[, , "FALSE"]),
+        ATT = weighted.mean(del, n[, , "TRUE"]),
+        ATU = weighted.mean(del, n[, , "FALSE"])), 3)
+```
+
+\vspace{0.3em}
+
+- The entire method is `weighted.mean` called three times with three weight vectors.
+- If an estimator's output changes when you change *only* the weights, the estimand was a choice --- not a finding.
+-->
+
+
+## The curse of dimensionality
+
+- Now delete one passenger: the single first-class female child.
+- That stratum still exists --- 44 girls travelled in other classes --- but it now has **no treated unit**. The within-stratum difference is undefined.
+
+\begin{center}
+\begin{tabular}{lc}
+\toprule
+Parameter & Still identified? \\
+\midrule
+$ATE$ & \textbf{No} --- needs all four differences \\
+$ATU$ & \textbf{No} --- female children get weight $0.023$ \\
+$ATT$ & \textbf{Yes} --- $23.7$ pp from the three occupied strata \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+- One passenger out of 2,201 destroys two of the three parameters. The $ATT$ survives because it never needed that cell.
+- This is common support failing.
+
+## Why it gets worse fast
+
+- One binary covariate: 2 strata. Ten binary covariates: $2^{10} = 1{,}024$. One continuous covariate: infinitely many.
+- Cells multiply exponentially; your sample does not. Empty cells become the norm, not the exception.
+- Non-parametric methods --- subclassification, exact matching, reweighting --- **break down honestly**: they simply cannot compute the estimate.
+- Regression **does not break down**. It extrapolates across the empty cells using functional form, and reports a number with a standard error.
+
+<!--
+## Simulating the collapse
+
+$n = 1{,}000$ firms, $k$ independent binary covariates, treatment assigned by a coin flip.
+
+```{r}
+#| echo: true
+set.seed(975)
+n <- 1000
+for (k in c(2, 4, 6, 8, 10)) {
+  X    <- matrix(rbinom(n * k, 1, 0.5), n, k)
+  D    <- rbinom(n, 1, 0.5)
+  cell <- apply(X, 1, paste, collapse = "")
+  tt   <- table(cell, D)
+  cat(sprintf("k=%2d: %5d strata | %4d occupied | %4d usable (%3.0f%%)\n",
+      k, 2^k, nrow(tt), sum(tt[,1] > 0 & tt[,2] > 0),
+      100 * sum(tt[,1] > 0 & tt[,2] > 0) / nrow(tt)))
+}
+```
+
+## Reading the collapse
+
+- Through $k = 6$ everything is fine: every stratum is occupied and usable.
+- At $k = 8$, only $71\%$ of occupied strata contain both a treated and a control firm.
+- At $k = 10$, just **$146$ of $1{,}024$** strata are usable --- $23\%$. The other $77\%$ of the design is unavailable.
+- And this is the *easy* case: covariates independent, treatment randomized, no continuous variables. Real data is worse on all three counts.
+- Two escape routes, and the rest of the lecture is about them:
+  - **Reduce the dimension.** Collapse $X$ into a single number --- the propensity score.
+  - **Impose functional form.** Let regression extrapolate across empty cells --- at the cost of assuming the shape.
+-->
+
+
+# Exact Matching
+
+## Matching as explicit imputation
+
+- Every causal inference is an imputation problem: the counterfactual is missing and must be filled in.
+- Most methods impute **implicitly**, inside a formula. Matching does it **explicitly**, unit by unit --- and that transparency is its main virtue.
+- Start from the definition of the $ATT$. Exactly **one** term is unavailable:
+
+$$
+ATT \;=\; \underbrace{E[Y^1 \mid D{=}1]}_{\text{observed: } Y = Y^1 \text{ when } D=1}
+\;-\; \underbrace{E[Y^0 \mid D{=}1]}_{\textbf{missing}}
+$$
+
+- The first term is just the treated sample mean. Everything matching does is build a stand-in for the second.
+
+## Replacing the missing term
+
+Condition on $X$, and the assumption does its work:
+
+$$
+\begin{aligned}
+E[Y^0 \mid D{=}1, X{=}x]
+  &= \underbrace{E[Y^0 \mid D{=}0, X{=}x]}_{\text{weak unconfoundedness}} \\[0.2em]
+  &= \underbrace{E[Y \mid D{=}0, X{=}x]}_{\text{switching equation}} \\[0.4em]
+E[Y^0 \mid D{=}1]
+  &= \underbrace{\sum_x E[Y \mid D{=}0, X{=}x]\,\Pr(X{=}x \mid D{=}1)}_{\text{common support: this must exist wherever treated units live}}
+\end{aligned}
+$$
+
+- The missing quantity is now written entirely in terms of things you can estimate from control units.
+- **Matching is simply a non-parametric estimate of $E[Y \mid D{=}0, X{=}X_i]$** --- take the controls that look like $i$, and average them.
+
+## The estimator, and what to do about ties
+
+Let $\mathcal{J}(i)$ be the set of control units matched to treated unit $i$, and $M_i = |\mathcal{J}(i)|$.
+
+$$
+\widehat{ATT} \;=\; \frac{1}{N_T}\sum_{i\,:\,D_i = 1}
+\Bigg( Y_i - \underbrace{\frac{1}{M_i}\sum_{j \in \mathcal{J}(i)} Y_j}_{\widehat{Y^0_i}} \Bigg)
+$$
+
+- If two controls sit at exactly the same distance from $i$, use both --- breaking the tie arbitrarily injects the analyst's coin flip into the estimate.
+<!-- - $M_i$ also varies when a caliper binds: a treated unit with no control inside the caliper contributes nothing, and $N_T$ must then count only the units you actually matched.
+- You can *point at the specific firms* doing the work for each observation. No regression output permits that. -->
+
+## The same idea for the ATE
+
+For a control unit $j$, the missing half is $Y^1$. Let $\mathcal{I}(j)$ be the treated units matched to it, $M_j = |\mathcal{I}(j)|$.
+
+$$
+\widehat{ATE} = \frac{1}{N}\Bigg[
+\underbrace{\sum_{i\,:\,D_i=1}\Big( Y_i - \tfrac{1}{M_i}\!\!\sum_{j \in \mathcal{J}(i)}\!\! Y_j \Big)}_{\text{treated: observed} \,-\, \text{imputed}}
+\;+\;
+\underbrace{\sum_{j\,:\,D_j=0}\Big( \tfrac{1}{M_j}\!\!\sum_{i \in \mathcal{I}(j)}\!\! Y_i - Y_j \Big)}_{\text{control: imputed} \,-\, \text{observed}}
+\Bigg]
+$$
+
+- Every unit contributes one *estimated* treatment effect; the $ATE$ averages all $N$ of them.
+- Equivalently $\widehat{ATE} = \frac{N_T}{N}\widehat{ATT} + \frac{N_C}{N}\widehat{ATU}$ --- the weights from §4, back again.
+
+
+## Exact matching and its limit
+
+- With discrete $X$ and full common support, exact matching and subclassification give the **same answer**. They are the same estimator, organized differently.
+- The difference is bookkeeping: subclassification aggregates to stratum effects first; matching imputes unit by unit.
+- Same fatal problem, too: with a continuous covariate, **exact matches occur with probability zero.** 
+- Two responses, and they define the next two sections:
+  - Give up on exact equality --- match to the *nearest* unit (§6), then correct the resulting error (§8).
+  - Give up on matching $X$ itself --- match on a *summary* of $X$ (§9).
+
+# Nearest-Neighbour Matching
+
+## One confounder
+
+- Drop the demand for exact equality. Match each treated unit to the control that minimizes $|X_i - X_j|$.
+- The gap you accept is called the **matching discrepancy**, and §8 is entirely about what it costs you.
+- Choices you must make and report:
+  - **With or without replacement.** With replacement always takes the closest match, so it **lowers bias** and raises **variance.**
+  <!-- reuse → fewer independent control draws → less noise cancellation when averaging → larger variance of the control mean → larger variance of treatement effect.  -->
+  - **How many neighbours, $M$.** More neighbours: less variance, more bias.
+  - **Caliper**: refuse any match beyond a maximum distance. Better to drop a treated unit than to match it to something unlike it.
+
+<!--
+## Does replacement really cost variance?
+
+Simulated $ATT$, one covariate, $N_T = 100$--$150$, 500 replications. True effect $= 2$.
+
+\begin{center}
+\small
+\begin{tabular}{lcccccc}
+\toprule
+& \multicolumn{2}{c}{\textbf{with replacement}} & \multicolumn{2}{c}{\textbf{without}} & \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+Control pool & bias & SD & bias & SD & $\sum_j K_j^2$ \\
+\midrule
+Abundant, good overlap      & $-0.01$ & $0.148$ & $-0.01$ & $0.145$ & $107$ vs $100$ \\
+Scarce, good overlap        & $0.00$  & $0.179$ & $0.01$  & $0.158$ & $200$ vs $100$ \\
+Treated clustered, thin there & $0.00$ & $0.172$ & $0.00$  & $0.140$ & $184$ vs $100$ \\
+\midrule
+Scarce \emph{and} poor overlap & $0.07$ & $0.176$ & $\mathbf{1.12}$ & $\mathbf{0.374}$ & $408$ vs $150$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2em}
+
+- **Mechanism.** Control $j$ used $K_j$ times enters $K_j$ times; the control-term variance scales with $\sum_j K_j^2$, smallest when reuse is spread evenly.
+- Rows 1--3 are the textbook trade-off, and the cost is **small** ($2$--$23\%$ more SD). Row 4 **reverses** it: with controls scarce, without-replacement takes bad matches and loses on *both*.
+- **Default to with replacement**; $K_j$ is also why you need the Abadie--Imbens variance estimator.
+-->
+
+
+## Multiple dimensions and the distance metric
+
+With several covariates, "closest" requires a definition --- and the choice changes the answer.
+
+- **Euclidean**: $\sqrt{\sum_k (X_{ik}-X_{jk})^2}$. Scale-dependent: a variable in won swamps one measured as a ratio.
+- **Normalized Euclidean**: divide each covariate by its standard deviation. Fixes scale, ignores correlation.
+- **Mahalanobis**: $\sqrt{(X_i - X_j)' \Sigma^{-1}(X_i-X_j)}$. Standardizes scale **and** accounts for correlation between covariates. The default choice.
+
+\vspace{0.3em}
+
+- Why correlation matters: if size and leverage are highly correlated, Euclidean distance double-counts what is essentially one dimension.
+<!-- - Dropping a caliper on top of any of these is a **common-support restriction**, and it changes your estimand: you are now describing only the treated units that had a counterpart.-->
+
+# Inference with Matching
+
+## Why the usual standard errors fail
+
+- Matched observations are **dependent by construction**: the same control may serve several treated units, and the matches were chosen *using the data*.
+- Conventional standard errors treat the matched sample as if it were drawn at random. It was not, and they understate uncertainty.
+- Abadie and Imbens (2008) show conventional standard errors is invalid for matching estimators 
+<!-- - Bootstrapping does **not** fix it. Abadie and Imbens (2008) show the bootstrap is invalid for matching estimators --- the estimator is not smooth enough in the data. -->
+- Use the **Abadie--Imbens variance estimator**, which prices in how many times each control was reused.
+- Practical note: check what your software reports *by default*. Several packages report the naive standard error unless told otherwise.
+
+## The Abadie--Imbens variance estimator
+
+Let $\hat\tau_i = Y_i - \frac{1}{M}\sum_{m=1}^{M} Y_{j_m(i)}$ be unit $i$'s **own** effect, so $\widehat{ATT} = \frac{1}{N_T}\sum_{i:D_i=1}\hat\tau_i$ is their average. $K_j$ counts how often control $j$ is used.
+
+$$
+\hat\sigma^2_{ATT} \;=\;
+\underbrace{\frac{1}{N_T}\sum_{i\,:\,D_i=1}\big(\hat\tau_i - \widehat{ATT}\big)^2}_{\text{(a) spread of the unit-level effects}}
+\;+\;
+\underbrace{\frac{1}{N_T}\sum_{j\,:\,D_j=0}\frac{K_j(K_j-1)}{M^2}\,\hat\sigma^2(X_j)}_{\text{(b) penalty for reusing controls}}
+$$
+
+$$
+\mathrm{SE}\big(\widehat{ATT}\big) \;=\; \sqrt{\hat\sigma^2_{ATT} \,\big/\, N_T}
+$$
+
+- So term (a) is simply the **sample variance of the $\hat\tau_i$**. Alone, it is the without-replacement formula: with $K_j \in \{0,1\}$ term (b) vanishes.
+- $\hat\sigma^2(X_j) = \mathrm{var}(Y \mid X_j, D{=}0)$, the outcome variance among controls. <!-- Estimate it by matching *controls to controls*: $\tfrac{1}{2}(Y_j - Y_\ell)^2$. -->
+- Here $M$ is **fixed** --- the clean $K_j(K_j{-}1)$ split needs it. 
+<!-- With ties, software reweights matches by $1/M_i$. --> 
+
+<!-- 
+## Reading the correction term
+
+Rewrite the estimator as a weighted sum. Control $j$ carries weight $K_j/M$:
+
+$$
+\widehat{ATT} \;=\; \frac{1}{N_T}\sum_{i\,:\,D_i=1} Y_i \;-\; \frac{1}{N_T}\sum_{j\,:\,D_j=0} \frac{K_j}{M}\,Y_j
+$$
+
+So $j$'s noise contributes $\big(K_j/M\big)^2\sigma^2(X_j)$. Split the square:
+$\;K_j^2 = \underbrace{K_j}_{\text{inside term (a)}} + \underbrace{K_j(K_j-1)}_{\text{term (b)}}$
+
+- Term (a) treats the $\hat\tau_i$ as independent, so it counts each appearance's **own** variance once --- the diagonal.
+- Term (b) is the **off-diagonal**: $K_j(K_j{-}1)$ pairs of *distinct appearances of the same number*, whose covariance is $\sigma^2(X_j)$ --- not the zero a naive SE assumes.
+- Only **controls** get reused --- hence the sum over $D_j{=}0$; each treated unit appears once. $M^2$ is that weight, squared.
+- $K_j \leq 1$ $\Rightarrow$ no pairs $\Rightarrow$ no correction. That is the without-replacement case.
+
+## Where does $\hat\sigma^2(X_j)$ come from?
+
+**Matching controls to controls**: for each control $j$, find the *other control* $\ell$ nearest in $X$ --- not a treated unit, a second control.
+
+- One observation cannot give you a variance. But if $X_\ell \approx X_j$, then $Y_j$ and $Y_\ell$ are two draws from the same conditional distribution:
+$$
+Y_j - Y_\ell \;=\; \underbrace{\mu^0(X_j) - \mu^0(X_\ell)}_{\approx\, 0 \text{ if the match is close}} \;+\; \varepsilon_j - \varepsilon_\ell
+\qquad\Longrightarrow\qquad
+E\big[(Y_j - Y_\ell)^2\big] \;\approx\; 2\,\sigma^2(X_j)
+$$
+
+- Hence the $\tfrac{1}{2}$. Drop it and you estimate $2\sigma^2$: simulated, $8.01$ when the truth is $4$.
+- **One pair is a hopeless variance estimate** --- one degree of freedom. It need not be good: term (b) *sums* over all controls, and noisy-but-unbiased pieces average out.
+- If the nearest control is *not* close, the mean difference fails to cancel and inflates the estimate. The error runs **upward**, so standard errors err conservative.
+
+
+## Checking it against the truth
+
+$N_T = 200$, $N_C = 400$, $M=1$ with replacement, 1,500 replications. "Truth" is the Monte Carlo standard deviation of $\widehat{ATT}$.
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & standard error & ratio to truth \\
+\midrule
+Monte Carlo truth                       & $0.1230$ & --- \\
+Term (a) only \emph{(naive)}            & $0.1003$ & $0.82$ \\
+Terms (a) $+$ (b), $\sqrt{\hat\sigma^2/N_T}$ & $\mathbf{0.1224}$ & $\mathbf{1.00}$ \\
+\midrule
+Forgetting to divide by $N_T$           & $1.7316$ & $14.07$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2em}
+
+- The full estimator is essentially exact. Dropping term (b) **understates the standard error by 18\%** --- every $t$-statistic too big by a fifth.
+- $\hat\sigma^2_{ATT}$ is a variance *per treated unit*, not the variance of the estimator. **You must still divide by $N_T$.** Miss that and you are off by a factor of $\sqrt{N_T}$.
+
+--> 
+
+## In Stata
+
+Cunningham's training data: 10 trainees, 20 non-trainees, matched on `age` and `gpa`.
+
+\footnotesize
+```stata
+use https://github.com/scunning1975/mixtape/raw/master/training_inexact.dta, clear
+
+* Minimized euclidean distance with usual variance and robust
+teffects nnmatch (earnings age gpa) (treat), atet nn(1) metric(eucl) vce(iid)
+teffects nnmatch (earnings age gpa) (treat), atet nn(1) metric(eucl) generate(match1)
+
+* Minimized Mahalanobis distance with usual variance and robust
+teffects nnmatch (earnings age gpa) (treat), atet nn(1) metric(maha) vce(iid)
+teffects nnmatch (earnings age gpa) (treat), atet nn(1) metric(maha) generate(match2)
+```
+\normalsize
+
+- `(earnings age gpa)` is outcome-then-covariates; `(treat)` is the treatment. `atet` asks for the $ATT$, `nn(1)` for one neighbour.
+- `vce(iid)` is the constant-variance standard error. **Drop it and you get Abadie--Imbens** --- that is Stata's default, so the second command of each pair is the one to report.
+- `generate(match1)` writes each unit's matched partner back into the data. Always look at it.
+
+<!--
+
+## The same thing in R
+
+\footnotesize
+```r
+d <- haven::read_dta("https://github.com/scunning1975/mixtape/raw/master/training_inexact.dta")
+Y <- d$earnings; D <- d$treat; X <- as.matrix(d[, c("age", "gpa")])
+
+nnmatch <- function(Z) {                             # Z: covariates in the chosen metric
+  it <- which(D == 1); ic <- which(D == 0); nT <- length(it)
+  dm  <- as.matrix(dist(Z))                          # all pairwise distances
+  j   <- ic[max.col(-dm[it, ic], ties.method = "first")]    # each treated unit's match
+  tau <- Y[it] - Y[j]; att <- mean(tau)              # unit-level effects, then the ATT
+  K   <- as.integer(table(factor(j, levels = ic)))   # how often each control is reused
+  cc  <- dm[ic, ic]; diag(cc) <- Inf                 # control-to-control matches
+  s2  <- 0.5 * (Y[ic] - Y[ic][max.col(-cc, ties.method = "first")])^2   # sigma^2(X_j)
+  se  <- function(s) sqrt((sum((tau - att)^2) + sum(K * (K - 1) * s)) / nT^2)
+  c(ATT = att, se_iid = se(rep(mean(s2), length(ic))), se_AI = se(s2))
+}
+W <- solve(chol(cov(X)))          # whiten: Mahalanobis = Euclidean on X %*% W
+rbind(euclidean = nnmatch(X), mahalanobis = nnmatch(X %*% W))
+```
+\normalsize
+
+- `se_iid` forces one common $\hat\sigma^2$; `se_AI` lets it vary with $X_j$. The two differ only through term (b).
+- Package route, identical to the last column: `Matching::Match(Y, Tr, X, M = 1, estimand = "ATT", Weight = 2, Var.calc = 1)`.
+-->
+
+
+## Two metrics, two answers
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & $\widehat{ATT}$ & \texttt{vce(iid)} & \textbf{Abadie--Imbens} & distinct controls used \\
+\midrule
+Euclidean    & $1607.5$ & $38.7$  & $38.7$  & 10 of 20 \\
+Mahalanobis  & $1315.0$ & $325.5$ & $590.1$ & \textbf{3} of 20 \\
+\midrule
+\emph{Truth} & $1607.5$ & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+<!-- The data are built: $Y^0 = 4000 + 225\cdot\texttt{age}$, $Y^1 = 5000 + 250\cdot\texttt{age}$, one control's earnings knocked down by $1{,}750$. `gpa` enters nowhere. -->
+
+- `age` has standard deviation $9.1$ and `gpa` only $0.57$, so raw Euclidean distance is **matching on age and ignoring gpa** --- the scale problem from §6. Every trainee gets a *different* control: $K_j \leq 1$, term (b) is zero, both standard errors coincide.
+- Mahalanobis makes `gpa` count --- and `gpa` is noise. **Three controls end up serving all ten trainees**; one is used five times.
+- Term (a) alone still reports $199.8$. The reuse correction triples it.
+
+
+# Bias Correction
+
+## The matching discrepancy is bias, not noise
+
+Matching was only *approximate*: $X_{j(i)} \approx X_i$, never $=$. What does the leftover gap cost?
+
+- Abadie--Imbens (2006): More data does not help much.
+
+<!-- - Abadie--Imbens (2006): with $k$ **continuous** covariates the matching discrepancy is $O_p(N^{-1/k})$, while the standard error is $O_p(N^{-1/2})$.
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+$k$, the number of continuous covariates & $1$ & $2$ & $3$ \\
+\midrule
+bias relative to the standard error & $N^{-1/2}$ & $N^{0}$ & $N^{1/6}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- $k=1$: negligible. $k=2$: bias and noise stay the same order *forever*. $k\geq 3$: the bias **dominates**, and no amount of data fixes the $t$-statistic.
+- More data is the natural remedy, and the rate says it barely works: with $k=4$, halving the discrepancy takes $16\times$ the sample. --> 
+- Usually you cannot get more data anyway. Abadie--Imbens (2011) is the second-best answer: **model the bias and subtract it.**
+
+## An outcome model for the missing $Y^0$
+
+$$
+\begin{aligned}
+\mu^0(x) &= E\big[\,Y \mid X{=}x, D{=}0\,\big] \;=\; \underbrace{E\big[\,Y^0 \mid X{=}x\,\big]}_{\text{unconfoundedness}} \\
+\mu^1(x) &= E\big[\,Y \mid X{=}x, D{=}1\,\big] \;=\; \underbrace{E\big[\,Y^1 \mid X{=}x\,\big]}_{\text{unconfoundedness}} \\[0.3em]
+Y_i &= \mu^{D_i}(X_i) + \varepsilon_i, \qquad E\big[\,\varepsilon_i \mid X_i, D_i\,\big] = 0
+\end{aligned}
+$$
+
+- The second equality on each line **is** unconfoundedness. It is what lets a regression fitted on controls speak about treated units.
+<!-- - This also finally *defines* $\varepsilon_i$: the deviation of $Y_i$ from its own group's conditional mean. It is the same $\varepsilon$ that $\hat\sigma^2(X_j)$ estimated in §7. -->
+- So far, all definition. The **assumption** arrives only when we choose a functional form for $\hat\mu^0$.
+
+## Where the bias hides
+
+Substitute $Y_i = \mu^{D_i}(X_i)+\varepsilon_i$ into $\widehat{ATT}=\frac{1}{N_T}\sum_{D_i=1}(Y_i - Y_{j(i)})$, subtract the true $ATT$, then add and subtract $\frac{1}{N_T}\sum_{D_i=1}\mu^0(X_i)$:
+
+$$
+\begin{aligned}
+\widehat{ATT} - ATT \;=\;& \underbrace{\tfrac{1}{N_T}\textstyle\sum_{D_i=1}\big(\mu^1(X_i) - \mu^0(X_i) - ATT\big)}_{\text{(1) sampling variation in \emph{which} units got treated}} \\
++\;& \underbrace{\tfrac{1}{N_T}\textstyle\sum_{D_i=1}\big(\varepsilon_i - \varepsilon_{j(i)}\big)}_{\text{(2) mean-zero noise}} \\
++\;& \underbrace{\tfrac{1}{N_T}\textstyle\sum_{D_i=1}\big(\mu^0(X_i) - \mu^0(X_{j(i)})\big)}_{\text{(3) \textbf{matching bias}}}
+\end{aligned}
+$$
+
+- Scaled by $\sqrt{N_T}$, rows (1) and (2) converge to mean-zero normals. They are noise, and they average away.
+- Row (3) does not. Its summands are **signed**: if the nearest control is systematically older, poorer, smaller, then every term carries the same sign.
+
+## Two things make the bias big
+
+$$
+\text{Matching bias} \;=\; E\big[\,\mu^0(X_i) - \mu^0(X_{j(i)}) \,\big|\, D=1\,\big]
+$$
+
+- Read it as a product of two quantities, and it is zero if **either** is:
+  - **How bad the matches are** --- the size of $X_i - X_{j(i)}$. Perfect matching kills it.
+  - **How steep $\mu^0$ is** --- the heterogeneity of $Y^0$ across strata of $X$. A flat $\mu^0$ kills it too.
+- Match a 13-year-old to a 15-year-old and nothing is lost *unless* $Y^0$ differs between 13- and 15-year-olds.
+- Note which potential outcome appears. For the $ATT$ it is $Y^0$ that is missing and imputed, so it is $\mu^0$ --- and only $\mu^0$ --- that has to be modelled.
+
+## The Abadie--Imbens procedure, in five steps
+
+1. **Match.** Nearest neighbour on your metric; form $\hat\delta_i = Y_i - Y_{j(i)}$ for each treated unit.
+2. **Regress.** OLS on the **matched control units only**: $\;Y_{j} = \alpha + \beta X_{j} + e_j$.
+3. **Predict.** $\hat\mu^0(X_i) = \hat\alpha + \hat\beta X_i$ and $\hat\mu^0(X_{j(i)}) = \hat\alpha + \hat\beta X_{j(i)}$.
+4. **Subtract** the estimated bias:
+
+$$
+\widehat{ATT}^{BC} = \frac{1}{N_T}\sum_{D_i=1}\Big[\,\big(Y_i - Y_{j(i)}\big) - \big(\hat\mu^0(X_i) - \hat\mu^0(X_{j(i)})\big)\Big]
+$$
+
+5. **Report an Abadie--Imbens standard error** (§7). The correction changes the estimate, not the reuse problem.
+
+- Step 2 never touches a treated outcome: $\hat\mu^0$ is fitted where $Y^0$ is *observed*, then transplanted. Unconfoundedness is what permits the transplant.
+<!-- - Cunningham's note: Abadie--Imbens's theory uses all controls, but their estimation section --- and every implementation since --- uses the **matched** controls.-->
+
+## Only the gap has to be right
+
+- The estimator uses only the **difference** $\hat\mu^0(X_i) - \hat\mu^0(X_{j(i)})$. With one covariate and a linear fit that is simply $\hat\beta\,(X_i - X_{j(i)})$.
+- So $\hat\mu^0$ must be accurate *over the matching gap*, not globally. Get the level wrong everywhere and the correction is unaffected --- $\hat\alpha$ cancels.
+- **This is the whole reason bias correction is more credible than regression alone.** Regression extrapolates $\hat\mu^0$ across the entire covariate space; bias correction only interpolates it across a gap that matching already made small.
+- Division of labour: **matching does the heavy lifting on comparability; regression cleans up the remainder.**
+- Corollary: the worse your matches, the more work the regression does, and the more the method degenerates into regression.
+
+## Ten workers
+
+\small
+\begin{center}
+\begin{tabular}{llrrrrc}
+\toprule
+Unit & Worker & $Y^1$ & $Y^0$ / $\widehat{Y^0}$ & $\hat\delta_i$ & Age & $D$ \\
+\midrule
+1 & Andy  & \$200 & \$195 & \$5   & 23 & 1 \\
+2 & Betty & \$250 & \$225 & \$25  & 27 & 1 \\
+3 & Chad  & \$150 & \$140 & \$10  & 29 & 1 \\
+4 & Doug  & \$300 & \$195 & \$105 & 22 & 1 \\
+\midrule
+5 & Edith & --- & \$225 & & 27 & 0 \\
+6 & Fred  & --- & \$500 & & 32 & 0 \\
+7 & Gina  & --- & \$200 & & 26 & 0 \\
+8 & Hank  & --- & \$190 & & 26 & 0 \\
+9 & Inez  & --- & \$180 & & 28 & 0 \\
+10 & Janet & --- & \$140 & & 29 & 0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\normalsize
+
+- Andy (23) and Doug (22) both match Gina and Hank, the 26-year-olds: $\widehat{Y^0} = \tfrac{200+190}{2} = 195$. Betty and Chad match exactly.
+- $\widehat{ATT} = (5 + 25 + 10 + 105)/4 = \$36.25$. Fred and Inez are never used.
+- Both inexact matches point the same way --- the match is *older* than the trainee. 
+
+## Steps 2--4, worked through
+
+**Step 2**, over the four *matched* controls --- Edith $(27,225)$, Gina $(26,200)$, Hank $(26,190)$, Janet $(29,140)$:
+$\;\hat\mu^0(\texttt{age}) = 683.75 - 18.33\,\texttt{age}$.
+
+\small
+\begin{center}
+\begin{tabular}{lccrrr}
+\toprule
+Worker & Age & Match age & $\hat\delta_i$ & $\hat\beta(X_i - X_{j(i)})$ & $\hat\delta_i^{BC}$ \\
+\midrule
+Andy  & 23 & 26 & \$5   & $\$55.0$ & $-\$50.0$ \\
+Betty & 27 & 27 & \$25  & $\$0$    & $\$25.0$ \\
+Chad  & 29 & 29 & \$10  & $\$0$    & $\$10.0$ \\
+Doug  & 22 & 26 & \$105 & $\$73.3$ & $\$31.7$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\normalsize
+
+$\widehat{ATT} = \$36.25 \;\longrightarrow\; \widehat{ATT}^{BC} = \$4.17$.
+
+- Exact matches get **zero** correction by construction. Only the two bad matches move.
+- $\hat\beta < 0$: among *these four* controls earnings fall with age. Refit on all six and Fred $(32, \$500)$ flips it to $\hat\beta = +43.7$, giving $\widehat{ATT}^{BC} = \$112.6$.
+- Four points and one outlier. The "small" regression is doing an enormous amount of work --- that is the method's exposure.
+
+<!--
+## Which regression? Underfit, correct, overfit
+
+```{r}
+#| echo: true
+mcspec <- function(nn, R = 300) {                 # DGP truth: ATT = 2
+  set.seed(975); out <- matrix(NA, R, 4)
+  for (r in 1:R) {
+    X <- rnorm(nn); D <- rbinom(nn, 1, plogis(1.5 * X))
+    Y <- 2 * D + 3 * X + 2 * X^2 + rnorm(nn)
+    it <- which(D == 1); ic <- which(D == 0)
+    j  <- ic[max.col(-abs(outer(X[it], X[ic], "-")), ties.method = "first")]
+    m  <- unique(j)                                   # the MATCHED controls
+    bc <- function(f) {
+      fit <- lm(f, data.frame(X = X[m], Y = Y[m]))
+      p   <- function(z) predict(fit, data.frame(X = z))
+      mean(Y[it] - Y[j] - (p(X[it]) - p(X[j])))       # step 4
+    }
+    out[r, ] <- c(mean(Y[it] - Y[j]), bc(Y ~ X), bc(Y ~ X + I(X^2)),
+                  bc(Y ~ X + I(X^2) + I(X^3) + I(X^4)))
+  }
+  setNames(colMeans(out), c("raw", "underfit", "correct", "overfit"))
+}
+round(rbind(n_500 = mcspec(500), n_2000 = mcspec(2000)), 3)
+```
+
+## Reading the specification results
+
+\begin{center}
+\small
+\begin{tabular}{lcccc}
+\toprule
+ & Raw & Underfit & Correct & Overfit \\
+ & (no correction) & $X$ & $X, X^2$ & $X,\dots,X^4$ \\
+\midrule
+$n=500$   & $2.349$ & $2.255$ & $\mathbf{1.995}$ & $2.002$ \\
+\emph{s.d.} & $0.315$ & $0.271$ & $\mathbf{0.196}$ & $0.374$ \\
+\midrule
+$n=2{,}000$ & $2.154$ & $2.115$ & $\mathbf{1.993}$ & $1.994$ \\
+\emph{s.d.} & $0.137$ & $0.122$ & $\mathbf{0.098}$ & $0.110$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **Underfitting still helps** --- $2.154 \to 2.115$ --- but only a little. A wrong $\hat\mu^0$ removes only the part of the gap it can see.
+- **Overfitting** gets the mean right and pays in variance: at $n=500$ the standard deviation nearly doubles, $0.196 \to 0.374$.
+- Cunningham's advice, which the table supports: lean toward a few extra polynomials and interactions rather than too few --- but guard against overfitting. Ben-Michael, Feller and Rothstein (2021) use *ridge* for exactly this reason.
+- Lin, Ding and Han (2023): read Abadie--Imbens (2011) as a precursor to double machine learning. A flexible, regularized step 2 is the modern version.
+-->
+
+## What the correction does and does not do
+
+- It converts a *matching* problem into a *much easier regression* problem. It does not eliminate the regression.
+- It is honest about its own assumption: you must name a functional form for $\hat\mu^0$, and the ten-worker example shows how much that choice can move the answer.
+- It does **not** repair the matches. 
+<!-- In the training data of §7 it moves Mahalanobis from $1315.0$ to $1607.5$, but three controls still carry all ten comparisons and the Abadie--Imbens standard error still says so.-->
+- Practical rule: report the raw and the bias-corrected estimate side by side. A large gap between them is a **diagnostic** --- it says your matches were poor and your outcome model is now load-bearing.
+
+<!--
+## Bias correction in software
+
+**Stata** --- add `biasadj()` with the covariates whose gap you want priced out:
+
+```stata
+teffects nnmatch (earnings age gpa) (treat), atet nn(1) ///
+    metric(maha) biasadj(age gpa)
+```
+
+**R**
+
+```r
+Matching::Match(Y, Tr, X, M = 1, estimand = "ATT", Weight = 2,
+                Var.calc = 1, BiasAdjust = TRUE)
+```
+
+- Both fit step 2 on the **matched** controls. On the ten workers, `Match(BiasAdjust = TRUE)` returns exactly $\$4.167$, and the Abadie--Imbens standard error falls from $20.3$ to $16.2$.
+- `biasadj()` takes its own variable list --- it need not be the list you matched on, and adding squares and interactions there is exactly the flexibility the last slide argued for.
+--> 
+
+# Propensity Scores
+
+## Defining the propensity score
+
+- **Propensity score**: $e(X) = \Pr(D = 1 \mid X)$ 
+  - "the conditional probability of assignment to a particular treatment given a vector of observed covariates"
+
+- **Balancing property** (Rosenbaum--Rubin 1983): $X \perp D \mid \Pr(D = 1 \mid X)$
+  - $E[X \mid D=1, \Pr(D=1 \mid X)] = E[X \mid D=0, \Pr(D=1 \mid X)]$
+  - Covariate distributions are similar between treatment and control conditional the propensity score.
+
+- **Propensity score theorem** (Rosenbaum--Rubin 1983): if $(Y^1,Y^0) \indep D \mid X$, then
+$$
+(Y^1, Y^0) \;\indep\; D \;\mid\; e(X)
+$$
+  - Conditioning on a **single number** does what conditioning on all of $X$ does. Ten covariates collapse to one scalar --- the curse of dimensionality defeated, for *conditioning*.
+
+
+
+
+<!--
+## Why the score balances
+
+By definition, $\Pr(D{=}1 \mid X,\, e(X)) = e(X)$. Now compute the same probability knowing *only* the score:
+
+$$
+\Pr(D{=}1 \mid e(X)) \;=\; E\big[\,\underbrace{\Pr(D{=}1 \mid X)}_{=\;e(X)} \;\big|\; e(X)\,\big]
+\;=\; E\big[e(X) \mid e(X)\big] \;=\; e(X)
+$$
+
+- The two are equal: knowing $X$ *on top of* $e(X)$ does not change the chance of treatment. That is $D \indep X \mid e(X)$, and **no assumption was used**.
+- Add unconfoundedness --- $\Pr(D{=}1 \mid Y^0,Y^1,X) = e(X)$ --- and the identical argument conditioning on $(Y^0,Y^1,e(X))$ again returns $e(X)$. The potential outcomes carry no extra information either.
+- **In one sentence**: $e(X)$ is a *sufficient statistic for the assignment mechanism*. Once you know how biased the coin is, knowing which $X$ made it that biased says nothing more about how it landed.
+- What is **not** claimed: units with the same score are not similar. Only their *distributions* match.
+-->
+
+<!--
+## Three cells, one number
+
+\begin{center}
+\small
+\begin{tabular}{llrrrr}
+\toprule
+Cell & $X$ = (size, leverage) & $N$ & $e(X)$ & treated & control \\
+\midrule
+A & Large, Low  & $200$ & $0.2$ & $40$  & $160$ \\
+B & Small, High & $400$ & $0.2$ & $80$  & $320$ \\
+C & Large, High & $400$ & $0.6$ & $240$ & $160$ \\
+\midrule
+  & Total       & $1{,}000$ & & $360$ & $640$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2em}
+
+- Read the score as a frequency: *what fraction of firms like this are treated?* In cell A, $40$ of $200$, so $e = 0.2$.
+- Cells **A and B share a score** but are *opposites* on $X$. The stratum $e = 0.2$ pools $600$ firms: $120$ treated, $480$ control.
+- Of those $120$ treated, $40$ come from A --- $33.3\%$. Of the $480$ controls, $160$ come from A --- $33.3\%$. **Identical**, and not an approximation: both cells drew from the same $0.2$ coin, so pooling preserves their $1{:}2$ ratio on *both* sides.
+
+## The balance table
+
+\begin{center}
+\small
+\begin{tabular}{lrrr}
+\toprule
+ & Treated & Control & Gap (pp) \\
+\midrule
+\emph{Raw sample} ($n = 1{,}000$) & & & \\
+\quad \% Large             & $77.8$ & $50.0$ & $27.8$ \\
+\quad \% High leverage     & $88.9$ & $75.0$ & $13.9$ \\
+\midrule
+\emph{Within} $e = 0.2$ (cells A and B) & & & \\
+\quad \% Large             & $33.3$ & $33.3$ & $\mathbf{0.0}$ \\
+\quad \% High leverage     & $66.7$ & $66.7$ & $\mathbf{0.0}$ \\
+\midrule
+\emph{Within} $e = 0.6$ (cell C) & & & \\
+\quad \% Large             & $100.0$ & $100.0$ & $\mathbf{0.0}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2em}
+
+- The raw sample is badly imbalanced on **both** covariates. Conditioning on one number --- never on size, never on leverage --- balances **both**, exactly.
+- This is the whole appeal of the score, and it is also the check you run in your own data: split $\hat e$ into deciles and put this table in the paper.
+-->
+
+## Estimating the score
+
+- You know the **true** score only when you ran the experiment yourself. Otherwise, it must be estimated: $\Pr(D_i {=} 1 \mid X_i) = F(\beta X_i)$, fitted by **logit or probit**.
+- Judge the specification by **balance achieved**, not by fit. A score with a high pseudo-$R^2$ but poor balance is a bad score; the reverse is fine.
+- Fit, check balance, add interactions and polynomials where balance fails, refit. A legitimate specification search, because it never looks at $Y$ --- the whole stage is **blind to the outcome**, which protects against fishing. Say so in the paper.
+- **The score creates no support that $X$ lacks.** If a covariate cell is all-treated or all-control, collapsing $X$ to a scalar hides that; it does not fix it.
+
+## Three things to do with the score
+
+Once every unit has a $\hat e(X_i)$, there are three standard uses. 
+
+1. **Diagnose.** Plot $\hat e$ separately for treated and control units. This is the common-support check, and it costs nothing.
+2. **Weight.** Reweight the sample to build a pseudo-experiment --- inverse probability weighting.
+3. **Match.** Pair treated to control units with similar scores, then difference --- propensity score matching.
+
+<!--
+\vspace{0.3em}
+
+- A fourth, older use: **stratify** on the score. That is §4's subclassification with strata defined by deciles of $\hat e$ --- Rosenbaum and Rubin's original proposal, and still a reasonable one.
+- Uses 1 and 4 are the safest. Use 2 is standard but fragile in the tails. Use 3 has a serious critique against it.
+- The section closes with a fifth use that combines 2 with a regression: **doubly robust** estimation.
+-->
+
+## Visualizing overlap
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 3.0
+set.seed(975)
+n <- 4000
+par(mfrow = c(1, 2), mar = c(4, 4, 2.2, 1), cex = 0.8)
+for (a in c(0.8, 3.5)) {
+  X  <- rnorm(n); D <- rbinom(n, 1, plogis(a * X))
+  eh <- predict(glm(D ~ X, family = binomial), type = "response")
+  br <- seq(0, 1, 0.05)
+  h1 <- hist(eh[D == 1], breaks = br, plot = FALSE)
+  h0 <- hist(eh[D == 0], breaks = br, plot = FALSE)
+  plot(NULL, xlim = c(0, 1), ylim = c(0, max(h1$density, h0$density) * 1.28),
+       xlab = "estimated propensity score", ylab = "density",
+       main = if (a < 1) "Good overlap" else "Poor overlap")
+  rect(br[-length(br)], 0, br[-1], h0$density, col = "#00000022", border = "grey40")
+  rect(br[-length(br)], 0, br[-1], h1$density, col = "#B2182B55", border = "#B2182B")
+  legend("top", c("control", "treated"), fill = c("#00000022", "#B2182B55"),
+         bty = "n", horiz = TRUE, cex = 0.9)
+}
+```
+
+\vspace{-0.4em}
+
+\footnotesize
+Right panel: a treated mass at $\hat e \approx 1$ with no controls, and a control mass at $\hat e \approx 0$ with no treated. Those units have **no counterfactual**. Any estimate covering them is extrapolation, not comparison.
+
+## This plot belongs in every such paper
+
+- Common support is verifiable, unlike unconfoundedness.
+- What to do when it looks like the right panel:
+  - **Trim** observations with extreme scores, or impose a caliper. Drop units with $\hat e \notin [0.1,\,0.9]$. A rule of thumb, but a defensible and widely accepted one (Crump, Hotz, Imbens and Mitnik, 2009).
+  - **Report the change in estimand.** After trimming you describe a subpopulation, not the original one. Say how many observations went and how the treated sample shifted.
+  - Consider retreating to the $ATT$, which only needs overlap in one direction.
+- What *not* to do: report the estimate and stay silent. The regression will happily extrapolate into a region with no data and give you a standard error that reflects none of that.
+
+## Inverse probability weighting
+
+Rather than matching, **reweight**: treated get $1/\hat e(X)$, controls $1/(1-\hat e(X))$.
+
+$$
+\widehat{ATE}_{IPW} \;=\; \frac{1}{n}\sum_i \frac{D_i Y_i}{\hat e(X_i)} \;-\; \frac{1}{n}\sum_i \frac{(1-D_i) Y_i}{1 - \hat e(X_i)}
+$$
+
+Why *that* weight? Take the first term, use $D\,Y = D\,Y^1$, and condition on $X$:
+
+$$
+\begin{aligned}
+E\!\left[\frac{D\,Y}{e(X)}\right]
+&\;=\; E\!\left[\frac{E[D\,Y^1 \mid X]}{e(X)}\right]
+\;=\; E\!\left[\frac{E[D \mid X]\;E[Y^1 \mid X]}{e(X)}\right] \\[0.3em]
+&\;=\; E\big[\,E[Y^1 \mid X]\,\big] \;=\; E[Y^1]
+\end{aligned}
+$$
+
+- Step 1 is the **switching equation**; step 2 **is unconfoundedness**
+- It is the unique weight that undoes selection (Horvitz--Thompson 1952; Imbens 2000).
+
+<!--
+## The same estimator, Cunningham's way
+
+Cunningham writes it as one expression rather than two sums:
+
+$$
+ATE = E\!\left[\,Y \cdot \frac{D - e(X)}{e(X)\,\big(1 - e(X)\big)}\right],
+\qquad
+ATT = \frac{1}{\Pr(D{=}1)}\, E\!\left[\,Y \cdot \frac{D - e(X)}{1 - e(X)}\right]
+$$
+
+Same thing. Substitute $D = 1$, then $D = 0$, into each multiplier:
+
+$$
+\frac{D-e}{e(1-e)} \;\longrightarrow\; \frac{1}{e} \;\text{ or }\; -\frac{1}{1-e},
+\qquad\qquad
+\frac{D-e}{1-e} \;\longrightarrow\; 1 \;\text{ or }\; -\frac{e}{1-e}
+$$
+
+- The first is exactly the two $ATE$ weights, with the minus sign folded in.
+- The second shows the asymmetry: **treated units keep weight $1$**; only controls are reweighted, by $e/(1-e)$. At $e = 0.2$ a treated firm weighs $5$ and a control $1.25$ for the $ATE$ --- but $1$ and $0.25$ for the $ATT$.
+
+
+## Weighting rebuilds the population
+
+Weight each unit by $1/e$ if treated, $1/(1-e)$ if control, and count heads:
+
+\begin{center}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Cell & $N$ & $e$ & treated & weighted & control & weighted \\
+\midrule
+A & $200$ & $0.2$ & $40$  & $40(5) = \mathbf{200}$    & $160$ & $160(1.25) = \mathbf{200}$ \\
+B & $400$ & $0.2$ & $80$  & $80(5) = \mathbf{400}$    & $320$ & $320(1.25) = \mathbf{400}$ \\
+C & $400$ & $0.6$ & $240$ & $240(1.67) = \mathbf{400}$ & $160$ & $160(2.5) = \mathbf{400}$ \\
+\midrule
+Total & $1{,}000$ & & $360$ & $1{,}000$ & $640$ & $1{,}000$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2em}
+
+- Each group is **blown back up to the full population**, $200/400/400$ on both sides. That is the pseudo-population, and it is why $D \indep X$ holds in it.
+- Cell C is $67\%$ of the treated sample and $25\%$ of the control sample; after weighting, $40\%$ of both.
+- Only $20\%$ of cell A was treated, so each treated firm there **stands in for five**. The $1/e$ is a survey-sampling correction, nothing exotic.
+- For the $ATT$, weight controls by $\hat e/(1-\hat e)$ --- here $0.25/0.25/1.5$, turning $160/320/160$ controls into $40/80/240$: the *treated* distribution, exactly.
+
+## The same three cells, with outcomes
+
+Effect of $2$ in every cell; baselines differ.
+
+\begin{center}
+\footnotesize
+\begin{tabular}{lrrrrr}
+\toprule
+Cell & $e$ & $E[Y^0]$ & $E[Y^1]$ & treated obs. & control obs. \\
+\midrule
+A & $0.2$ & $12$ & $14$ & $40$  & $160$ \\
+B & $0.2$ & $6$  & $8$  & $80$  & $320$ \\
+C & $0.6$ & $20$ & $22$ & $240$ & $160$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\footnotesize
+$$
+\begin{aligned}
+SDO &= \frac{40(14)+80(8)+240(22)}{360} - \frac{160(12)+320(6)+160(20)}{640} \;=\; 18 - 11 \;=\; \mathbf{7} \\[0.3em]
+\widehat{E[Y^1]} &= \frac{1}{1000}\left[\frac{40(14)}{0.2} + \frac{80(8)}{0.2} + \frac{240(22)}{0.6}\right] = \frac{2800+3200+8800}{1000} = 14.8 \\[0.2em]
+\widehat{E[Y^0]} &= \frac{1}{1000}\left[\frac{160(12)}{0.8} + \frac{320(6)}{0.8} + \frac{160(20)}{0.4}\right] = \frac{2400+2400+8000}{1000} = 12.8
+\end{aligned}
+$$
+\normalsize
+
+- $\widehat{ATE}_{IPW} = 14.8 - 12.8 = \mathbf{2}$, exactly right; the naive $7$ was $3.5$ times the truth.
+- Those two numbers are just **population-weighted cell means**. Dividing by $e$ *is* restoring population weights, so subclassification returns $2$ as well.
+
+## Reading the weights
+
+**Survey-sampling logic**: if only 1 firm in 10 with these characteristics was treated, that one firm has to speak for all 10. Its weight is $1/0.1 = 10$.
+
+\begin{center}
+\small
+\begin{tabular}{lccccc}
+\toprule
+$\hat e(X_i)$ & $0.02$ & $0.10$ & $0.50$ & $0.90$ & $0.98$ \\
+\midrule
+weight if treated, $1/\hat e$      & $\mathbf{50.0}$ & $10.0$ & $2.0$ & $1.11$ & $1.02$ \\
+weight if control, $1/(1-\hat e)$  & $1.02$ & $1.11$ & $2.0$ & $10.0$ & $\mathbf{50.0}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Weighting rebuilds a **pseudo-population** in which $D \indep X$. A weighted difference in means is then an $ATE$ --- a synthetic experiment.
+- This is matching's $K_j$ in continuous form: matching gives a control the *integer* weight "how often was I reused", IPW a smooth one.
+- **Danger**: a treated unit at $\hat e = 0.02$ carries $50\times$ the weight of one at $\hat e = 0.98$. A few observations can own the estimate --- §7's reuse problem again.
+- For the $ATT$, treated units get weight $1$ and controls $\hat e/(1-\hat e)$: reweight controls to look like the treated, not both to look like the population.
+
+## How much do the tails cost? Count it
+
+**Effective sample size** (Kish): $\;n_{\text{eff}} = \big(\sum_i w_i\big)^2 \big/ \sum_i w_i^2$. Equal weights give $n_{\text{eff}} = n$; unequal weights always give less.
+
+- Take $100$ treated firms: $95$ at $\hat e = 0.5$ (weight $2$) and $5$ at $\hat e = 0.02$ (weight $50$).
+$$
+n_{\text{eff}} \;=\; \frac{(95 \cdot 2 + 5 \cdot 50)^2}{95 \cdot 2^2 + 5 \cdot 50^2} \;=\; \frac{440^2}{12{,}880} \;=\; \mathbf{15.0}
+$$
+- One hundred firms carry the information of **fifteen**. Those five hold $250/440 = 57\%$ of the total weight --- the estimate is theirs, and so is the standard error.
+- They are not outliers in $Y$, and nothing in a regression table flags them. **Plot the weights, and report $n_{\text{eff}}$ next to $n$.**
+- This is the arithmetic behind "trim the tails": dropping those five costs five observations and buys back most of your precision.
+
+## Normalize the weights
+
+The estimator two slides back is the **Horvitz--Thompson** form --- divide by $n$. It has an embarrassing flaw.
+
+- Four treated firms with $\hat e = (0.5,\,0.5,\,0.5,\,0.25)$, and *every one* has $Y = 10$. With $n = 8$:
+$$
+\frac{1}{8}\left[\frac{10}{0.5} + \frac{10}{0.5} + \frac{10}{0.5} + \frac{10}{0.25}\right] \;=\; \frac{100}{8} \;=\; 12.5
+$$
+- Every observed outcome is $10$, yet the estimate of $E[Y^1]$ is $12.5$: the weights sum to $10$, not $8$, and dividing by $n$ pretends they sum to $n$.
+- **Hájek fix**: divide by the *realized* weight sum instead. $\;100/10 = 10$.
+$$
+\widehat{E[Y^1]}_{\text{H\'ajek}} \;=\; \frac{\sum_i D_i Y_i / \hat e_i}{\sum_i D_i / \hat e_i}
+$$
+- The normalized version is **location-invariant** and far more stable in the tails. **Use it**: Hirano and Imbens (2001), after Hájek (1971) --- the "normalized estimator" of Millimet and Tchernis (2009). Stata's `teffects ipw` and R's `WeightIt` default to it.
+
+
+## Inference: bootstrap is fine here
+
+- §7 spent five slides on why the usual standard errors fail for matching, and Abadie--Imbens (2008) showed the **bootstrap is invalid for matching** --- the matching function is not smooth enough for it.
+- People then over-generalize: "the bootstrap fails for propensity score methods." **It does not.**
+- Cunningham's point, worth pinning down: **inverse probability weighting is not matching.** It is a weighting estimator, it is smooth in the data, and the bootstrap is generally fine for it.
+- Practical recipe: resample the data with replacement, and **re-estimate the score inside each replication**. That is what makes the bootstrap price in the first-stage uncertainty automatically.
+- $1{,}000$--$10{,}000$ replications; the standard deviation of the resulting estimates is your standard error. See Adusumilli (2018) and Bodory et al. (2020) on which bootstrap (standard, wild) suits which design.
+- Busso, DiNardo and McCrary (2014) compared these estimators in simulation and found IPW --- especially the normalized version --- competitive with matching.
+
+-->
+
+
+## Propensity score matching
+
+- Match each treated unit to controls with a **similar score**, then difference. All the §6 machinery applies directly.
+- **Caliper** matching: refuse any match farther than some tolerance (say $0.001$ on the score), *discarding* the treated unit if none qualifies. **Radius** matching: average all controls inside the tolerance.
+- Two problems with both, neither of which shows up in a standard error:
+  - The tolerance is **chosen by the researcher**, with no theoretical rule (Huntington-Klein et al. 2021).
+  - Dropping treated units **changes the estimand** --- the $ATT$ summarised the *original* treated sample. Cunningham: caliper matching "ends up also shifting the goalposts in unknown ways."
+- The score is estimated, so its sampling error enters the standard errors (Abadie--Imbens 2016).
+- The caveat that matters most: same score, different $X$. **The three cells** --- a treated Large/Low-leverage firm from A, a control Small/High-leverage firm from B, both at $e = 0.2$ --- and the algorithm pairs them.
+
+<!--
+## King and Nielsen (2019): which experiment are you imitating?
+
+*Why Propensity Scores Should Not Be Used for Matching*, **Political Analysis** 27, 435--454.
+
+- Every matching method **recreates some experiment**. Which one decides how good it can get.
+  - **Completely randomized**: covariates balanced *on average*. Draw again and the treated group is $52\%$ large firms, then $48\%$ --- balanced in expectation, never in the sample you hold.
+  - **Fully blocked**: randomize *within* strata, so exactly $50\%$ large firms in both arms, every draw. Strictly better on imbalance, model dependence, variance and bias.
+- **PSM targets the weaker one.** The balancing property promises equal covariate *distributions* within a score stratum --- complete randomization by construction, and no more.
+- Mahalanobis and coarsened exact matching target the **blocked** experiment: they compare on $X$ itself. Cells A and B share $e = 0.2$ and are opposites on $X$, so PSM cannot tell an A--A pair from an A--B pair --- but **blocking would never have made that pair.**
+
+## The PSM paradox, and what to do instead
+
+- Matching prunes units to improve balance. For MDM and CEM, pruning **keeps helping**: you are always dropping the worst-matched pair on $X$.
+- For PSM, once the remaining sample already looks completely randomized, the pairs you prune next are **arbitrary with respect to $X$** --- the score cannot distinguish them. You are now pruning at random.
+- Randomly deleting units from a randomized experiment does not improve balance. It shrinks $n$ and makes realized imbalance *noisier*, so measured imbalance, model dependence and bias start going **up**.
+- King and Nielsen: *"the more balanced the data, or the more balanced it becomes by \[trimming\] some of the observations through matching, the more likely propensity score matching will degrade inferences."*
+- The trap is the standard workflow --- prune, check balance, adjust the caliper, prune again. That loop can walk you into the rising region while the diagnostics look like progress.
+
+## Their recommendation, and its scope
+
+- **Replace PSM with a method that blocks**: Mahalanobis distance matching, or coarsened exact matching. Match on $X$, not on a scalar summary of $X$.
+- **Diagnose with the pruning curve.** Plot imbalance against the number of units pruned. Falling is fine; the moment it turns up, stop --- you are in the paradox.
+- **The critique is narrow, and they say so.** It targets nearest-neighbour matching *on the score*. It leaves untouched:
+  - inverse probability **weighting**,
+  - **stratification** on the score (Rosenbaum--Rubin's original proposal),
+  - **regression adjustment**, and the score as an ingredient in doubly robust estimators.
+- So the propensity score survives this paper intact. What does not survive is one particular thing people do with it.
+- Recommended viewing: Gary King, "16. Matching Methods" (83 min) --- `https://youtu.be/tvMyjDi4dyg`
+
+## A surprise: estimate the score even when you know it
+
+- Hahn (1998); Hirano, Imbens and Ridder (2003): weighting by the **estimated** $\hat e$ is *more efficient* than weighting by the **true** $e$ --- even when the truth is handed to you.
+- Students find this backwards. The intuition is one you already accept.
+- Run an experiment with a fair coin, $e = 0.5$. By chance the treated group comes out $55\%$ large firms and the control group $45\%$. The true score says "balanced" --- and it is right, *about the coin*. The estimated score reads $\hat e > 0.5$ for large firms and weights that chance imbalance away.
+- **You do not need to correct the coin. You need to correct the sample you actually drew.** Only $\hat e$ knows what you drew.
+- Same reason you put covariates in an RCT regression even though randomization already delivered identification.
+- Scope: this is about *weighting*. For **matching** on $\hat e$, estimation moves the variance in either direction and must be accounted for (Abadie--Imbens 2016).
+-->
+
+## What the score does and does not buy
+
+- It buys **dimension reduction**, not identification. If $X$ omits a confounder, $e(X)$ omits it too.
+- You have swapped an assumption about the **outcome** model for one about the **treatment** model --- a choice about which model you would rather defend. The next slides show you can decline to choose.
+- Its most valuable use may be **diagnostic**: the overlap plot reveals problems that no regression table displays.
+- Read the fit **backwards**. A treatment model that predicts $D$ *badly* is good news --- $\hat e$ is nearly flat, so treatment is close to as-if random given $X$, and everyone has a counterpart.
+- The alarm is a model that predicts $D$ almost perfectly: it drives scores to $0$ and $1$, and leaves nobody to compare with. High pseudo-$R^2$ in the treatment equation is a warning, not an achievement.
+
+<!--
+
+## You need not choose: doubly robust estimation
+
+The choice just posed --- model the **outcome** or model the **treatment** --- is not forced. Fit *both*, and only one needs to be right.
+
+\small
+$$
+\widehat{ATE}_{DR} = \frac{1}{n}\sum_i \Big[ \underbrace{\hat\mu^1(X_i) - \hat\mu^0(X_i)}_{\text{regression imputation}}
++ \underbrace{\frac{D_i\big(Y_i - \hat\mu^1(X_i)\big)}{\hat e(X_i)} - \frac{(1-D_i)\big(Y_i - \hat\mu^0(X_i)\big)}{1-\hat e(X_i)}}_{\text{IPW applied to the \emph{residuals}}} \Big]
+$$
+\normalsize
+
+- Read it as regression imputation with an IPW **repair term** bolted on. The repair term is ordinary IPW --- but run on the residuals $Y - \hat\mu$, not on $Y$.
+- If $\hat\mu^d$ is right, the residuals are mean-zero and the repair term **vanishes** --- whatever $\hat e$ is.
+- If $\hat e$ is right, the repair term is a valid IPW estimate of exactly the error the first term made, and cancels it --- whatever $\hat\mu^d$ is.
+- Consistent if **either** model is correct: *doubly robust*. Two chances instead of one.
+- You have met the shape before: §8's bias correction is the matching version of the same trick --- a crude estimator, plus a regression that prices out its leftover error.
+
+## Doubly robust: why the repair term cancels
+
+Take one cell with true score $e$, true means $y^1, y^0$, and any guessed outcome model $\hat\mu^1, \hat\mu^0$. Average the bracket over the units in that cell:
+
+$$
+\underbrace{\hat\mu^1 - \hat\mu^0}_{\text{guess}}
+\;+\; \underbrace{\frac{e\,(y^1 - \hat\mu^1)}{e}}_{\text{treated share} \,\times\, \text{residual}}
+\;-\; \underbrace{\frac{(1-e)(y^0 - \hat\mu^0)}{1-e}}_{\text{control share}\,\times\,\text{residual}}
+\;=\; y^1 - y^0
+$$
+
+- The $e$'s cancel, the $\hat\mu$'s cancel, and out drops the true effect. **Whatever you guessed.**
+- That is the whole of double robustness in one line: a *correct score* makes the share of treated units in the cell exactly undo the $1/\hat e$, so the residual is added back at full weight and the guess is erased.
+- Symmetrically, if the guess is right then both residuals are zero and the second and third terms disappear, leaving $\hat\mu^1 - \hat\mu^0$ --- correct regardless of $\hat e$.
+- **Only one of the two cancellations has to fire.**
+
+## Doubly robust: the three cells, one model at a time
+
+Truth: $ATE = 2$, naive $SDO = 7$. Now deliberately break one model at a time.
+
+\begin{center}
+\small
+\begin{tabular}{llccc}
+\toprule
+Outcome model $\hat\mu$ & Score $\hat e$ & Regression only & IPW only & \textbf{Doubly robust} \\
+\midrule
+wrong: flat $10 / 16$ & correct $0.2/0.2/0.6$ & $6.0$ & $2.0$ & $\mathbf{2.0}$ \\
+correct cell means    & wrong: $0.36$ for all & $2.0$ & $7.0$ & $\mathbf{2.0}$ \\
+wrong: flat $10 / 16$ & wrong: $0.36$ for all & $6.0$ & $7.0$ & $7.0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.2em}
+
+- Row 1, cell A: $16 - 10 + \tfrac{0.2(14-16)}{0.2} - \tfrac{0.8(12-10)}{0.8} = 6 - 2 - 2 = 2$. Cells B and C also give exactly $2$.
+- Row 2: the wrong score is a logit **with no covariates**, so $\hat e = 360/1000$ for everyone. Constant weights are no weights, and IPW hands back the naive $7$. The correct $\hat\mu$ rescues it anyway.
+- Row 3 is the honest one. **Two chances is not a guarantee** --- get both wrong and you get neither. Here it collapses back to $7$.
+
+## Doubly robust in practice
+
+- **What it buys**: you no longer have to win the argument about which model is right. You have to win only one of the two.
+- **What it does not buy**: identification. Both models are built from the same $X$. If $X$ omits a confounder, both are wrong in the same direction and row 3 is where you live.
+- The score still needs **overlap**. Doubly robust estimators divide by $\hat e$ and $1-\hat e$ just as IPW does, so extreme scores hurt them the same way --- trim first.
+- Cheap version you can run today: estimate $\hat e$, then run **weighted least squares** of $Y$ on $D$ and $X$ with IPW weights. Regression plus weighting is doubly robust for the $ATE$ when the outcome model is linear.
+- In software: Stata `teffects aipw (y x) (d x)`; R `AIPW` or `DoubleML`. Report it beside your regression and your IPW estimate --- three numbers that agree is a real robustness check, and three that disagree tells you which model was load-bearing.
+
+-->
+
+
+<!-- ARCHIVE: simulation versions of the two hand-worked examples above.
+
+
+
+## Checking the balancing property
+
+Two covariates, $e(X) = \Lambda(1.0 X_1 + 0.8 X_2)$, $n = 20{,}000$. Treated-minus-control gap in each covariate:
+
+```{r}
+#| echo: true
+set.seed(975)
+n  <- 20000; X1 <- rnorm(n); X2 <- rnorm(n)
+D  <- rbinom(n, 1, plogis(1.0 * X1 + 0.8 * X2))
+eh <- predict(glm(D ~ X1 + X2, family = binomial), type = "response")
+dec <- cut(eh, quantile(eh, 0:10 / 10), include.lowest = TRUE)
+gap <- function(V) c(overall   = mean(V[D == 1]) - mean(V[D == 0]),
+                     max_within = max(abs(tapply(seq_len(n), dec,
+                       function(i) mean(V[i][D[i] == 1]) - mean(V[i][D[i] == 0])))))
+round(rbind(X1 = gap(X1), X2 = gap(X2)), 3)
+```
+
+\vspace{0.2em}
+
+- Overall gaps of $0.77$ and $0.60$ collapse to at most $0.14$ and $0.15$ **within deciles of the score**.
+- We never conditioned on $X_1$ or $X_2$ --- only on one number --- and both balanced.
+
+
+
+## Comparing the estimators
+
+```{r}
+#| echo: true
+set.seed(975)
+n  <- 20000
+X  <- rnorm(n)
+ps <- plogis(1.2 * X)                  # true propensity score
+D  <- rbinom(n, 1, ps)
+Y  <- 2 * D + 3 * X + rnorm(n)         # TRUE effect = 2
+
+eh <- predict(glm(D ~ X, family = binomial), type = "response")
+round(c(naive = mean(Y[D == 1]) - mean(Y[D == 0]),
+        ols   = unname(coef(lm(Y ~ D + X))[2]),
+        ipw   = mean(D * Y / eh) - mean((1 - D) * Y / (1 - eh))), 3)
+```
+
+\vspace{0.2em}
+
+- Naive comparison: $4.85$, more than double the truth. Both adjusted estimators land near $2$.
+- They agree **because the model is correctly specified**. That is the assumption doing the work, not the method.
+
+-->
+
+# Regression
+
+## Regression as a conditioning strategy
+
+- Regression belongs in this chapter. It is not a rival to matching --- it is another way of executing the same substitution from §3.
+- Under unconfoundedness and **constant** treatment effects, $Y = \alpha + \beta D + X'\gamma + \varepsilon$ recovers $\beta$, because unconfoundedness delivers exactly the exogeneity condition OLS needs:
+$$
+(Y^1,Y^0)\indep D \mid X \;\;\Longrightarrow\;\; E[\varepsilon \mid D, X] = 0
+$$
+- Recall Lecture 1: the error term contains $Y^0$. Selection bias was $\mathrm{cov}(D, Y^0) \neq 0$. Conditioning on $X$ is the attempt to make that covariance zero *within strata*.
+- What regression adds that matching lacks: it **interpolates and extrapolates** with functional form, so empty cells do not stop it.
+- What it hides: it does that silently.
+
+## Frisch--Waugh--Lovell
+
+The coefficient on $D$ in a multiple regression equals the coefficient from a **bivariate** regression of residualized $Y$ on residualized $D$:
+
+```{r}
+#| echo: true
+set.seed(975)
+n <- 20000; X <- rnorm(n); D <- rbinom(n, 1, plogis(1.2 * X))
+Y <- 2 * D + 3 * X + rnorm(n)
+c(direct = unname(coef(lm(Y ~ D + X))[2]),
+  fwl    = unname(coef(lm(resid(lm(Y ~ X)) ~ resid(lm(D ~ X))))[2]))
+```
+
+\vspace{0.2em}
+
+- Identical to machine precision. "Controlling for $X$" *means* "using only the variation in $D$ that $X$ cannot explain."
+- This is the cleanest statement of what a control variable does --- and it tells you where the identifying variation comes from.
+- It also warns you: if $X$ explains nearly all of $D$, almost no variation remains, and the estimate rests on very few effective observations.
+
+## What FWL implies about weights
+
+- FWL says OLS uses the residual variation in $D$. Where is that variation largest? Where treatment is **least predictable**.
+- Formally, with $X$ dummies, OLS weights each stratum by $N_j\, p_j(1-p_j)$ --- the **conditional variance of treatment** within it.
+- So OLS gives most weight to strata where treatment is closest to a coin flip, and least where it is nearly deterministic.
+- That is a defensible **efficiency** motive: those strata carry the most information per observation.
+- It also means **OLS is not estimating the $ATT$** --- or the $ATE$ --- when effects are heterogeneous. It estimates a variance-weighted average with no policy interpretation.
+
+## Regression adjustment (imputation)
+
+- A more flexible use of regression that mirrors matching directly:
+  1. Fit $\hat\mu^1(x)$ on the **treated** and $\hat\mu^0(x)$ on the **controls**, separately.
+  2. For *every* unit, impute both potential outcomes and average the difference:
+$$
+\widehat{ATE} = \frac{1}{n}\sum_i \big( \hat\mu^1(X_i) - \hat\mu^0(X_i) \big)
+$$
+- Separate models allow the covariates to matter differently under treatment and control --- exactly what a single $\beta$ on $D$ forbids.
+- This is the same imputation logic as matching, with a model in place of a neighbour.
+- Combining it with weighting gives **doubly robust** estimators: consistent if *either* the outcome model or the propensity model is right. A genuinely useful hedge, and increasingly the default in applied work.
+
+## Matching versus regression
+
+- Both rely on the **same** identifying assumption: unconfoundedness. Neither creates exogenous variation.
+- The difference is in *how they weight strata* when the effect is heterogeneous.
+  - **Matching ($ATT$)** weights stratum $j$ by the number of **treated** units in it.
+  - **OLS with $X$ dummies** weights stratum $j$ by $N_j\, p_j (1-p_j)$.
+- They also differ in what they do about missing cells: matching refuses; regression extrapolates.
+- So when the two disagree, ask two questions in order: *is it the weights, or is it the extrapolation?* Both are diagnosable.
+
+## The same example under both
+
+Two strata. $p_{\text{small}} = 0.5$, $p_{\text{large}} = 0.1$; effects $+2$ and $+3$; 100 firms per stratum.
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+& Weight on small & Weight on large & Estimate \\
+\midrule
+Matching ($ATT$): treated counts & $50/60 = 0.833$ & $10/60 = 0.167$ & $\mathbf{2.167}$ \\
+OLS: $N_j p_j(1-p_j)$            & $25/34 = 0.735$ & $9/34 = 0.265$  & $\mathbf{2.265}$ \\
+$ATE$: population shares         & $0.5$           & $0.5$           & $\mathbf{2.500}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+```{r}
+#| echo: true
+X <- c(rep(0, 100), rep(1, 100))
+D <- c(rep(c(1, 0), each = 50), rep(c(1, 0), times = c(10, 90)))
+Y <- ifelse(X == 0, 0, 5) + ifelse(X == 0, 2, 3) * D
+round(unname(coef(lm(Y ~ D + factor(X)))[2]), 3)
+```
+
+## Reading the comparison
+
+- The regression returns $2.265$ --- exactly the variance-weighted average, not the $ATT$ and not the $ATE$.
+- The gap is small here. Angrist and Pischke argue it usually is, in practice.
+- But "usually small" is not "zero", and the difference is entirely about **which firms your estimate describes**:
+  - Matching describes the treated.
+  - OLS describes wherever treatment was most unpredictable.
+- **When it matters most**: when treatment probability varies a lot across strata *and* effects are heterogeneous. Both are typical in finance.
+- This is the same variance-weighting issue that resurfaces, far more destructively, in staggered difference-in-differences.
+
+# What Matching Cannot Do
+
+## Matching creates no new variation
+
+- The most important slide in this lecture.
+- Matching **does not introduce exogenous variation**. It reorganizes and reweights the data you already have, using observables you already measured.
+- Consequence: if your OLS regression was biased by endogeneity, **the matched estimate is biased too** --- typically by a similar amount, for the same reason.
+- Contrast this with the designs still to come:
+  - **IV** imports variation from outside the model.
+  - **RDD** exploits assignment that is locally as good as random.
+  - **DiD** differences out fixed unobservables.
+- Matching belongs to a different category. It is a *conditioning strategy*, like regression --- not a research design.
+
+## What it cannot fix
+
+Matching is powerless against:
+
+- **Unobserved confounders.** You cannot match on what you cannot measure.
+- **Reverse causality.** Matching on $X$ says nothing about whether $Y$ caused $D$.
+- **Measurement error** in treatment or outcome.
+- **Bad controls.** Matching on a post-treatment variable is exactly as damaging as controlling for it --- Lecture 2 applies unchanged, and §2's collider $F$ is the warning.
+
+\vspace{0.4em}
+
+\begin{center}
+\emph{You cannot match on what you cannot measure.}
+\end{center}
+
+\vspace{0.4em}
+
+- A matched sample looks reassuringly balanced on the covariate table --- and that reassurance is *precisely* the danger. Balance on observables is silent about unobservables.
+
+## So what is it good for?
+
+Given all that, matching still earns its place:
+
+1. **A non-parametric benchmark.** It estimates the effect without assuming a functional form. If matching and OLS disagree sharply, your specification is doing more work than you thought.
+2. **Common-support discipline.** Matching refuses to compare units with no counterpart. Regression silently extrapolates into regions with no data.
+3. **Diagnostic value.** The propensity score distribution reveals overlap problems that a regression table hides completely.
+4. **Robustness when the functional form is wrong.** Matching can outperform a misspecified regression in finite samples.
+
+\vspace{0.3em}
+
+- Use it as a *complement* to regression and a check on it --- not as an identification strategy.
+
+# The NSW Demonstration
+
+## The 1970s empirical crisis
+
+- The methods in this lecture were not adopted because they were elegant. They were adopted after a crisis of confidence in observational work.
+- Job-training programs in the 1970s were evaluated observationally, and the estimates were all over the place --- depending, apparently, on the analyst.
+- The **National Supported Work (NSW) Demonstration** was different: it *randomized* participation. So the experimental effect was known.
+- That created something rare and valuable: a **benchmark**. You could now ask whether observational methods, applied to the same treated units, recover the experimental answer.
+- Everything in this lecture gets graded against it.
+
+## What LaLonde did
+
+- LaLonde (1986) ran the decisive test. He took the NSW experiment, **threw away the experimental control group**, and replaced it with comparison groups built from survey data (CPS and PSID).
+- He then applied the standard observational toolkit of the day and compared the results to the experimental benchmark of roughly **\$1,800** in annual earnings gains.
+- The observational estimates ranged from a fraction of the benchmark to **the wrong sign** --- and which one you got depended heavily on how the comparison group was built.
+- The paper was devastating and hugely influential. It is a major reason the profession moved toward IV, RDD, and DiD --- the other river.
+
+## Dehejia and Wahba: not so fast
+
+- **Dehejia and Wahba (1999, 2002)** revisited LaLonde's data with propensity score methods.
+- Their finding: the observational estimates *did* recover the experimental benchmark reasonably well --- **once common support was imposed**.
+- The key diagnosis: much of LaLonde's failure was an **overlap** problem, not only a confounding problem. The CPS and PSID comparison groups contained enormous numbers of people utterly unlike the NSW participants.
+- Discard the non-comparable units and the methods perform far better.
+- This is why §3's distinction matters so much. Two different assumptions were failing, and only one of them is checkable.
+
+## Smith and Todd: not so fast either
+
+- **Smith and Todd (2005)** re-examined the Dehejia--Wahba result and found it fragile.
+- The success was **sensitive to the subsample** analysed and to the **propensity score specification** chosen. Reasonable alternative choices undid it.
+- Their charge is uncomfortable and worth stating plainly: the specification that worked may have been found *because* the experimental answer was already known.
+- You cannot run that search in real research. In a genuine application there is no benchmark to check against --- that is the entire point of doing the study.
+
+## The honest summary
+
+- Selection on observables **can** work --- when overlap is genuine and the confounders are truly measured.
+- Neither condition is verifiable in the setting where you need them:
+  - Unconfoundedness is **untestable**, always.
+  - Common support is **checkable**, and checking it was most of what rescued Dehejia--Wahba.
+- So the practical lesson is asymmetric: do the check you can do, and argue explicitly for the assumption you cannot.
+- **A useful exercise**: the NSW data are freely available. Apply every method in this lecture and compare them to the \$1,800 benchmark. Cunningham's chapter walks through it, and it is the fastest way to develop instincts about when these methods hold up.
+
+# Wrapping Up
+
+## Summary [Part 1]
+
+- **Assignment mechanisms resolve bias, not models.** The SDO decomposition is an identity; only a claim about how treatment was assigned deletes its bias terms.
+- **Covariates come in four kinds**: confounders (include), colliders (never), precision covariates (optional), mediators (never). Pre-treatment timing is your best protection.
+- **Unconfoundedness**, $(Y^1,Y^0) \indep D \mid X$: randomization *within* strata of $X$. Untestable; defended with institutional knowledge, and Imbens's third defence is the strongest in finance.
+- **Common support** is a *separate* assumption --- and unlike unconfoundedness, it is **checkable**. Plot the propensity scores.
+- **Subclassification** makes the estimand a choice about weights. On the Titanic: $SDO = 35.4$ pp, but $ATE = 19.6$, $ATT = 23.8$, $ATU = 18.9$.
+- The **curse of dimensionality** is structural, not a small-sample nuisance. One missing passenger killed two of three parameters.
+
+## Summary [Part 2]
+
+- **Matching** imputes counterfactuals explicitly. The matching discrepancy is systematically signed, so it becomes **bias** that shrinks slower than the standard error --- hence bias correction.
+- **Propensity scores** reduce $X$ to one number and defeat dimensionality for *conditioning* --- but not for identification. Judge the score by balance, not fit.
+- **IPW** reweights to a pseudo-experiment; watch for exploding weights as $\hat e \to 0, 1$.
+- **Regression** is a conditioning strategy too. FWL shows it uses the residual variation in $D$, which is why it weights by $N_j p_j(1-p_j)$: $2.167$ versus $2.265$ in our example.
+- **Matching creates no new exogenous variation.** If OLS was endogenous, matching is too.
+- **NSW**: these methods can work when overlap is real and confounders are measured --- and you can only verify one of those.
+- Next lecture: designs that *do* create variation --- starting with **regression discontinuity**.
+
+## A checklist for your own paper
+
+1. State the **estimand** before the estimator. $ATE$, $ATT$, or $ATU$ --- and say why the policy question needs that one.
+2. Defend the **assignment mechanism** in institutional terms. Name the confounders and say how you measured them.
+3. Justify every covariate as **pre-treatment**. Any post-treatment control needs an argument, not a footnote.
+4. **Plot the overlap.** Report what you trimmed and how the estimand changed.
+5. Report **matching and regression**. If they disagree, diagnose whether it is weights or extrapolation.
+6. Run a **placebo** on a pre-treatment period.
+7. Say plainly what would break the design --- and what unobservable would have to exist.
+
+## References
+
+\scriptsize
+
+- Cunningham, S. *Causal Inference: The Remix*, Ch. 5.
+- Rosenbaum, P. and D. Rubin (1983). The Central Role of the Propensity Score in Observational Studies for Causal Effects. *Biometrika* 70, 41--55.
+- Abadie, A. and G. Imbens (2006). Large Sample Properties of Matching Estimators for Average Treatment Effects. *Econometrica* 74, 235--267.
+- Abadie, A. and G. Imbens (2008). On the Failure of the Bootstrap for Matching Estimators. *Econometrica* 76, 1537--1557.
+- Abadie, A. and G. Imbens (2011). Bias-Corrected Matching Estimators for Average Treatment Effects. *Journal of Business \& Economic Statistics* 29, 1--11.
+- Ben-Michael, E., A. Feller and J. Rothstein (2021). The Augmented Synthetic Control Method. *JASA* 116, 1789--1803.
+- Lin, Z., P. Ding and F. Han (2023). Estimation Based on Nearest Neighbor Matching: From Density Ratio to Average Treatment Effect. *Econometrica* 91, 2187--2217.
+- LaLonde, R. (1986). Evaluating the Econometric Evaluations of Training Programs with Experimental Data. *American Economic Review* 76, 604--620.
+- Dehejia, R. and S. Wahba (1999). Causal Effects in Nonexperimental Studies. *JASA* 94, 1053--1062.
+- Smith, J. and P. Todd (2005). Does Matching Overcome LaLonde's Critique of Nonexperimental Estimators? *Journal of Econometrics* 125, 305--353.
+- King, G. and R. Nielsen (2019). Why Propensity Scores Should Not Be Used for Matching. *Political Analysis* 27, 435--454.
+- Imbens, G. (2004). Nonparametric Estimation of Average Treatment Effects under Exogeneity. *Review of Economics and Statistics* 86, 4--29.
+- Angrist, J. and J.-S. Pischke (2009). *Mostly Harmless Econometrics*, Ch. 3. Princeton University Press.

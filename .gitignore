@@ -1,3 +1,21 @@
 /notes/exam/
 /notes/prepare/
 /archive2025
+# Quarto / LaTeX build artifacts
+*.aux
+*.log
+*.nav
+*.snm
+*.toc
+*.vrb
+*.out
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*_files/
+/.quarto/
+render.log
+
+# Private instructor material (never publish to GitHub Pages)
+*_teaching_note.qmd
+*_teaching_note.pdf
