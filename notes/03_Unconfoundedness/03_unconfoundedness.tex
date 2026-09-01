@@ -1880,33 +1880,93 @@ extrapolation, not comparison.
 \begin{frame}{Inverse probability weighting}
 \protect\phantomsection\label{inverse-probability-weighting}
 Rather than matching, \textbf{reweight}: treated get \(1/\hat e(X)\),
-controls \(1/(1-\hat e(X))\).
-
-\[
-\widehat{ATE}_{IPW} \;=\; \frac{1}{n}\sum_i \frac{D_i Y_i}{\hat e(X_i)} \;-\; \frac{1}{n}\sum_i \frac{(1-D_i) Y_i}{1 - \hat e(X_i)}
-\]
-
-Why \emph{that} weight? Take the first term, use \(D\,Y = D\,Y^1\), and
-condition on \(X\):
-
-\[
+controls \(1/(1-\hat e(X))\). \[
 \begin{aligned}
-E\!\left[\frac{D\,Y}{e(X)}\right]
-&\;=\; E\!\left[\frac{E[D\,Y^1 \mid X]}{e(X)}\right]
-\;=\; E\!\left[\frac{E[D \mid X]\;E[Y^1 \mid X]}{e(X)}\right] \\[0.3em]
-&\;=\; E\big[\,E[Y^1 \mid X]\,\big] \;=\; E[Y^1]
+{ATE} &\;=\; E\left[ Y^1 \;-\; Y^0 \right]  \\
+      &\;=\; E\left[ \frac{D \cdot Y}{e(X)} \;-\; \frac{(1 - D) \cdot Y}{1 - e(X)} \right] \\
+\widehat{ATE}_{IPW} &\;=\; \frac{1}{n}\sum_i \frac{1}{\hat e(X_i)}Y_i \;-\; \frac{1}{n}\sum_i \frac{1}{1 - \hat e(X_i)}Y_i
 \end{aligned}
 \]
 
-\begin{itemize}
-\tightlist
-\item
-  Step 1 is the \textbf{switching equation}; step 2 \textbf{is
-  unconfoundedness}
-\item
-  It is the unique weight that undoes selection (Horvitz--Thompson 1952;
-  Imbens 2000).
-\end{itemize}
+For ATT, treated get \(1\), controls \(\hat e(X)/(1-\hat e(X))\).
+
+\[
+\begin{aligned}
+{ATT} &\;=\; E\left[ Y^1 \;-\; Y^0 \mid D \;=\; 1  \right]  \\
+      &\;=\; E\left[ \frac{D \cdot Y}{e(X)} \;-\; \frac{(1 - D) \cdot Y}{1 - e(X)} \right] \\
+\widehat{ATT}_{IPW} &\;=\; \frac{1}{n_T}\sum_i Y_i \;-\; \frac{1}{n_T}\sum_i \frac{\hat e(X_i) }{1 - \hat e(X_i)}Y_i
+\end{aligned}
+\]
+\end{frame}
+
+\begin{frame}{Why \emph{that} weight for ATE?}
+\protect\phantomsection\label{why-that-weight-for-ate}
+We prove \(E\!\left[\frac{A \cdot Y}{e(X)}\right] = E[Y(1)]\). The
+\(E[Y(0)]\) half is symmetric.
+
+\scriptsize
+
+\[
+\begin{aligned}
+E\!\left[ \frac{A \cdot Y}{e(X)} \right]
+  &= E\!\left[ \frac{A \cdot Y(1)}{e(X)} \right]
+     && \text{consistency: } A \cdot Y = A \cdot Y(1) \\
+  &= E_X\!\left[ E\!\left( \frac{A \cdot Y(1)}{e(X)} \,\Big|\, X \right) \right]
+     && \text{law of total expectation} \\
+  &= E_X\!\left[ \frac{1}{e(X)} \cdot E\big(A \cdot Y(1) \mid X\big) \right]
+     && e(X) \text{ is fixed given } X \\
+  &= E_X\!\left[ \frac{1}{e(X)} \cdot E(A \mid X) \cdot E\big(Y(1) \mid X\big) \right]
+     && \text{exchangeability: } A \indep Y(1) \mid X \\
+  &= E_X\!\left[ \frac{1}{e(X)} \cdot e(X) \cdot E\big(Y(1) \mid X\big) \right]
+     && \text{by definition, } E(A \mid X) = e(X) \\
+  &= E_X\big[ E(Y(1) \mid X) \big] \;=\; E[Y(1)]
+     && \text{cancel; law of total expectation}
+\end{aligned}
+\] \normalsize
+
+Symmetrically \(E\!\left[\frac{(1 - A) Y}{1 - e(X)}\right] = E[Y(0)]\),
+giving the \textbf{IPW form of the ATE}:
+
+\[
+\tau_{ATE} = E\!\left[ \frac{A \cdot Y}{e(X)} - \frac{(1 - A) \cdot Y}{1 - e(X)} \right]
+\]
+\end{frame}
+
+\begin{frame}{Why \emph{that} weight for ATT?}
+\protect\phantomsection\label{why-that-weight-for-att}
+Consistency gives the first term free:
+\(E[Y(1) \mid A{=}1] = E[Y \mid A{=}1]\). The work is in the second.
+
+\scriptsize
+
+\[
+\begin{aligned}
+E\big[Y(0) \mid A{=}1\big]
+  &= E_X\big[\, E(Y(0) \mid X, A{=}1) \,\big|\, A{=}1 \,\big]
+     && \text{law of total expectation} \\
+  &= E_X\big[\, E(Y(0) \mid X, A{=}0) \,\big|\, A{=}1 \,\big]
+     && \text{exchangeability} \\
+  &= E_X\!\left[ E(Y(0) \mid X, A{=}0) \cdot \frac{e(X)}{P(A{=}1)} \right]
+     && \text{change of measure / density shift} \\
+  &= E_X\!\left[ E\!\left( Y(0) \cdot \frac{e(X)}{P(A{=}1)} \,\Big|\, X, A{=}0 \right) \right]
+     && \text{move constants inside} \\
+  &= E_X\!\left[ E\!\left( \frac{(1 - A) \cdot Y(0) \cdot e(X)}{(1 - e(X)) \cdot P(A{=}1)} \,\Big|\, X \right) \right]
+     && \text{drop the condition: control shift} \\
+  &= E\!\left[ \frac{(1 - A) \cdot Y \cdot e(X)}{(1 - e(X)) \cdot P(A{=}1)} \right]
+     && \text{total expectation; consistency}
+\end{aligned}
+\] \normalsize
+
+Combining, with the weight each unit carries read off on the right:
+
+\vspace{-0.6em}
+\small
+
+\[
+\tau_{ATT} = E[Y \mid A{=}1] - E\!\left[ \frac{(1 - A)\,Y\,e(X)}{\big(1 - e(X)\big)\,P(A{=}1)} \right],
+\qquad
+W_i^{ATT} = A_i + (1 - A_i)\,\frac{e(X_i)}{1 - e(X_i)}
+\] \normalsize
 \end{frame}
 
 \begin{frame}{Propensity score matching}
@@ -1914,9 +1974,8 @@ E\!\left[\frac{D\,Y}{e(X)}\right]
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Use 3}: match each treated unit to controls with a
-  \textbf{similar score}, then difference. All the §6 machinery applies
-  directly.
+  Match each treated unit to controls with a \textbf{similar score},
+  then difference. All the §6 machinery applies directly.
 \item
   \textbf{Caliper} matching: refuse any match farther than some
   tolerance (say \(0.001\) on the score), \emph{discarding} the treated

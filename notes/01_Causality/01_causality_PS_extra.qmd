@@ -1,0 +1,140 @@
+---
+title: "Further Practice: Causality and Potential Outcomes"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+*These problems are **optional**. They are not collected and not graded. They extend the assigned set (`01_causality_PS.qmd`) and are good preparation for the comprehensive exam.*
+
+*Problems E3, E4, and E5 use the ten banks from the assigned set. The potential outcomes are restated here so that this file stands on its own:*
+
+\begin{center}
+\begin{tabular}{lcccccccccc}
+\toprule
+Bank $i$ & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 & 9 & 10 \\
+\midrule
+$Y_i^0$ & 1 & 2 & 3 & 2 & 4 & 7 & 8 & 9 & 8 & 10 \\
+$Y_i^1$ & 8 & 8 & 8 & 6 & 7 & 9 & 9 & 9 & 7 & 8 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+*Recall that **Regulator A** treats the five banks with the largest $\delta_i$, and **Regulator B** treats banks 6--10.*
+
+## Problem E1 (Description, prediction, or causation?)
+
+For each statement, (i) classify the underlying question as **descriptive**, **predictive**, or **causal**, and (ii) if the statement draws a causal conclusion, name which of the three fallacies from lecture it commits --- prediction mistaken for causation, *post hoc ergo propter hoc*, or "no correlation implies no causation."
+
+(a) "Firms with more independent boards have higher Tobin's Q, so appointing independent directors raises firm value."
+
+(b) "What fraction of KOSPI firms repurchased shares in 2025?"
+
+(c) "Our model forecasts next quarter's default rate with 91% accuracy, so the variables in it are the drivers of default."
+
+(d) "The Bank of Korea cut rates in March and GDP growth rose in Q2. The rate cut worked."
+
+(e) "Across firms, currency hedging is uncorrelated with the probability of financial distress. Hedging therefore does not reduce distress risk."
+
+(f) For part (e), describe the assignment mechanism that would generate a zero correlation *even if* hedging strongly reduced distress. Which lecture example does this parallel?
+
+## Problem E2 (Randomization and independence)
+
+Suppose treatment is assigned by lottery, so that $(Y^1, Y^0) \indep D$.
+
+(a) State precisely what this independence condition means in words. Why is it stated in terms of *potential* outcomes rather than observed outcomes?
+
+(b) Using independence, show that $E[Y^0 \mid D=1] = E[Y^0 \mid D=0]$ and hence that the selection bias term is zero.
+
+(c) Show that independence also implies $ATT = ATU = ATE$, so that the heterogeneous treatment effect bias term is zero. Conclude that $SDO = ATE$.
+
+(d) Which of the two bias terms would still vanish if treatment were independent of $Y^0$ but *not* of $\delta_i$? Give a finance example in which treatment is plausibly independent of baseline outcomes but not of gains.
+
+(e) Randomization balances covariates *in expectation*. In any one realized experiment, treated and control groups will still differ somewhat on observables. Does this imply the estimate is biased? Explain the distinction between bias and sampling variability.
+
+(f) A referee writes: "The authors' randomized experiment reports a balance table in which 2 of 30 covariates differ at the 5% level. This casts doubt on the randomization." Evaluate this criticism.
+
+## Problem E3 (More on the assignment mechanism)
+
+(a) Under Regulator B, recompute the selection bias and heterogeneous treatment effect bias terms, and verify the three-term decomposition again.
+
+(b) Construct a *third* assignment of five treated banks --- your own choice --- for which the $SDO$ is exactly equal to the true $ATE$. Is your assignment random? What does this tell you about whether "$SDO = ATE$" and "treatment was randomized" are the same statement?
+
+(c) Under Regulator A, is it possible for a researcher who observes only $(Y_i, D_i)$ to detect that selection has occurred? Explain what a balance table on observable bank characteristics could and could not reveal.
+
+## Problem E4 (Two channels of selection)
+
+The regression error from the assigned Problem 3(b) has two pieces, and $D$ can be correlated with either:
+$$
+u_i = \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}} \;+\; \underbrace{D_i(\delta_i - \delta)}_{\text{gain}}
+$$
+
+(a) Define **selection on levels** and **selection on gains** in terms of which piece $D$ is correlated with. State what each one means substantively --- what is treatment being assigned on?
+
+(b) Classify each of the following. Some are both.
+
+  i. A regulator recapitalizes the weakest banks in a crisis.
+  ii. A regulator recapitalizes the banks where an injection will do the most good.
+  iii. Firms adopt a governance provision when their managers expect the largest improvement in value.
+  iv. Firms with a history of poor performance are targeted by activist investors.
+
+(c) Regulator A treats the five banks with the **largest** $\delta_i$. Which channel is that? Explain why defining selection bias as "$\mathrm{cov}(D, Y^0) \neq 0$" would misclassify it.
+
+(d) Construct a numerical example --- four units is enough --- in which $\mathrm{cov}(D, Y^0) = 0$ exactly, yet the naive comparison is still biased for the $ATE$. What is the source of the bias?
+
+## Problem E5 (The lemma, step by step)
+
+The assigned Problem 3 asked you to prove the binary-covariance lemma and then apply it in one move. If that move was too fast, here it is in stages. For binary $D$ with $\pi = P(D{=}1)$,
+$$
+\mathrm{cov}(D, W) \;=\; \pi(1-\pi)\Big(E[W \mid D{=}1] - E[W \mid D{=}0]\Big).
+$$
+
+(a) Apply the lemma with $W = Y^0$ to obtain $\mathrm{cov}(D, Y^0)$ in terms of conditional means.
+
+(b) Apply it with $W = D_i(\delta_i - \delta)$. Show first that $E[W \mid D{=}0] = 0$ and $E[W \mid D{=}1] = ATT - ATE$, then write down $\mathrm{cov}(D, W)$.
+
+(c) Note that $\mathrm{var}(D) = \pi(1-\pi)$. Divide each covariance by $\mathrm{var}(D)$ and say what each quotient equals.
+
+(d) **Verify numerically.** Using the ten banks under Regulator A, compute $\mathrm{cov}(D, Y^0)$, $\mathrm{cov}\big(D, D_i(\delta_i-\delta)\big)$, and $\mathrm{var}(D)$ directly. Confirm that dividing by $\mathrm{var}(D)$ reproduces the two bias terms and that the three terms sum to the $SDO$. Then run `lm(Y ~ D)` on the observed data and check that the coefficient matches.
+
+(e) A referee writes: "Your OLS estimate is inconsistent, so the paper tells us nothing." Give the precise sense in which $\hat\beta_1$ *is* consistent, and explain why that does not rescue the paper.
+
+## Problem E6 (Simultaneity, bad controls, and heterogeneous effects)
+
+(a) Consider the simultaneous system
+$$
+y = \beta_0 + \beta_1 x + u, \qquad x = \alpha_0 + \alpha_1 y + \varepsilon,
+$$
+with $u$ and $\varepsilon$ mutually uncorrelated and $\alpha_1\beta_1 \neq 1$. Solve for the reduced form of $x$ and show that $\mathrm{cov}(x, u) \neq 0$ whenever $\alpha_1 \neq 0$. What is the sign of the bias in $\hat\beta_1$ if $\alpha_1 > 0$?
+
+(b) A researcher, aware of reverse causality, replaces $x_t$ with $x_{t-1}$. Explain why this does not generally solve the problem. Under what condition *would* lagging be sufficient?
+
+(c) **Bad controls.** Suppose $x_1$ is randomly assigned but $x_2$ is affected by $x_1$:
+$$
+y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + u, \qquad x_2 = \gamma_0 + \gamma_1 x_1 + \varepsilon.
+$$
+Explain what $\hat\beta_1$ estimates when $x_2$ is included, and why this is not the causal effect of $x_1$ on $y$ even though $x_1$ was randomized. Give a corporate finance example.
+
+(d) **Random coefficients.** Let each firm have its own intercept and slope:
+$$
+y_i = a_i + b_i x_i, \qquad a_i = \alpha + c_i, \quad b_i = \beta + d_i, \quad E[c_i] = E[d_i] = 0.
+$$
+Rewrite this as a regression of $y_i$ on $x_i$ and identify the composite error term. State the two conditions required for OLS to consistently estimate the average partial effect $\beta = E[b_i]$.
+
+(e) With binary $x_i$, map the random coefficients model onto the potential outcomes framework: what are $a_i$ and $b_i$ in potential outcomes notation, and what do the two conditions in (d) correspond to?
+
+(f) A paper reports an average effect and separately argues at length that the effect is much stronger for financially constrained firms. Explain the tension between these two claims, and state how the paper should phrase its interpretation of the average coefficient.

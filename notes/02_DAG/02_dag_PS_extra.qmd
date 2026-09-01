@@ -1,0 +1,85 @@
+---
+title: "Further Practice: Directed Acyclic Graphs"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+        \usepackage{tikz}
+        \usetikzlibrary{arrows.meta,positioning,calc}
+        \tikzset{
+          dnode/.style={circle,draw,thick,minimum size=9mm,inner sep=1pt,font=\small},
+          unode/.style={circle,draw,thick,dashed,minimum size=9mm,inner sep=1pt,font=\small},
+          bnode/.style={rectangle,draw,thick,fill=gray!25,minimum size=9mm,inner sep=3pt,font=\small},
+          de/.style={-{Stealth[length=2.2mm]},thick},
+          dde/.style={-{Stealth[length=2.2mm]},thick,dashed}
+        }
+---
+
+*These problems are **optional**. They are not collected and not graded. They extend the assigned set (`02_dag_PS.qmd`) and are good preparation for the comprehensive exam. Each stands on its own.*
+
+## Problem E1 (Structures and what to control for)
+
+For each scenario, draw the DAG, name the structure, and state whether the variable in question should be controlled for.
+
+(a) A credit-supply shock raises firm investment, which raises employment. You want the total effect of the shock on employment. Should you control for investment?
+
+(b) Firm quality drives both whether a firm has a banking relationship and how much it invests. You want the effect of the relationship on investment. Should you control for quality?
+
+(c) Both profitability and luck determine whether a firm is acquired. You study acquired firms only, and regress post-deal performance on pre-deal profitability. What have you conditioned on, and what does it do?
+
+(d) Analyst coverage predicts firm investment but is unrelated to your randomly-assigned treatment. Should you control for it? Give the reason in terms of bias *and* variance.
+
+(e) A variable predicts your treatment strongly but has no effect on the outcome. Should you control for it? Explain what happens to your standard errors.
+
+## Problem E2 (Selection is conditioning)
+
+(a) Explain why dropping observations from a sample is a form of conditioning, and give the general rule for when it is dangerous.
+
+(b) A study of mutual fund performance uses only funds alive at the end of the sample period. State the direction you expect the bias to run in a regression of performance on manager skill, and justify it.
+
+(c) A colleague argues: "Our sample is 40,000 firm-years. Selection cannot be a serious problem at that size." Respond.
+
+(d) Give an example from your own field in which the *unit of observation itself* exists only because of a collider --- that is, where the data would not have been recorded had the outcome been different.
+
+## Problem E3 (Simulation: manufacturing a correlation)
+
+Firm quality $Q$ and market conditions $M$ are independent in the population. A firm lists publicly if $Q + M$ exceeds a threshold.
+
+(a) Simulate $Q, M \sim N(0,1)$ independently with $n = 50{,}000$. Confirm the sample correlation is approximately zero.
+
+(b) Define `listed` as $Q + M$ above its 70th percentile. Report the correlation between $Q$ and $M$ *among listed firms*.
+
+(c) Report the correlation among **unlisted** firms. Is it also non-zero? Explain.
+
+(d) Repeat (b) with thresholds at the 50th and 90th percentiles. Describe how the induced correlation changes with the severity of selection, and explain the pattern.
+
+(e) Draw the DAG and mark the node you conditioned on. Which of the three elemental structures is this?
+
+(f) A researcher using only listed firms reports that quality and favourable market conditions are *substitutes*. What has gone wrong?
+
+## Problem E4 (Mediators, and the limits of DAGs)
+
+(a) Simulate $D \sim N(0,1)$, $M = 3D + e_M$, $Y = 2M + e_Y$ with $n = 100{,}000$ and standard normal errors. Report the coefficient on $D$ from $Y$ on $D$, and from $Y$ on $D$ and $M$.
+
+(b) What is the true total effect of $D$ on $Y$? What is the true *direct* effect? Reconcile both regressions with your answer.
+
+(c) Under what circumstance would a researcher legitimately want the second number?
+
+(d) State three things a DAG cannot tell you. For each, name the tool that can.
+
+(e) DAGs are acyclic, but finance is full of simultaneity --- leverage and performance, price and demand. Explain the standard workaround and when it fails.
+
+(f) Draw the DAG for a research question in your own field of interest. Mark unobserved variables with dashed circles. State whether the effect is identified by conditioning on observables, and if not, what research design you would pursue instead.

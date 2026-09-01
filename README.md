@@ -10,7 +10,7 @@ Course materials for BUSS975, including lecture slides and problem sets.
 |---|---|---|
 | 1. Causality and Potential Outcomes | [Slides][caus-pdf] | PS |
 | 2. Directed Acyclic Graphs | [Slides][dag-pdf] | PS |
-| 3. Unconfoundedness | [Slides][unc-pdf] | |
+| 3. Unconfoundedness | Slides| |
 
 ---
 

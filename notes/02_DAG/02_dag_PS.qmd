@@ -28,9 +28,15 @@ format:
         }
 ---
 
-*Problems 1--5 require no software. Problems 6--8 ask you to run short simulations in R (or Stata); attach your code and output.*
+*Four problems. Plan on about three hours. Problem 4 asks you to run a short simulation in R (or Stata); attach your code and output. Nothing else requires software.*
+
+*Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
+
+*Further practice --- including the material cut from this set --- is in the companion file `02_dag_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
 
 ## Problem 1 (Reading a DAG)
+
+*What this is for: everything else in this lecture is an application of path-tracing. Do this one slowly.*
 
 Consider the following graph, where $U$ is unobserved.
 
@@ -52,17 +58,17 @@ Consider the following graph, where $U$ is unobserved.
 \end{tikzpicture}
 \end{center}
 
-(a) List **every** path from $D$ to $Y$. For each, say whether it is directed (causal) or not.
+(a) List **every** path from $D$ to $Y$ and say whether each is directed (causal) or not. For each non-directed path, identify the structure at its middle node --- chain, fork, or collider --- and state whether the path is open or closed *before* any conditioning.
 
-(b) For each non-directed path, identify the structure at its middle node --- chain, fork, or collider --- and state whether the path is open or closed *before* any conditioning.
+(b) Which of these paths are **backdoor** paths? Justify using the definition (both conditions).
 
-(c) Which of these paths are **backdoor** paths? Justify using the definition (both conditions).
+(c) Is $C$ a collider on every path it lies on? Explain why "collider" is a property of a path rather than of a variable.
 
-(d) Is $C$ a collider on every path it lies on? Explain why "collider" is a property of a path rather than of a variable.
-
-(e) Suppose a researcher conditions on $\{X, C\}$. State precisely what each does: which paths open, which close, and whether the causal effect is identified.
+(d) Suppose a researcher conditions on $\{X, C\}$. State precisely what each does: which paths open, which close, and whether the causal effect is identified.
 
 ## Problem 2 (A finance DAG: index inclusion)
+
+*What this is for: the previous problem was a graph. This one is a research design --- and the answer is that the design fails, which is the point.*
 
 You want the effect of **inclusion in a major equity index** ($D$) on **firm investment** ($Y$). Let $S$ = firm size, $Q$ = firm quality (**unobserved**), $O$ = institutional ownership, $M$ = market conditions.
 
@@ -90,31 +96,15 @@ You want the effect of **inclusion in a major equity index** ($D$) on **firm inv
 
 (b) The path $D \to O \leftarrow Q \to Y$ connects $D$ and $Y$. Explain why it is **not** a backdoor path, and why it is nonetheless closed.
 
-(c) Which set of variables would satisfy the backdoor criterion if everything were observable?
+(c) Which set of variables would satisfy the backdoor criterion if everything were observable? Given that $Q$ is *not* observable, is the effect identified by conditioning on observables? State your conclusion and what it implies for the research design.
 
-(d) $Q$ is unobserved. Is the effect identified by conditioning on observables? State your conclusion and what it implies for the research design.
+(d) A referee insists you control for institutional ownership, $O$, "since index inclusion changes ownership and ownership affects investment." Give **two separate** reasons this is wrong.
 
-(e) A referee insists you control for institutional ownership, $O$, "since index inclusion changes ownership and ownership affects investment." Give two separate reasons this is wrong.
+## Problem 3 (Bad controls and selection)
 
-(f) Suppose you could measure $Q$ perfectly. Would controlling for $O$ then be harmless? Explain.
+*What this is for: the two mistakes that a DAG catches and a regression table never will. Both consist of conditioning on the wrong thing --- one deliberately, one by constructing the sample.*
 
-## Problem 3 (Structures and what to control for)
-
-For each scenario, draw the DAG, name the structure, and state whether the variable in question should be controlled for.
-
-(a) A credit-supply shock raises firm investment, which raises employment. You want the total effect of the shock on employment. Should you control for investment?
-
-(b) Firm quality drives both whether a firm has a banking relationship and how much it invests. You want the effect of the relationship on investment. Should you control for quality?
-
-(c) Both profitability and luck determine whether a firm is acquired. You study acquired firms only, and regress post-deal performance on pre-deal profitability. What have you conditioned on, and what does it do?
-
-(d) Analyst coverage predicts firm investment but is unrelated to your randomly-assigned treatment. Should you control for it? Give the reason in terms of bias *and* variance.
-
-(e) A variable predicts your treatment strongly but has no effect on the outcome. Should you control for it? Explain what happens to your standard errors.
-
-## Problem 4 (Selection is conditioning)
-
-(a) Explain why dropping observations from a sample is a form of conditioning, and give the general rule for when it is dangerous.
+(a) Give the operational rule for identifying a bad control from the DAG, stated in terms of the backdoor criterion. Then explain why a randomly assigned treatment does **not** protect you from bad-control bias.
 
 (b) For each of the following, identify what the sample-construction step conditions on, and whether that variable is plausibly a collider:
 
@@ -122,16 +112,6 @@ For each scenario, draw the DAG, name the structure, and state whether the varia
   ii. A study of the effect of leverage on firm value using CRSP--Compustat merged data.
   iii. An event study of merger announcements using only **completed** deals.
   iv. A study of bond pricing using only bonds with a credit rating.
-
-(c) For (i), state the direction you expect the bias to run in a regression of performance on manager skill, and justify it.
-
-(d) A colleague argues: "Our sample is 40,000 firm-years. Selection cannot be a serious problem at that size." Respond.
-
-## Problem 5 (Bad controls in practice)
-
-(a) Give the operational rule for identifying a bad control from the DAG, stated in terms of the backdoor criterion.
-
-(b) Explain why a randomly assigned treatment does **not** protect you from bad-control bias.
 
 (c) For each of the following studies, name one plausible bad control and explain the mechanism:
 
@@ -141,7 +121,9 @@ For each scenario, draw the DAG, name the structure, and state whether the varia
 
 (d) A paper reports its main specification with and without a questionable control, and the coefficient moves substantially. What should the authors conclude, and what should they *not* conclude?
 
-## Problem 6 (Simulation: a bad control with randomized treatment)
+## Problem 4 (Simulation: a bad control with randomized treatment)
+
+*What this is for: to see a randomized treatment produce a coefficient of exactly zero when the true effect is 2 --- and to be able to predict the number before you run it.*
 
 Consider the data-generating process
 $$
@@ -150,50 +132,14 @@ M = D + A + e_M, \qquad Y = \beta D + \gamma A + e_Y
 $$
 with $e_M \sim N(0, \sigma_M^2)$, $e_Y \sim N(0,1)$, and $D, A, e_M, e_Y$ mutually independent. Take $\beta = 2$, $\gamma = 4$, $\sigma_M^2 = 1$.
 
-(a) Draw the DAG. Is $M$ a collider, a mediator, or both? Are there any backdoor paths from $D$ to $Y$?
+(a) Draw the DAG. Is $M$ a collider, a mediator, or both? Are there any backdoor paths from $D$ to $Y$? Before simulating, what do you expect the coefficient on $D$ to be in a regression of $Y$ on $D$ alone, and why?
 
-(b) Before simulating: what do you expect the coefficient on $D$ to be in a regression of $Y$ on $D$ alone? Why?
+(b) Simulate with $n = 200{,}000$ and report the coefficient on $D$ from three regressions: $Y$ on $D$; $Y$ on $D$ and $M$; $Y$ on $D$, $M$, and $A$. The second should give approximately **zero** --- explain what a researcher who ran only that regression would conclude, and why they would be wrong.
 
-(c) Simulate with $n = 200{,}000$ and report the coefficient on $D$ from three regressions: $Y$ on $D$; $Y$ on $D$ and $M$; $Y$ on $D$, $M$, and $A$.
-
-(d) The second regression should give approximately **zero**. Explain what a researcher who ran only that regression would conclude, and why they would be wrong.
-
-(e) **Derivation.** Show that the coefficient on $D$ in the regression of $Y$ on $D$ and $M$ converges to
+(c) **Derivation.** Show that the coefficient on $D$ in the regression of $Y$ on $D$ and $M$ converges to
 $$
-b_D \;=\; \beta - \frac{\gamma}{1 + \sigma_M^2}
+b_D \;=\; \beta - \frac{\gamma}{1 + \sigma_M^2}.
 $$
-*Hint: write down $\mathrm{var}(D)$, $\mathrm{cov}(D,M)$, $\mathrm{var}(M)$, $\mathrm{cov}(D,Y)$, $\mathrm{cov}(M,Y)$, then solve the two normal equations.*
+*Hint: write down $\mathrm{var}(D)$, $\mathrm{cov}(D,M)$, $\mathrm{var}(M)$, $\mathrm{cov}(D,Y)$, $\mathrm{cov}(M,Y)$, then solve the two normal equations.* Verify your formula by re-running the simulation at $\sigma_M^2 = 0.25$ and $\sigma_M^2 = 4$.
 
-(f) Verify your formula by re-running the simulation at $\sigma_M^2 = 0.25$ and $\sigma_M^2 = 4$.
-
-(g) Your formula implies the bias **shrinks** as $M$ becomes noisier. State this in words and explain why it is counterintuitive but correct.
-
-## Problem 7 (Simulation: manufacturing a correlation)
-
-Firm quality $Q$ and market conditions $M$ are independent in the population. A firm lists publicly if $Q + M$ exceeds a threshold.
-
-(a) Simulate $Q, M \sim N(0,1)$ independently with $n = 50{,}000$. Confirm the sample correlation is approximately zero.
-
-(b) Define `listed` as $Q + M$ above its 70th percentile. Report the correlation between $Q$ and $M$ *among listed firms*.
-
-(c) Report the correlation among **unlisted** firms. Is it also non-zero? Explain.
-
-(d) Repeat (b) with thresholds at the 50th and 90th percentiles. Describe how the induced correlation changes with the severity of selection, and explain the pattern.
-
-(e) Draw the DAG and mark the node you conditioned on. Which of the three elemental structures is this?
-
-(f) A researcher using only listed firms reports that quality and favourable market conditions are *substitutes*. What has gone wrong?
-
-## Problem 8 (Mediators, and the limits of DAGs)
-
-(a) Simulate $D \sim N(0,1)$, $M = 3D + e_M$, $Y = 2M + e_Y$ with $n = 100{,}000$ and standard normal errors. Report the coefficient on $D$ from $Y$ on $D$, and from $Y$ on $D$ and $M$.
-
-(b) What is the true total effect of $D$ on $Y$? What is the true *direct* effect? Reconcile both regressions with your answer.
-
-(c) Under what circumstance would a researcher legitimately want the second number?
-
-(d) State three things a DAG cannot tell you. For each, name the tool that can.
-
-(e) DAGs are acyclic, but finance is full of simultaneity --- leverage and performance, price and demand. Explain the standard workaround and when it fails.
-
-(f) Draw the DAG for a research question in your own field of interest. Mark unobserved variables with dashed circles. State whether the effect is identified by conditioning on observables, and if not, what research design you would pursue instead.
+(d) Your formula implies the bias **shrinks** as $M$ becomes noisier. State this in words and explain why it is counterintuitive but correct.

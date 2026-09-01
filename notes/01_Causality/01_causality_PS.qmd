@@ -19,25 +19,15 @@ format:
         \usepackage{booktabs}
 ---
 
-*Problems 1--9 require no software (except 8(g)). Problem 10 asks you to verify a calculation in R (or Stata); attach your code.*
+*Four problems. Plan on about three hours. Problem 4(c) asks you to run a short calculation in R (or Stata); attach your code and output. Nothing else requires software.*
 
-## Problem 1 (Description, Prediction, or Causation?)
+*Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
-For each statement below, (i) classify the underlying question as **descriptive**, **predictive**, or **causal**, and (ii) if the statement draws a causal conclusion, name which of the three fallacies from lecture it commits --- prediction mistaken for causation, *post hoc ergo propter hoc*, or "no correlation implies no causation."
+*Further practice --- including the material cut from this set --- is in the companion file `01_causality_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
 
-(a) "Firms with more independent boards have higher Tobin's Q, so appointing independent directors raises firm value."
+## Problem 1 (Assignment mechanisms and the SDO decomposition)
 
-(b) "What fraction of KOSPI firms repurchased shares in 2025?"
-
-(c) "Our model forecasts next quarter's default rate with 91% accuracy, so the variables in it are the drivers of default."
-
-(d) "The Bank of Korea cut rates in March and GDP growth rose in Q2. The rate cut worked."
-
-(e) "Across firms, currency hedging is uncorrelated with the probability of financial distress. Hedging therefore does not reduce distress risk."
-
-(f) For part (e), describe the assignment mechanism that would generate a zero correlation *even if* hedging strongly reduced distress. Which lecture example does this parallel?
-
-## Problem 2 (Potential Outcomes and the Decomposition)
+*What this is for: everything in this course rests on the claim that the assignment mechanism, not the estimator, determines whether a comparison is causal. This problem makes that claim arithmetic.*
 
 A banking regulator can inject capital into distressed banks. Let $D_i = 1$ if bank $i$ receives an injection, and let the outcome $Y_i$ be lending growth (%) over the following year. The complete (and, in reality, unobservable) potential outcomes for ten banks are:
 
@@ -52,172 +42,79 @@ $Y_i^1$ & 8 & 8 & 8 & 6 & 7 & 9 & 9 & 9 & 7 & 8 \\
 \end{tabular}
 \end{center}
 
-The regulator has perfect foresight and injects capital into the five banks with the **largest treatment effects**.
+**Regulator A** has perfect foresight and injects capital into the five banks with the **largest treatment effects**.
 
-(a) Compute $\delta_i$ for each bank. Which five banks are treated?
+(a) Compute $\delta_i$ for each bank and identify the five treated under Regulator A. Compute the true $ATE$, $ATT$, and $ATU$, and verify that $ATE = \pi \cdot ATT + (1-\pi)\cdot ATU$, where $\pi$ is the share treated.
 
-(b) Compute the true $ATE$, $ATT$, and $ATU$. Verify that $ATE = \pi \cdot ATT + (1-\pi)\cdot ATU$, where $\pi$ is the share treated.
-
-(c) Write out the observed data table --- that is, the $Y_i$ an econometrician actually sees, together with $D_i$. Which entries of the potential outcomes table are missing?
-
-(d) Compute the simple difference in outcomes,
+(b) Write out the observed data table --- the $Y_i$ an econometrician actually sees, together with $D_i$ --- and say which entries of the potential outcomes table are now missing. Compute the simple difference in outcomes,
 $$
-SDO = E[Y^1 \mid D=1] - E[Y^0 \mid D=0].
+SDO = E[Y \mid D=1] - E[Y \mid D=0].
 $$
 
-(e) Compute the selection bias term and the heterogeneous treatment effect bias term, and verify numerically that
+(c) Compute the selection bias term and the heterogeneous treatment effect bias term, and verify numerically that
 $$
 SDO = ATE + \underbrace{\left(E[Y^0|D{=}1] - E[Y^0|D{=}0]\right)}_{\text{selection bias}} + \underbrace{(1-\pi)(ATT - ATU)}_{\text{heterogeneous TE bias}}.
 $$
 
-(f) The true $ATE$ is positive but the $SDO$ is negative. Explain in words --- as you would to a journalist --- why a well-intentioned, *competent* regulator produces data suggesting its own program was harmful.
+(d) **Regulator B** instead injects capital into banks 6--10, the five healthiest --- perhaps because they are the most politically connected. Recompute $ATT$, $ATU$, and $SDO$. Present the true $ATE$ and the two $SDO$s in a small table. Then explain why $ATE$ was unchanged across the two regulators while $ATT$ was not.
 
-## Problem 3 (The Assignment Mechanism Is Everything)
+(e) Under Regulator A the true $ATE$ is positive but the $SDO$ is negative. Explain --- as you would to a journalist --- why a well-intentioned, *competent* regulator produces data suggesting its own program was harmful. Then evaluate a colleague's proposal: "the problem is that the sample is too small; with 10,000 banks the bias would disappear."
 
-Use the same ten banks and the same potential outcomes as Problem 2. Now suppose a **different** regulator is in charge, one who injects capital into banks 6--10 (the five healthiest banks) --- perhaps because they are the most politically connected, or because the regulator wants to back "winners."
+## Problem 2 (SUTVA in financial markets)
 
-(a) Recompute $ATT$, $ATU$, and $SDO$ under this assignment.
+*What this is for: SUTVA is the assumption that is violated most often in finance and discussed least often. It is also the one that no amount of data or cleverness with estimators can repair.*
 
-(b) Recompute the selection bias and heterogeneous treatment effect bias terms, and verify the decomposition again.
+(a) For each scenario, state whether the violation is of **no interference** or **no hidden variation in treatment**, explain the mechanism in one sentence, and state whether the naive treated-minus-control comparison would likely **overstate** or **understate** the true effect of treatment on the treated.
 
-(c) You now have three numbers describing the *same* ten banks with the *same* treatment effects: the true $ATE$, the $SDO$ under the Problem 2 assignment, and the $SDO$ under the Problem 3 assignment. Present them in a small table and comment.
+  i. A government recapitalizes half the banks in a concentrated banking market. Treated banks use the capital to bid aggressively for deposits and creditworthy borrowers, drawing both away from untreated banks.
 
-(d) Note that $ATE$ did not change between Problems 2 and 3, but $ATT$ did. Explain why $ATE$ is a property of the population while $ATT$ is a property of the population *and* the assignment mechanism.
+  ii. A researcher studies "the effect of receiving TARP funds" on bank lending. TARP investments in the sample range from \$200 million to \$25 billion, and larger banks received larger injections.
 
-(e) A colleague proposes: "The problem in Problem 2 is that the sample is too small. With 10,000 banks the bias would disappear." Is this correct? Explain.
+  iii. A subsidy is given to a random 30% of firms in an industry. The industry's total output is fixed by demand, so subsidized firms gain market share exactly at the expense of unsubsidized firms.
 
-## Problem 4 (Randomization and Independence)
+  iv. A study estimates the effect of "adopting an anti-takeover provision" on firm value, pooling classified boards, poison pills, and supermajority requirements into a single indicator.
 
-Suppose that instead of the regulators in Problems 2 and 3, treatment is assigned by lottery, so that
-$$
-(Y^1, Y^0) \indep D.
-$$
+(b) In scenario (iii), the researcher's difference-in-differences finds a large positive effect on treated firms' output. Is the estimate *wrong*? Distinguish carefully between the **partial-equilibrium** and **general-equilibrium** effects, and state which question each answers.
 
-(a) State precisely what this independence condition means in words. Why is it stated in terms of *potential* outcomes rather than observed outcomes?
+(c) Scenario (ii) can be repaired by redefining the treatment. Propose a redefinition, and state precisely what estimand you are left with and how it differs from the one the researcher wanted.
 
-(b) Using independence, show that $E[Y^0 \mid D=1] = E[Y^0 \mid D=0]$ and hence that the selection bias term is zero.
+(d) Explain why SUTVA is logically **prior** to the independence assumption --- that is, why a SUTVA violation is a more fundamental problem than selection bias.
 
-(c) Show that independence also implies $ATT = ATU = ATE$, so that the heterogeneous treatment effect bias term is zero.
+## Problem 3 (The regression bridge)
 
-(d) Conclude that $SDO = ATE$ under randomization. Which of the two bias terms would still vanish if treatment were independent of $Y^0$ but *not* of $\delta_i$? Give a finance example in which treatment is plausibly independent of baseline outcomes but not of gains.
-
-(e) Randomization balances covariates *in expectation*. In any one realized experiment, treated and control groups will still differ somewhat on observables. Does this imply the estimate is biased? Explain the distinction between bias and sampling variability.
-
-(f) A referee writes: "The authors' randomized experiment reports a balance table in which 2 of 30 covariates differ at the 5% level. This casts doubt on the randomization." Evaluate this criticism.
-
-## Problem 5 (SUTVA in Financial Markets)
-
-For each scenario, state whether the violation is of **no interference** or **no hidden variation in treatment**, explain the mechanism, and state whether the naive treated-minus-control comparison would likely **overstate** or **understate** the true effect of treatment on the treated.
-
-(a) A government recapitalizes half the banks in a concentrated banking market. Treated banks use the capital to bid aggressively for deposits and creditworthy borrowers, drawing both away from untreated banks.
-
-(b) A researcher studies "the effect of receiving TARP funds" on bank lending. TARP investments in the sample range from \$200 million to \$25 billion, and larger banks received larger injections.
-
-(c) A subsidy is given to a random 30% of firms in an industry. The industry's total output is fixed by demand, so subsidized firms gain market share exactly at the expense of unsubsidized firms.
-
-(d) A study estimates the effect of "adopting an anti-takeover provision" on firm value, pooling classified boards, poison pills, and supermajority requirements into a single indicator.
-
-(e) In (c), the researcher's DiD finds a large positive effect on treated firms' output. Is the estimate wrong? Distinguish carefully between the *partial-equilibrium* and *general-equilibrium* effects, and state which question each answers.
-
-(f) Explain why SUTVA is logically prior to the independence assumption --- that is, why a SUTVA violation is a more fundamental problem than selection bias.
-
-## Problem 6 (The Regression Bridge: Omitted Variables)
+*What this is for: economists speak two dialects --- omitted variable bias and selection bias --- and treat them as different problems. They are the same problem. This problem proves it.*
 
 (a) You estimate $y = \beta_0 + \beta_1 x + u$ by OLS when the true model is $y = \beta_0 + \beta_1 x + \beta_2 z + v$ with $E[v \mid x, z] = 0$. Show that
 $$
 \hat{\beta}_1 \xrightarrow{p} \beta_1 + \delta_{xz}\beta_2, \qquad \delta_{xz} = \frac{\mathrm{cov}(x,z)}{\mathrm{var}(x)}.
 $$
-
-(b) For each case below, sign the bias in $\hat\beta_1$ and justify the two sign assumptions you need:
+Then sign the bias in $\hat\beta_1$ for **two** of the following, justifying the two sign assumptions each one requires:
 
   i. $y$ = firm value, $x$ = governance index, omitted $z$ = CEO talent.
   ii. $y$ = firm value, $x$ = leverage, omitted $z$ = investment opportunities.
   iii. $y$ = loan default, $x$ = relationship lending, omitted $z$ = borrower quality observed by the bank but not the econometrician.
 
-(c) Now connect the two dialects. Consider regressing the observed outcome on a treatment dummy:
+(b) Now regress the observed outcome on a treatment dummy, $Y_i = \alpha + \delta D_i + u_i$. Using the switching equation $Y_i = D_i Y_i^1 + (1-D_i)Y_i^0$ and writing $\delta = E[\delta_i]$, show that
 $$
-Y_i = \alpha + \delta D_i + u_i.
+u_i = \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}} \;+\; \underbrace{D_i\left(\delta_i - \delta\right)}_{\text{gain}},
 $$
-Using the switching equation $Y_i = D_i Y_i^1 + (1-D_i)Y_i^0$ and writing $\delta = E[\delta_i]$, show that the error term is
-$$
-u_i = \left(Y_i^0 - E[Y^0]\right) + D_i\left(\delta_i - \delta\right),
-$$
-and hence that $\mathrm{cov}(D, u) \neq 0$ precisely when there is selection bias or selection on gains.
+and hence that $\mathrm{cov}(D, u) \neq 0$ precisely when there is selection on levels or selection on gains.
 
-(d) In one or two sentences: why is it accurate to say that in causal settings, omitted variable bias *is* selection bias rather than merely resembling it?
-
-## Problem 7 (Two Channels of Selection)
-
-The error term from Problem 6(c) has two pieces, and $D$ can be correlated with either:
-$$
-u_i = \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}} \;+\; \underbrace{D_i(\delta_i - \delta)}_{\text{gain}}
-$$
-
-(a) Define **selection on levels** and **selection on gains** in terms of which piece $D$ is correlated with. State what each one means substantively --- what is the treatment being assigned on?
-
-(b) Classify each of the following. Some are both.
-
-  i. A regulator recapitalizes the weakest banks in a crisis.
-  ii. A regulator recapitalizes the banks where an injection will do the most good.
-  iii. Firms adopt a governance provision when their managers expect the largest improvement in value.
-  iv. Firms with a history of poor performance are targeted by activist investors.
-
-(c) Return to the Perfect Regulator of Problem 2, which treated the five banks with the **largest** $\delta_i$. Which channel is that? Explain why defining selection bias as "$\mathrm{cov}(D, Y^0) \neq 0$" would misclassify it.
-
-(d) Construct a numerical example --- four units is enough --- in which $\mathrm{cov}(D, Y^0) = 0$ exactly, yet the naive comparison is still biased for the $ATE$. What is the source of the bias?
-
-## Problem 8 (A Lemma for Binary Treatment)
-
-(a) **Prove the lemma.** For binary $D$ with $\pi = P(D{=}1)$ and any random variable $W$,
+(c) **Prove the lemma.** For binary $D$ with $\pi = P(D{=}1)$ and any random variable $W$,
 $$
 \mathrm{cov}(D, W) \;=\; \pi(1-\pi)\Big(E[W \mid D{=}1] - E[W \mid D{=}0]\Big).
 $$
 *Hint: $E[DW] = \pi\,E[W \mid D{=}1]$ because $D$ is binary; then use the law of total expectation for $E[W]$.*
 
-(b) Apply the lemma with $W = Y^0$ to obtain $\mathrm{cov}(D, Y^0)$ in terms of conditional means.
-
-(c) Apply it with $W = D_i(\delta_i - \delta)$. Show first that $E[W \mid D{=}0] = 0$ and $E[W \mid D{=}1] = ATT - ATE$, then write down $\mathrm{cov}(D, W)$.
-
-(d) Note that $\mathrm{var}(D) = \pi(1-\pi)$ for binary $D$. Divide each covariance by $\mathrm{var}(D)$ and say what each quotient equals.
-
-(e) **Put it together.** Using $\hat\beta_1 \xrightarrow{p} \delta + \mathrm{cov}(D,u)/\mathrm{var}(D)$ and the identity $ATT - ATE = (1-\pi)(ATT-ATU)$ from Problem 2, show that
+(d) **Put it together.** Apply the lemma to each piece of $u_i$ from (b), use $\mathrm{var}(D) = \pi(1-\pi)$ and the identity $ATT - ATE = (1-\pi)(ATT-ATU)$, and show that
 $$
-\hat\beta_1 \;\xrightarrow{p}\; ATE \;+\; \underbrace{\Big(E[Y^0|D{=}1]-E[Y^0|D{=}0]\Big)}_{\text{selection bias}} \;+\; \underbrace{(1-\pi)(ATT-ATU)}_{\text{heterogeneity bias}}
+\hat\delta \;\xrightarrow{p}\; ATE \;+\; \Big(E[Y^0|D{=}1]-E[Y^0|D{=}0]\Big) \;+\; (1-\pi)(ATT-ATU).
 $$
+Compare with your answer to Problem 1(c). In one sentence, what have you shown about the relationship between the regression route and the potential-outcomes route?
 
-(f) Compare the right-hand side with your answer to Problem 2(e). What have you shown about the relationship between the regression route and the potential-outcomes route?
+## Problem 4 (Randomization inference)
 
-(g) **Verify numerically.** Using the ten banks and the treatment assignment of Problem 2, compute $\mathrm{cov}(D, Y^0)$, $\mathrm{cov}\big(D, D_i(\delta_i-\delta)\big)$, and $\mathrm{var}(D)$ directly. Confirm that dividing by $\mathrm{var}(D)$ reproduces the two bias terms, and that the three terms sum to the $SDO$. Then run `lm(Y ~ D)` on the observed data and check that the coefficient matches.
-
-(h) A referee writes: "Your OLS estimate is inconsistent, so the paper tells us nothing." Give the precise sense in which $\hat\beta_1$ *is* consistent, and explain why that does not rescue the paper.
-
-## Problem 9 (Simultaneity, Bad Controls, and Heterogeneous Effects)
-
-(a) Consider the simultaneous system
-$$
-y = \beta_0 + \beta_1 x + u, \qquad x = \alpha_0 + \alpha_1 y + \varepsilon,
-$$
-with $u$ and $\varepsilon$ mutually uncorrelated and $\alpha_1\beta_1 \neq 1$. Solve for the reduced form of $x$ and show that $\mathrm{cov}(x, u) \neq 0$ whenever $\alpha_1 \neq 0$. What is the sign of the bias in $\hat\beta_1$ if $\alpha_1 > 0$?
-
-(b) A researcher, aware of reverse causality, replaces $x_t$ with $x_{t-1}$. Explain why this does not generally solve the problem. Under what condition *would* lagging be sufficient?
-
-(c) **Bad controls.** Suppose $x_1$ is randomly assigned but $x_2$ is affected by $x_1$:
-$$
-y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + u, \qquad x_2 = \gamma_0 + \gamma_1 x_1 + \varepsilon.
-$$
-Explain what $\hat\beta_1$ estimates when $x_2$ is included, and why this is not the causal effect of $x_1$ on $y$ even though $x_1$ was randomized. Give a corporate finance example.
-
-(d) **Random coefficients.** Let each firm have its own intercept and slope:
-$$
-y_i = a_i + b_i x_i, \qquad a_i = \alpha + c_i, \quad b_i = \beta + d_i, \quad E[c_i] = E[d_i] = 0.
-$$
-Rewrite this as a regression of $y_i$ on $x_i$ and identify the composite error term. State the two conditions required for OLS to consistently estimate the average partial effect $\beta = E[b_i]$.
-
-(e) With binary $x_i$, map the random coefficients model onto the potential outcomes framework: what are $a_i$ and $b_i$ in potential outcomes notation, and what do the two conditions in (d) correspond to in the language of Problem 2?
-
-(f) A paper reports an average effect and separately argues at length that the effect is much stronger for financially constrained firms. Explain the tension between these two claims, and state how the paper should phrase its interpretation of the average coefficient.
-
-## Problem 10 (Randomization Inference)
+*What this is for: finance is full of settings with one treated state, one regulatory event, or five treated firms. Asymptotic standard errors are meaningless there. This is the alternative, and it is exact.*
 
 Six firms are enrolled in a pilot program. Three are selected **by lot** to receive treatment. The realized assignment and observed outcomes are:
 
@@ -232,19 +129,11 @@ $Y_i$ & 6 & 7 & 8 & 3 & 4 & 5 \\
 \end{tabular}
 \end{center}
 
-(a) Compute the observed $SDO$.
+(a) Compute the observed $SDO$. State Fisher's sharp null hypothesis, explain how it differs from the null that the *average* treatment effect is zero, and say why the sharp null --- but not the average null --- allows you to fill in every missing potential outcome.
 
-(b) State Fisher's sharp null hypothesis. Explain how it differs from the null that the *average* treatment effect is zero, and why the sharp null --- but not the average null --- allows you to fill in every missing potential outcome.
+(b) How many distinct assignments of three treated firms out of six are possible? Under the sharp null, explain why the observed $Y_i$ would have been identical under every one of them. Without enumerating, identify the assignment producing the largest $SDO$ and the one producing the smallest, and say where the realized assignment sits in that distribution.
 
-(c) How many distinct assignments of three treated firms out of six are possible? Under the sharp null, explain why the observed outcomes $Y_i$ would have been identical under every one of them.
-
-(d) Without enumerating all of them, identify the assignment that produces the **largest** possible $SDO$ and the one that produces the smallest (most negative). What does this tell you about where the realized assignment sits in the permutation distribution?
-
-(e) Compute the exact two-sided $p$-value, defined as the share of assignments for which $|SDO| \geq |SDO_{\text{observed}}|$.
-
-(f) The realized assignment was the most extreme of all possible assignments, yet the $p$-value does not fall below 0.05. Explain what this implies about the statistical power of very small experiments, and what the smallest attainable two-sided $p$-value would be with six units and three treated.
-
-(g) **Computational.** Verify your answer to (e) in R (or Stata). A skeleton is given below; report your code and output.
+(c) **Computational.** Compute the exact two-sided $p$-value, defined as the share of assignments for which $|SDO| \geq |SDO_{\text{observed}}|$. A skeleton is given below; report your code and output.
 
 ```r
 y <- c(6, 7, 8, 3, 4, 5)
@@ -254,8 +143,7 @@ sdo_obs <- mean(y[treated]) - mean(y[-treated])
 perms <- combn(6, 3)              # all possible assignments (columns)
 sdo_all <- apply(perms, 2, function(tr) mean(y[tr]) - mean(y[-tr]))
 
-# exact two-sided p-value
-mean(abs(sdo_all) >= abs(sdo_obs))
+mean(abs(sdo_all) >= abs(sdo_obs))    # exact two-sided p-value
 ```
 
-(h) Explain why randomization inference is particularly valuable in finance settings with one treated state, one regulatory event, or a handful of treated firms --- and name one method later in the course that relies on exactly this logic.
+(d) The realized assignment was the most extreme of all possible assignments, yet the $p$-value does not fall below 0.05. Explain what this implies about the power of very small experiments, state the smallest attainable two-sided $p$-value with six units and three treated, and name one method later in the course that relies on exactly this logic.
