@@ -36,13 +36,6 @@ execute:
   cache: false
 ---
 
-## Acknowledgments and readings
-
-- These slides are based on Scott Cunningham, *Causal Inference: The Remix* (2nd ed.), Chapter 4, "Potential Outcomes and Randomization."
-  - Free online: `https://mixtape.scunning.com`
-- The regression material in Part 6 is adapted from Todd Gormley's lecture notes.
-
-
 ## Outline
 
 1. What causality is --- and isn't
@@ -53,7 +46,7 @@ execute:
 6. The regression bridge
 7. Randomization inference
 
-# What Causality Is --- and Isn't
+# 1. What Causality Is --- and Isn't
 
 ## Motivation
 
@@ -161,7 +154,7 @@ Causal effects are properties of the data \textbf{plus} the assignment mechanism
 - One of these is always hypothetical --- a **counterfactual**.
 - **The Fundamental Problem of Causal Inference** (Holland 1986): we can never observe both states for the same unit at the same time.
 
-# The Potential Outcomes Framework
+# 2. The Potential Outcomes Framework
 
 ## States of the world
 
@@ -229,7 +222,7 @@ $$
 - In our table: $ATE = \frac{7+5+4+3+2+1+0-1-2+1}{10} = 2.0$
 - On average, injections raise lending growth by 2 percentage points.
 - But note the heterogeneity: effects range from $+7$ to $-2$.
-  - An average can hide winners and losers. Remember this in week 10 (complex DiD).
+  - An average can hide winners and losers. 
 
 ## ATT and ATU: different questions, different answers
 
@@ -264,7 +257,7 @@ $$
 
 - Half of the table is missing --- forever. Everything we do from here on is a strategy for filling in the question marks *on average*.
 
-# Selection Bias: The Perfect Regulator
+# 3. Selection Bias: The Perfect Regulator
 
 ## The naive comparison
 
@@ -312,7 +305,7 @@ $$
 
 ## Proving the decomposition
 
-Let $\pi = P(D{=}1)$. Two steps, no assumptions.
+Let $\pi = P(D{=}1)$. 
 
 **Step 1.** Add and subtract $E[Y^0 \mid D{=}1]$ --- the *counterfactual* mean for the treated:
 $$
@@ -333,9 +326,11 @@ Substituting $ATT = ATE + (1-\pi)(ATT-ATU)$ into Step 1 gives the three-term dec
 ## The decomposition, in our example
 
 - Selection bias:
+\small
 $$
 E[Y^0 \mid D{=}1] - E[Y^0 \mid D{=}0] = \frac{2+1+3+2+4}{5} - \frac{6+7+8+9+8}{5} = 2.4 - 7.6 = -5.2
 $$
+\normalsize
   - Treated banks were *much weaker* to begin with.
 - Heterogeneous TE bias, with $\pi = 0.5$:
 $$
@@ -378,7 +373,7 @@ round(c(ATE = mean(gain), triage = sdo(D1), coin = sdo(D2)), 2)
 - Coin flip: SDO $\approx$ ATE. Same data-generating process, correct answer.
 - With $n = 100{,}000$: the bias does not shrink with sample size. **Selection bias is not a small-sample problem.**
 
-# Randomization and Independence
+# 4. Randomization and Independence
 
 ## The independence assumption
 
@@ -478,7 +473,7 @@ $$
   - DiD / panel: independence *of timing, in changes*.
 - Every method = an argument that some comparison mimics the coin flip. Your job as a referee is to ask: *whose coin, and who flipped it?*
 
-# SUTVA
+# 5. SUTVA
 
 ## The fine print under the potential outcomes
 
@@ -539,7 +534,7 @@ Estimand -> Parameter: Identification
 \emph{``the effect of a \$1bn injection'' is not ``the effect of being bailed out.''}
 \end{center}
 
-# The Regression Bridge
+# 6. The Regression Bridge
 
 ## Same problem, older dialect
 
@@ -648,6 +643,7 @@ $$
 
 ## Both biases, from one lemma
 
+\small
 - **Lemma.** For *binary* $D$ with $\pi = P(D{=}1)$, and any random variable $W$:
 $$
 \mathrm{cov}(D, W) = \pi(1-\pi)\Big(E[W \mid D{=}1] - E[W \mid D{=}0]\Big)
@@ -662,7 +658,7 @@ $$
 \mathrm{cov}\big(D,\, D_i(\delta_i-\delta)\big) = \pi(1-\pi)\big(ATT - ATE\big)
 $$
 - Since $\mathrm{var}(D) = \pi(1-\pi)$, dividing each by $\mathrm{var}(D)$ **cancels that factor** --- leaving the selection bias term and $ATT - ATE$.
-
+\normalsize
 
 ## The two dialects give the same equation
 
@@ -712,11 +708,11 @@ $$
 $$
 y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + u, \qquad x_2 = \gamma_0 + \gamma_1 x_1 + \varepsilon
 $$
-- then conditioning on $x_2$ blocks part of the effect you want --- and can *introduce* selection bias where none existed.
+- Then conditioning on $x_2$ blocks part of the effect you want --- and can *introduce* selection bias where none existed.
 - Rule of thumb: controls must be **pre-treatment** (determined before $D$).
 - Why conditioning on a post-treatment variable creates bias is subtle --- it is the centerpiece of the next lecture (DAGs and colliders).
 
-# Randomization Inference
+# 7. Randomization Inference
 
 ## Two null hypotheses
 
@@ -804,7 +800,7 @@ round(c(SDO = sdo_obs, exact_p = p_exact), 3)
 ## Where you will see this again
 
 - Randomization inference is not a curiosity:
-  - **Synthetic control** (week 11): placebo tests permute the treatment across donor units --- that *is* randomization inference.
+  - **Synthetic control**: placebo tests permute the treatment across donor units --- that *is* randomization inference.
   - **Small-N settings**: one treated state, one regulatory event, a handful of treated firms --- common in finance, hopeless for asymptotics.
   - Cluster-robust inference with few clusters: permutation tests as the honest fallback.
 - The deeper point: *inference should mirror the assignment mechanism.* Where the mechanism is uncertain, so is the p-value.

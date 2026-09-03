@@ -246,24 +246,6 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \frame{\titlepage}
 
 
-\begin{frame}[fragile]{Acknowledgments and readings}
-\protect\phantomsection\label{acknowledgments-and-readings}
-\begin{itemize}
-\tightlist
-\item
-  These slides are based on Scott Cunningham, \emph{Causal Inference:
-  The Remix} (2nd ed.), Chapter 3, ``Directed Acyclic Graphs.''
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Free online: \texttt{https://mixtape.scunning.com}
-  \end{itemize}
-\item
-  The backdoor criterion and the adjustment formula follow Pearl (2009).
-\end{itemize}
-\end{frame}
-
 \begin{frame}{Outline}
 \protect\phantomsection\label{outline}
 \begin{enumerate}
@@ -287,7 +269,7 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \end{enumerate}
 \end{frame}
 
-\section{Why Graphs?}\label{why-graphs}
+\section{1. Why Graphs?}\label{why-graphs}
 
 \begin{frame}{Where we left off}
 \protect\phantomsection\label{where-we-left-off}
@@ -401,14 +383,14 @@ control variable, and get an estimate with the wrong sign.}
 \begin{itemize}
 \tightlist
 \item
-  We will simulate exactly this in §6, ``Bad Controls.''
+  We will simulate exactly this in §6, Bad Controls.
 \item
   If controlling for things can do that, ``control for everything'' is
   not a strategy --- it is a coin flip.
 \end{itemize}
 \end{frame}
 
-\section{DAG Notation}\label{dag-notation}
+\section{2. DAG Notation}\label{dag-notation}
 
 \begin{frame}{Nodes and arrows}
 \protect\phantomsection\label{nodes-and-arrows}
@@ -495,7 +477,7 @@ control variable, and get an estimate with the wrong sign.}
   is acyclic.
 \item
   Genuine simultaneity is beyond what a DAG can express. We return to
-  this in §8.
+  this in §8, What DAGs Cannot Do.
 \end{itemize}
 \end{frame}
 
@@ -659,7 +641,8 @@ control variable, and get an estimate with the wrong sign.}
 \end{itemize}
 \end{frame}
 
-\section{Three Elemental Structures}\label{three-elemental-structures}
+\section{3. Three Elemental
+Structures}\label{three-elemental-structures}
 
 \begin{frame}{Every DAG is built from three pieces}
 \protect\phantomsection\label{every-dag-is-built-from-three-pieces}
@@ -819,7 +802,7 @@ Collider          & $D \to C \leftarrow Y$ & No                   & \textbf{open
 \end{itemize}
 \end{frame}
 
-\section{Backdoor Paths and the Backdoor
+\section{4. Backdoor Paths and the Backdoor
 Criterion}\label{backdoor-paths-and-the-backdoor-criterion}
 
 \begin{frame}{Backdoor paths}
@@ -1004,7 +987,7 @@ From the previous DAG:
 \end{itemize}
 \end{frame}
 
-\section{Collider Bias}\label{collider-bias}
+\section{5. Collider Bias}\label{collider-bias}
 
 \begin{frame}{Colliders create correlation out of nothing}
 \protect\phantomsection\label{colliders-create-correlation-out-of-nothing}
@@ -1277,7 +1260,7 @@ without writing a single line of code that mentions it.
 \end{itemize}
 \end{frame}
 
-\section{Bad Controls}\label{bad-controls}
+\section{6. Bad Controls}\label{bad-controls}
 
 \begin{frame}{The bad control problem}
 \protect\phantomsection\label{the-bad-control-problem}
@@ -1427,7 +1410,7 @@ Common post-treatment controls, and what they do:
 \end{itemize}
 \end{frame}
 
-\section{Neutral Controls and
+\section{7. Neutral Controls and
 Precision}\label{neutral-controls-and-precision}
 
 \begin{frame}{Not every control matters}
@@ -1560,7 +1543,7 @@ sd    0.0735  0.0172  0.1299
 \end{itemize}
 \end{frame}
 
-\section{What DAGs Cannot Do}\label{what-dags-cannot-do}
+\section{8. What DAGs Cannot Do}\label{what-dags-cannot-do}
 
 \begin{frame}{Honest limitations}
 \protect\phantomsection\label{honest-limitations}

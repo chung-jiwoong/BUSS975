@@ -1,0 +1,104 @@
+---
+title: "Further Practice: Unconfoundedness"
+subtitle: "BUSS975 --- covering Lectures 3a and 3b"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+*These problems are **optional**. They are not collected and not graded. They extend the assigned set (`03_unconfoundedness_PS.qmd`) and are good preparation for the comprehensive exam. Each stands on its own.*
+
+## Problem E1 (Covariate selection without a DAG)
+
+For each candidate control, classify it as a **confounder**, a **mediator**, a **collider**, or **neutral**, and state whether including it helps, hurts, or is merely optional. Where a variable could be more than one thing, say what would settle it.
+
+(a) $D$ = index inclusion, $Y$ = investment, candidate = institutional ownership measured *after* inclusion.
+
+(b) $D$ = bank recapitalization, $Y$ = lending, candidate = the bank's pre-crisis capital ratio.
+
+(c) $D$ = adoption of a governance provision, $Y$ = firm value, candidate = whether the firm was later acquired.
+
+(d) $D$ = a randomized disclosure mandate, $Y$ = cost of capital, candidate = analyst coverage, which predicts $Y$ strongly and is unrelated to $D$.
+
+(e) Cunningham's rule of thumb is to control for variables determined **before** treatment. Give a case where that rule keeps a bad control anyway, and a case where it discards a good one.
+
+## Problem E2 (The two assumptions differ in kind)
+
+(a) State unconfoundedness and common support. Explain why exactly one of them is testable, and what specifically you can and cannot verify about the other.
+
+(b) The lecture claims the $ATE$ requires the *strong* form of unconfoundedness and the $ATT$ only a weaker one. Write both versions formally and show which term in each identification argument uses which.
+
+(c) Under **weak** unconfoundedness, is it still true that $ATE(x) = ATT(x)$? Prove or give a counterexample.
+
+(d) A paper reports: "We trim observations with $\hat e < 0.05$ or $\hat e > 0.95$, leaving 87% of the sample." State precisely what the reported estimate is now an estimate *of*, and draft the one sentence the paper should add to its results section.
+
+(e) Imbens gives three defences of unconfoundedness-based methods. Reconstruct them, and say which you find least persuasive and why.
+
+## Problem E3 (Subclassification and the curse of dimensionality)
+
+(a) Using R's built-in `Titanic` table, reproduce the raw first-class survival gap, then the subclassification estimate stratifying on sex and age. Report the $ATE$, $ATT$ and $ATU$ and explain why they differ.
+
+(b) Explain why the $ATU$ is the least trustworthy of the three in this application.
+
+(c) With $k$ binary covariates the number of strata is $2^k$. At $n = 5{,}000$, how many covariates can you stratify on before the average cell holds fewer than five treated units? Simulate the collapse: report the share of strata with no treated or no control unit as $k$ rises.
+
+(d) Cochran's method and exact matching are the same idea executed differently. State the one operational difference, and say which of the two makes the common-support failure more visible.
+
+## Problem E4 (Bias correction, worked)
+
+Ten workers were eligible for a training program. Four enrolled.
+
+\begin{center}
+\begin{tabular}{lrrrr}
+\toprule
+Worker & Andy & Betty & Chad & Doug \\
+\midrule
+Age & $23$ & $27$ & $29$ & $22$ \\
+Earnings ($Y^1$) & $\$200$ & $\$250$ & $\$150$ & $\$300$ \\
+\bottomrule
+\end{tabular}
+\qquad
+\begin{tabular}{lrrrrrr}
+\toprule
+Worker & Edith & Fred & Gina & Hank & Inez & Janet \\
+\midrule
+Age & $27$ & $32$ & $26$ & $26$ & $28$ & $29$ \\
+Earnings ($Y^0$) & $\$225$ & $\$500$ & $\$200$ & $\$190$ & $\$180$ & $\$140$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+(a) Match on age, one neighbour, averaging ties. Report each $\hat\delta_i$ and $\widehat{ATT}$.
+
+(b) Regress earnings on age using the **matched controls only**, and report $\hat\alpha$ and $\hat\beta$. Then compute the bias-corrected effects and $\widehat{ATT}^{BC}$.
+
+(c) Refit step (b) on **all six** controls and recompute. The answer changes enormously. Identify the single observation responsible and explain what it demonstrates about the method's exposure.
+
+(d) Why do the exactly-matched workers receive a correction of zero? Show it algebraically for the one-covariate linear case.
+
+(e) Abadie--Imbens's theory uses all controls in step 2; every implementation uses matched controls only. Give an argument for each choice.
+
+## Problem E5 (Regression, matching, and what neither can do)
+
+(a) State the Frisch--Waugh--Lovell theorem. Use it to show that OLS with a saturated set of stratum dummies estimates a **variance-weighted** average of within-stratum effects, and write down the weights.
+
+(b) Matching weights strata by the share of *treated* units; regression weights them by within-stratum treatment variance. Construct a three-stratum example in which the two estimates differ by more than 50%, and say which one answers "what did the program do for its participants?"
+
+(c) Regression adjustment (outcome imputation) and IPW use two different models. State what each assumes, then explain what a doubly robust estimator buys and what it does *not* buy.
+
+(d) "Matching creates no new variation." Explain what this means operationally, and use it to answer: can matching fix an unobserved confounder, reverse causality, or a bad control? Answer each separately.
+
+(e) LaLonde (1986), Dehejia and Wahba (1999), and Smith and Todd (2005) reached three different verdicts on the same data. State each verdict in one sentence, and say what the sequence as a whole establishes about propensity score methods.

@@ -1,0 +1,1645 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  11pt,
+  ignorenonframetext,
+  aspectratio=169,
+]{beamer}
+\newif\ifbibliography
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% remove section numbering
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+\usepackage{caption}
+% Make caption package work with longtable
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{itemize subitem}[triangle]
+\setbeamercolor{frametitle}{fg=black}
+\setbeamerfont{frametitle}{series=\bfseries}
+\newcommand{\indep}{\perp\!\!\!\perp}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc}
+\tikzset{
+  dnode/.style={circle,draw,thick,minimum size=9mm,inner sep=1pt,font=\small},
+  unode/.style={circle,draw,thick,dashed,minimum size=9mm,inner sep=1pt,font=\small},
+  bnode/.style={rectangle,draw,thick,fill=gray!25,minimum size=9mm,inner sep=3pt,font=\small},
+  de/.style={-{Stealth[length=2.2mm]},thick},
+  dde/.style={-{Stealth[length=2.2mm]},thick,dashed}
+}
+% shrink code input (fancyvrb) and code output (verbatim)
+\usepackage{fancyvrb}
+\fvset{fontsize=\scriptsize}
+\makeatletter
+\def\verbatim@font{\scriptsize\ttfamily}
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Unconfoundedness II: Propensity Scores and Regression},
+  pdfauthor={Professor Ji-Woong Chung},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{\texorpdfstring{Unconfoundedness II: Propensity Scores and
+Regression}{Unconfoundedness II: Propensity Scores and Regression}}
+\subtitle{\texorpdfstring{BUSS975: Causal Inference in Financial
+Research}{BUSS975: Causal Inference in Financial Research}}
+\author{Professor Ji-Woong Chung}
+\date{}
+\institute{Korea University}
+
+\begin{document}
+\frame{\titlepage}
+
+
+\begin{frame}{Outline}
+\protect\phantomsection\label{outline}
+\begin{enumerate}
+\tightlist
+\item
+  Propensity scores
+\item
+  Regression
+\item
+  What matching cannot do
+\item
+  Sensitivity analysis
+\item
+  The NSW demonstration
+\end{enumerate}
+
+\vspace{0.6em}
+
+Lecture 3a matched units cell by cell and paid for it twice --- in bias
+and in variance. This lecture replaces the whole vector \(X\) with a
+single number, and asks what that buys and what it costs.
+\end{frame}
+
+\section{1. Propensity Scores}\label{propensity-scores}
+
+\begin{frame}{Defining the propensity score}
+\protect\phantomsection\label{defining-the-propensity-score}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Propensity score}: \(e(X) = \Pr(D = 1 \mid X)\)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    ``the conditional probability of assignment to a particular
+    treatment given a vector of observed covariates''
+  \end{itemize}
+\item
+  \textbf{Balancing property} (Rosenbaum--Rubin 1983):
+  \(X \perp D \mid \Pr(D = 1 \mid X)\)
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \(E[X \mid D=1, \Pr(D=1 \mid X)] = E[X \mid D=0, \Pr(D=1 \mid X)]\)
+  \item
+    Covariate distributions are similar between treatment and control
+    conditional the propensity score.
+  \end{itemize}
+\item
+  \textbf{Propensity score theorem} (Rosenbaum--Rubin 1983): if
+  \((Y^1,Y^0) \indep D \mid X\), then \[
+  (Y^1, Y^0) \;\indep\; D \;\mid\; e(X)
+  \]
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Conditioning on a \textbf{single number} does what conditioning on
+    all of \(X\) does. Ten covariates collapse to one scalar --- the
+    curse of dimensionality defeated, for \emph{conditioning}.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Checking balance: two numbers, not a \(t\)-test}
+\protect\phantomsection\label{checking-balance-two-numbers-not-a-t-test}
+The balancing property is testable. Report it covariate by covariate,
+before and after.
+
+\[
+\text{SMD} \;=\; \frac{\bar X_1 - \bar X_0}{\sqrt{\big(s_1^2 + s_0^2\big)/2}},
+\qquad\qquad
+\text{VR} \;=\; \frac{s_1^2}{s_0^2}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Standardized mean difference.} Scale-free, so leverage and log
+  assets are comparable. \(|\text{SMD}| < 0.1\) is good; Rubin (2001)
+  treats \(0.25\) as the outer limit past which regression adjustment is
+  untrustworthy.
+\item
+  Keep the denominator \textbf{fixed at its raw-sample value} when
+  recomputing after weighting, or the yardstick moves with the thing you
+  are measuring.
+\item
+  \textbf{Variance ratio.} Means can match while spreads do not. Rubin:
+  stay inside \([0.5,\,2]\), ideally \([0.8,\,1.25]\).
+\item
+  \textbf{Do not use \(t\)-tests.} Balance is a property of \emph{this
+  sample}, not a population hypothesis --- and \(p\) confounds imbalance
+  with sample size, so pruning to a matched subsample raises it
+  mechanically even as balance worsens (Imai, King and Stuart 2008).
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{A balance plot: means are not enough}
+\protect\phantomsection\label{a-balance-plot-means-are-not-enough}
+\pandocbounded{\includegraphics[keepaspectratio]{03b_propensity_scores_files/figure-beamer/unnamed-chunk-1-1.pdf}}
+
+\vspace{-0.3em}
+\footnotesize
+
+Selection here is linear in \texttt{Size}, \texttt{Leverage},
+\texttt{ROA}, \texttt{Age} --- and \textbf{quadratic in
+\texttt{Volatility}}. The score was fitted with linear terms only.
+\end{frame}
+
+\begin{frame}[fragile]{Reading the balance plot}
+\protect\phantomsection\label{reading-the-balance-plot}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Left panel, the success.} Four covariates start badly
+  imbalanced --- \texttt{Size} at \(0.65\), \texttt{Leverage} and
+  \texttt{ROA} near \(0.49\). After weighting, every one is under
+  \(0.02\). This is the plot referees want, and it is the one most
+  papers stop at.
+\item
+  \textbf{Left panel, the trap.} \texttt{Volatility} looks
+  \emph{perfect} from the start: \(\text{SMD} = -0.010\), and a
+  \(t\)-test returns \(p = 0.72\). On the evidence of means, nothing to
+  see.
+\item
+  \textbf{Right panel.} Its variance ratio is \(\mathbf{2.27}\) ---
+  treated firms have more than twice the spread. Extreme volatility
+  drives selection in \emph{both} tails, so the means cancel and the
+  distributions do not.
+\item
+  \textbf{Weighting makes it worse}, \(2.27 \to \mathbf{2.83}\), because
+  the fitted score never contained \(\texttt{vol}^2\). Add that one term
+  and the ratio falls to \(\mathbf{1.03}\).
+\item
+  The lesson of this section: judge the score by \textbf{balance
+  achieved, not by fit} --- and balance means the whole distribution.
+  Check squares and interactions, not just levels.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Estimating the score}
+\protect\phantomsection\label{estimating-the-score}
+\begin{itemize}
+\tightlist
+\item
+  You know the \textbf{true} score only when you ran the experiment
+  yourself. Otherwise, it must be estimated:
+  \(\Pr(D_i {=} 1 \mid X_i) = F(\beta X_i)\), fitted by \textbf{logit or
+  probit}.
+\item
+  Judge the specification by \textbf{balance achieved}, not by fit. A
+  score with a high pseudo-\(R^2\) but poor balance is a bad score; the
+  reverse is fine.
+\item
+  Fit, check balance, add interactions and polynomials where balance
+  fails, refit. A legitimate specification search, because it never
+  looks at \(Y\) --- the whole stage is \textbf{blind to the outcome},
+  which protects against fishing. Say so in the paper.
+\item
+  \textbf{The score creates no support that \(X\) lacks.} If a covariate
+  cell is all-treated or all-control, collapsing \(X\) to a scalar hides
+  that; it does not fix it.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Three things to do with the score}
+\protect\phantomsection\label{three-things-to-do-with-the-score}
+Once every unit has a \(\hat e(X_i)\), there are three standard uses.
+
+\begin{enumerate}
+\tightlist
+\item
+  \textbf{Diagnose.} Plot \(\hat e\) separately for treated and control
+  units. This is the common-support check, and it costs nothing.
+\item
+  \textbf{Weight.} Reweight the sample to build a pseudo-experiment ---
+  inverse probability weighting.
+\item
+  \textbf{Match.} Pair treated to control units with similar scores,
+  then difference --- propensity score matching.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{Visualizing overlap}
+\protect\phantomsection\label{visualizing-overlap}
+\pandocbounded{\includegraphics[keepaspectratio]{03b_propensity_scores_files/figure-beamer/unnamed-chunk-2-1.pdf}}
+
+\vspace{-0.4em}
+
+\footnotesize
+
+Right panel: a treated mass at \(\hat e \approx 1\) with no controls,
+and a control mass at \(\hat e \approx 0\) with no treated. Those units
+have \textbf{no counterfactual}. Any estimate covering them is
+extrapolation, not comparison.
+\end{frame}
+
+\begin{frame}{This plot belongs in every such paper}
+\protect\phantomsection\label{this-plot-belongs-in-every-such-paper}
+\begin{itemize}
+\tightlist
+\item
+  Common support is verifiable, unlike unconfoundedness.
+\item
+  What to do when it looks like the right panel:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{Trim} observations with extreme scores, or impose a caliper.
+    Drop units with \(\hat e \notin [0.1,\,0.9]\). A rule of thumb, but
+    a defensible and widely accepted one (Crump, Hotz, Imbens and
+    Mitnik, 2009).
+  \item
+    \textbf{Report the change in estimand.} After trimming you describe
+    a subpopulation, not the original one. Say how many observations
+    went and how the treated sample shifted.
+  \item
+    Consider retreating to the \(ATT\), which only needs overlap in one
+    direction.
+  \end{itemize}
+\item
+  What \emph{not} to do: report the estimate and stay silent. The
+  regression will happily extrapolate into a region with no data and
+  give you a standard error that reflects none of that.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Inverse probability weighting}
+\protect\phantomsection\label{inverse-probability-weighting}
+Rather than matching, \textbf{reweight}. Write \(\hat e_i\) for
+\(\hat e(X_i)\) and \(\pi = \Pr(D{=}1)\).
+
+\small
+
+\[
+\begin{aligned}
+ATE \;&=\; E\!\left[Y_1 - Y_0\right] = E\!\left[\frac{D\,Y}{e(X)}\right] - E\!\left[\frac{(1-D)\,Y}{1 - e(X)}\right] \\
+ATT \;&=\; E\!\left[Y_1 - Y_0 \middle| D = 1 \right] = \frac{1}{\pi}\,\left(E\!\left[DY\right] - E\!\left[\frac{e(X)(1-D)Y}{1 - e(X)}\right]\right) \\[1em]
+\widehat{ATE}_{IPW} \;&=\; \frac{1}{n}\sum_{i=1}^{n}\left[\frac{D_i}{\hat e_i} - \frac{1 - D_i}{1 - \hat e_i}\right] Y_i \\
+\widehat{ATT}_{IPW} \;&=\; \frac{1}{n_T}\sum_{i=1}^{n}\left[D_i - (1 - D_i)\,\frac{\hat e_i}{1 - \hat e_i}\right] Y_i
+\end{aligned}
+\] \normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  Both are \textbf{Horvitz--Thompson (1952)} forms.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why \emph{that} weight for the ATE?}
+\protect\phantomsection\label{why-that-weight-for-the-ate}
+We prove \(E\!\left[\frac{D\,Y}{e(X)}\right] = E[Y^1]\). The \(E[Y^0]\)
+half is symmetric.
+
+\scriptsize
+
+\[
+\begin{aligned}
+E\!\left[ \frac{D \cdot Y}{e(X)} \right]
+  &= E\!\left[ \frac{D \cdot Y^1}{e(X)} \right]
+     && \text{switching equation (consistency): } D \cdot Y = D \cdot Y^1 \\
+  &= E_X\!\left[ E\!\left( \frac{D \cdot Y^1}{e(X)} \,\Big|\, X \right) \right]
+     && \text{law of total expectation} \\
+  &= E_X\!\left[ \frac{1}{e(X)} \cdot E\big(D \cdot Y^1 \mid X\big) \right]
+     && e(X) \text{ is fixed given } X \\
+  &= E_X\!\left[ \frac{1}{e(X)} \cdot E(D \mid X) \cdot E\big(Y^1 \mid X\big) \right]
+     && \text{unconfoundedness (exchangeability): } D \indep Y^1 \mid X \\
+  &= E_X\!\left[ \frac{1}{e(X)} \cdot e(X) \cdot E\big(Y^1 \mid X\big) \right]
+     && \text{by definition, } E(D \mid X) = e(X) \\
+  &= E_X\big[ E(Y^1 \mid X) \big] \;=\; E[Y^1]
+     && \text{cancel; law of total expectation}
+\end{aligned}
+\]
+\end{frame}
+
+\begin{frame}{Why \emph{that} weight for the ATT?}
+\protect\phantomsection\label{why-that-weight-for-the-att}
+\scriptsize
+
+\(E[Y^1 \mid D{=}1] = E[Y \mid D{=}1] = \frac{E[DY]}{E[D]}\). \[
+\begin{aligned}
+E\big[Y^0 \mid D{=}1\big]
+  &= E_X\big[\, E(Y^0 \mid X, D{=}1) \,\big|\, D{=}1 \,\big]
+     && \text{law of total expectation, over } f(x \mid D{=}1) \\
+  &= E_X\big[\, E(Y^0 \mid X, D{=}0) \,\big|\, D{=}1 \,\big]
+     && \text{unconfoundedness --- swap the arm} \\
+  &= E_X\!\left[\, E(Y^0 \mid X, D{=}0)\cdot\frac{e(X)}{\pi} \,\right]
+     && \text{Bayes: } f(x \mid D{=}1) = e(x)f(x)/\pi \\
+  &= E_X\!\left[\, \frac{E\big[(1-D)\,Y \mid X\big]}{1 - e(X)}\cdot\frac{e(X)}{\pi} \,\right]
+     && E[(1{-}D)Y \mid X] = \big(1{-}e(X)\big)E[Y^0 \mid X, D{=}0] \\
+  &= E\!\left[\, \frac{(1 - D)\,Y\,e(X)}{\big(1 - e(X)\big)\,\pi} \,\right]
+     && \text{law of total expectation}
+\end{aligned}
+\] \normalsize
+
+Line 3: it converts an average over the \emph{treated} covariate
+distribution into one over the \emph{whole} population.
+\end{frame}
+
+\begin{frame}{The intuition: the ATE rebuilds the population}
+\protect\phantomsection\label{the-intuition-the-ate-rebuilds-the-population}
+Two kinds of firm. Small firms are \textbf{rarely} treated, large firms
+\textbf{usually} are.
+
+\begin{center}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Cell & $N$ & $e$ & treated & $\times\,1/e$ & controls & $\times\,1/(1-e)$ \\
+\midrule
+Small & $500$ & $0.2$ & $100$ & $\times 5 = \mathbf{500}$    & $400$ & $\times 1.25 = \mathbf{500}$ \\
+Large & $500$ & $0.8$ & $400$ & $\times 1.25 = \mathbf{500}$ & $100$ & $\times 5 = \mathbf{500}$ \\
+\midrule
+Total & $1{,}000$ & & $500$ & $\mathbf{1{,}000}$ & $500$ & $\mathbf{1{,}000}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Only one small firm in five was treated, so that one must stand in for
+  all five. Its weight is \(1/0.2 = 5\).
+\item
+  Every weighted entry comes back to \(500\): each arm is blown back up
+  to the \textbf{full population}. That is the \emph{pseudo-population},
+  and in it \(D \indep X\) by construction.
+\item
+  Before weighting, small firms are \(20\%\) of the treated sample and
+  \(80\%\) of the control sample. After weighting, \(50\%\) of both ---
+  the imbalance that caused the bias is gone.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{\ldots{} and the ATT reweights controls only}
+\protect\phantomsection\label{and-the-att-reweights-controls-only}
+The \(ATT\) does not want the population. It wants the \textbf{treated}
+--- and the treated are already a sample from that distribution, so they
+keep weight \(1\). Only the controls move.
+
+\begin{center}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Cell & controls & $\times\ e/(1-e)$ & $=$ & treated \\
+\midrule
+Small & $400$ & $0.25$ & $\mathbf{100}$ & $100$ \\
+Large & $100$ & $4.00$ & $\mathbf{400}$ & $400$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Why the odds?} In a cell with score \(e\) the sample splits
+  \(e : (1-e)\) between the arms. Multiplying the controls by
+  \(e/(1-e)\) makes their count match the treated count \emph{exactly}
+  --- last column.
+\item
+  The \(ATE\) weight asks ``how many units like me are in the
+  population?'' The \(ATT\) weight asks ``how many \emph{treated} units
+  like me are there?''
+\item
+  Among large firms, \(100\) controls must cover \(400\) treated, so
+  each carries weight \(4\). Push \(e\) toward \(1\) and that weight
+  explodes: \textbf{this is where the \(ATT\) fails}, and why it needs
+  overlap in one direction only, \(e(X) < 1\), while the \(ATE\) needs
+  \(0 < e(X) < 1\).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Does it work?}
+\protect\phantomsection\label{does-it-work}
+\begin{center}
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Cell & $e$ & $E[Y^0]$ & $E[Y^1]$ & effect & treated & controls \\
+\midrule
+Small & $0.2$ & $10$ & $12$ & $2$ & $100$ & $400$ \\
+Large & $0.8$ & $20$ & $26$ & $6$ & $400$ & $100$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+\small
+
+\[
+\begin{aligned}
+\widehat{E[Y^1]} &= \tfrac{1}{1000}\!\left[\tfrac{100(12)}{0.2} + \tfrac{400(26)}{0.8}\right] = \tfrac{6000 + 13000}{1000} = 19 \\
+\widehat{E[Y^0]} &= \tfrac{1}{1000}\!\left[\tfrac{400(10)}{0.8} + \tfrac{100(20)}{0.2}\right] = \tfrac{5000 + 10000}{1000} = 15 \\[0.2em]
+\widehat{ATT}\; &= \underbrace{\tfrac{100(12) + 400(26)}{500}}_{\text{treated mean}\;=\;23.2} \;-\; \underbrace{\tfrac{400(10)(0.25) + 100(20)(4)}{500}}_{\text{controls}\,\times\,\text{odds}\;=\;18.0}
+\end{aligned}
+\] \normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  Truth: \(ATE = 4\), \(ATT = 5.2\). The naive \(SDO\) is
+  \(23.2 - 12 = \mathbf{11.2}\).
+\item
+  IPW returns \(19 - 15 = \mathbf{4}\) and
+  \(23.2 - 18.0 = \mathbf{5.2}\). Both exactly right.
+\item
+  \(ATT > ATE\) because the effect is bigger for large firms, and large
+  firms are where treatment concentrated. \textbf{Selection on gains ---
+  the two estimands correctly disagree.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why normalize the weights?}
+\protect\phantomsection\label{why-normalize-the-weights}
+IPW is \textbf{sensitive to extreme propensity scores}: one observation
+with \(\hat e\) near \(0\) or \(1\) gets an enormous weight and can
+dominate everything else.
+
+Four treated firms with scores \(\hat e = (0.5,\,0.5,\,0.5,\,0.25)\),
+and \textbf{every one of them has \(Y = 10\)}. With \(n = 8\):
+
+\vspace{-0.4em}
+\small
+
+\[
+\widehat{E[Y^1]} = \frac{1}{8}\left[\frac{10}{0.5} + \frac{10}{0.5} + \frac{10}{0.5} + \frac{10}{0.25}\right] = \frac{20 + 20 + 20 + 40}{8} = \frac{100}{8} = 12.5
+\] \normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  Every number in the data is \(10\). Any sensible estimator must return
+  \(10\). This one returns \(12.5\).
+\item
+  The reason: the weights are \(2, 2, 2, 4\) and they \textbf{sum to
+  \(10\), not to \(8\)}. Dividing by \(n\) assumes they sum to \(n\) ---
+  true in population, where \(E[D/e(X)] = 1\), but never exactly true in
+  a sample with \(\hat e\) estimated.
+\item
+  Fix: \textbf{divide by the weights you actually got, not by \(n\).}
+  Here \(100/10 = 10\).
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The normalized (Hájek) estimator}
+\protect\phantomsection\label{the-normalized-huxe1jek-estimator}
+Hirano and Imbens (2001) normalize the weights \textbf{by their own sum
+within each group}, so the weights sum to one in each arm:
+
+\vspace{-0.3em}
+\small
+
+\[
+\widehat{ATE}_{\text{norm}} =
+\underbrace{\left[\sum_{i=1}^N \frac{Y_i D_i}{\hat e_i}\right] \bigg/ \left[\sum_{i=1}^N \frac{D_i}{\hat e_i}\right]}_{\widehat{E[Y^1]}}
+\;-\;
+\underbrace{\left[\sum_{i=1}^N \frac{Y_i (1 - D_i)}{1 - \hat e_i}\right] \bigg/ \left[\sum_{i=1}^N \frac{1 - D_i}{1 - \hat e_i}\right]}_{\widehat{E[Y^0]}}
+\] \normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  Each term is now a genuine \textbf{weighted average of observed
+  outcomes}, so it must fall between the smallest and largest \(Y\) in
+  that arm. The unnormalized version carries no such guarantee --- which
+  is exactly how it produced \(12.5\).
+\item
+  Same repair for the \(ATT\): divide the reweighted control sum by
+  \(\sum_i (1-D_i)\frac{\hat e_i}{1-\hat e_i}\) rather than by \(n_T\).
+\item
+  Default in Stata's \texttt{teffects\ ipw} and R's \texttt{WeightIt}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Propensity score matching}
+\protect\phantomsection\label{propensity-score-matching}
+\begin{itemize}
+\tightlist
+\item
+  Match each treated unit to controls with a \textbf{similar score},
+  then difference.
+\item
+  \textbf{Caliper} matching: refuse any match farther than some
+  tolerance (say \(0.001\) on the score), \emph{discarding} the treated
+  unit if none qualifies. \textbf{Radius} matching: average all controls
+  inside the tolerance.
+\item
+  Two problems with both:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The tolerance is \textbf{chosen by the researcher} (Huntington-Klein
+    et al.~2021).
+  \item
+    Dropping treated units \textbf{changes the estimand} --- the \(ATT\)
+    summarised the \emph{original} treated sample.
+  \end{itemize}
+\item
+  The score is estimated, so its sampling error enters the standard
+  errors (Abadie--Imbens 2016).
+\item
+  King \& Nielsen, 2019: Two units can share an identical score
+  \(e(X_i) = e(X_j)\) despite having completely opposite covariate
+  profiles \(X_i \neq X_j\). Matching purely on the scalar score can
+  actually increase local covariate imbalance compared to multivariate
+  distance matching (e.g., Coarsened Exact Matching).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What the score does and does not buy}
+\protect\phantomsection\label{what-the-score-does-and-does-not-buy}
+\begin{itemize}
+\tightlist
+\item
+  It buys \textbf{dimension reduction}, not identification. If \(X\)
+  omits a confounder, \(e(X)\) omits it too.
+\item
+  Standard regression silently hides lack of common support through
+  linear extrapolation, whereas plotting \(\hat{e}(X)\) immediately
+  exposes severe positivity violations.
+\item
+  a high pseudo-\(R^2\) in a treatment model means covariates perfectly
+  predict treatment assignment (\(e(X) \to 0\) or \(1\)). This breaks
+  the positivity assumption and causes extreme IPW variance. Conversely,
+  a low pseudo-\(R^2\) indicates that treatment assignment is nearly
+  independent of \(X\) (resembling a randomized control trial).
+\item
+  IPW shifts the modeling assumption from \(E[Y \mid D, X]\) (outcome
+  equation) to \(P(D = 1 \mid X)\) (treatment assignment equation).
+\end{itemize}
+\end{frame}
+
+\section{2. Regression}\label{regression}
+
+\begin{frame}{Regression as a conditioning strategy}
+\protect\phantomsection\label{regression-as-a-conditioning-strategy}
+\begin{itemize}
+\tightlist
+\item
+  Regression belongs in this chapter. It is not a rival to matching ---
+  it is another way of executing the same substitution from Lecture 3a,
+  §3, Identification Assumptions.
+\item
+  Under unconfoundedness and \textbf{constant} treatment effects,
+  \(Y = \alpha + \beta D + X'\gamma + \varepsilon\) recovers \(\beta\),
+  because unconfoundedness delivers exactly the exogeneity condition OLS
+  needs: \[
+  (Y^1,Y^0)\indep D \mid X \;\;\Longrightarrow\;\; E[\varepsilon \mid D, X] = 0
+  \]
+\item
+  Recall Lecture 1: the error term contains \(Y^0\). Selection bias was
+  \(\mathrm{cov}(D, Y^0) \neq 0\). Conditioning on \(X\) is the attempt
+  to make that covariance zero \emph{within strata}.
+\item
+  What regression adds that matching lacks: it \textbf{interpolates and
+  extrapolates} with functional form, so empty cells do not stop it.
+\item
+  What it hides: it does that silently.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Frisch--Waugh--Lovell}
+\protect\phantomsection\label{frischwaughlovell}
+The coefficient on \(D\) in a multiple regression equals the coefficient
+from a \textbf{bivariate} regression of residualized \(Y\) on
+residualized \(D\):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{set.seed}\NormalTok{(}\DecValTok{975}\NormalTok{)}
+\NormalTok{n }\OtherTok{\textless{}{-}} \DecValTok{20000}\NormalTok{; X }\OtherTok{\textless{}{-}} \FunctionTok{rnorm}\NormalTok{(n); D }\OtherTok{\textless{}{-}} \FunctionTok{rbinom}\NormalTok{(n, }\DecValTok{1}\NormalTok{, }\FunctionTok{plogis}\NormalTok{(}\FloatTok{1.2} \SpecialCharTok{*}\NormalTok{ X))}
+\NormalTok{Y }\OtherTok{\textless{}{-}} \DecValTok{2} \SpecialCharTok{*}\NormalTok{ D }\SpecialCharTok{+} \DecValTok{3} \SpecialCharTok{*}\NormalTok{ X }\SpecialCharTok{+} \FunctionTok{rnorm}\NormalTok{(n)}
+\FunctionTok{c}\NormalTok{(}\AttributeTok{direct =} \FunctionTok{unname}\NormalTok{(}\FunctionTok{coef}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ D }\SpecialCharTok{+}\NormalTok{ X))[}\DecValTok{2}\NormalTok{]),}
+  \AttributeTok{fwl    =} \FunctionTok{unname}\NormalTok{(}\FunctionTok{coef}\NormalTok{(}\FunctionTok{lm}\NormalTok{(}\FunctionTok{resid}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ X)) }\SpecialCharTok{\textasciitilde{}} \FunctionTok{resid}\NormalTok{(}\FunctionTok{lm}\NormalTok{(D }\SpecialCharTok{\textasciitilde{}}\NormalTok{ X))))[}\DecValTok{2}\NormalTok{]))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+  direct      fwl 
+2.018086 2.018086 
+\end{verbatim}
+
+\vspace{0.2em}
+
+\begin{itemize}
+\tightlist
+\item
+  Identical to machine precision. ``Controlling for \(X\)'' \emph{means}
+  ``using only the variation in \(D\) that \(X\) cannot explain.''
+\item
+  This is the cleanest statement of what a control variable does --- and
+  it tells you where the identifying variation comes from.
+\item
+  It also warns you: if \(X\) explains nearly all of \(D\), almost no
+  variation remains, and the estimate rests on very few effective
+  observations.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What FWL implies about weights}
+\protect\phantomsection\label{what-fwl-implies-about-weights}
+\begin{itemize}
+\tightlist
+\item
+  FWL says OLS uses the residual variation in \(D\). Where is that
+  variation largest? Where treatment is \textbf{least predictable}.
+\item
+  Formally, with \(X\) dummies, OLS weights each stratum by
+  \(N_j\, p_j(1-p_j)\) --- the \textbf{conditional variance of
+  treatment} within it.
+\item
+  So OLS gives most weight to strata where treatment is closest to a
+  coin flip, and least where it is nearly deterministic.
+\item
+  That is a defensible \textbf{efficiency} motive: those strata carry
+  the most information per observation.
+\item
+  It also means \textbf{OLS is not estimating the \(ATT\)} --- or the
+  \(ATE\) --- when effects are heterogeneous. It estimates a
+  variance-weighted average with no policy interpretation.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Regression adjustment (imputation)}
+\protect\phantomsection\label{regression-adjustment-imputation}
+\begin{itemize}
+\tightlist
+\item
+  A more flexible use of regression that mirrors matching directly:
+
+  \begin{enumerate}
+  \tightlist
+  \item
+    Fit \(\hat\mu^1(x)\) on the \textbf{treated} and \(\hat\mu^0(x)\) on
+    the \textbf{controls}, separately.
+  \item
+    For \emph{every} unit, impute both potential outcomes and average
+    the difference: \[
+    \widehat{ATE} = \frac{1}{n}\sum_i \big( \hat\mu^1(X_i) - \hat\mu^0(X_i) \big)
+    \]
+  \end{enumerate}
+\item
+  Separate models allow the covariates to matter differently under
+  treatment and control --- exactly what a single \(\beta\) on \(D\)
+  forbids.
+\item
+  This is the same imputation logic as matching, with a model in place
+  of a neighbour.
+\item
+  Combining it with weighting gives \textbf{doubly robust} estimators:
+  consistent if \emph{either} the outcome model or the propensity model
+  is right. A genuinely useful hedge, and increasingly the default in
+  applied work.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Matching versus regression}
+\protect\phantomsection\label{matching-versus-regression}
+\begin{itemize}
+\tightlist
+\item
+  Both rely on the \textbf{same} identifying assumption:
+  unconfoundedness. Neither creates exogenous variation.
+\item
+  The difference is in \emph{how they weight strata} when the effect is
+  heterogeneous.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{Matching (\(ATT\))} weights stratum \(j\) by the number of
+    \textbf{treated} units in it.
+  \item
+    \textbf{OLS with \(X\) dummies} weights stratum \(j\) by
+    \(N_j\, p_j (1-p_j)\).
+  \end{itemize}
+\item
+  They also differ in what they do about missing cells: matching
+  refuses; regression extrapolates.
+\item
+  So when the two disagree, ask two questions in order: \emph{is it the
+  weights, or is it the extrapolation?} Both are diagnosable.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The same example under both}
+\protect\phantomsection\label{the-same-example-under-both}
+Two strata. \(p_{\text{small}} = 0.5\), \(p_{\text{large}} = 0.1\);
+effects \(+2\) and \(+3\); 100 firms per stratum.
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+& Weight on small & Weight on large & Estimate \\
+\midrule
+Matching ($ATT$): treated counts & $50/60 = 0.833$ & $10/60 = 0.167$ & $\mathbf{2.167}$ \\
+OLS: $N_j p_j(1-p_j)$            & $25/34 = 0.735$ & $9/34 = 0.265$  & $\mathbf{2.265}$ \\
+$ATE$: population shares         & $0.5$           & $0.5$           & $\mathbf{2.500}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{X }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{rep}\NormalTok{(}\DecValTok{0}\NormalTok{, }\DecValTok{100}\NormalTok{), }\FunctionTok{rep}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{100}\NormalTok{))}
+\NormalTok{D }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\FunctionTok{rep}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{), }\AttributeTok{each =} \DecValTok{50}\NormalTok{), }\FunctionTok{rep}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{0}\NormalTok{), }\AttributeTok{times =} \FunctionTok{c}\NormalTok{(}\DecValTok{10}\NormalTok{, }\DecValTok{90}\NormalTok{)))}
+\NormalTok{Y }\OtherTok{\textless{}{-}} \FunctionTok{ifelse}\NormalTok{(X }\SpecialCharTok{==} \DecValTok{0}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{5}\NormalTok{) }\SpecialCharTok{+} \FunctionTok{ifelse}\NormalTok{(X }\SpecialCharTok{==} \DecValTok{0}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{3}\NormalTok{) }\SpecialCharTok{*}\NormalTok{ D}
+\FunctionTok{round}\NormalTok{(}\FunctionTok{unname}\NormalTok{(}\FunctionTok{coef}\NormalTok{(}\FunctionTok{lm}\NormalTok{(Y }\SpecialCharTok{\textasciitilde{}}\NormalTok{ D }\SpecialCharTok{+} \FunctionTok{factor}\NormalTok{(X)))[}\DecValTok{2}\NormalTok{]), }\DecValTok{3}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{verbatim}
+[1] 2.265
+\end{verbatim}
+\end{frame}
+
+\begin{frame}{Reading the comparison}
+\protect\phantomsection\label{reading-the-comparison}
+\begin{itemize}
+\tightlist
+\item
+  The regression returns \(2.265\) --- exactly the variance-weighted
+  average, not the \(ATT\) and not the \(ATE\).
+\item
+  The gap is small here. Angrist and Pischke argue it usually is, in
+  practice.
+\item
+  But ``usually small'' is not ``zero'', and the difference is entirely
+  about \textbf{which firms your estimate describes}:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Matching describes the treated.
+  \item
+    OLS describes wherever treatment was most unpredictable.
+  \end{itemize}
+\item
+  \textbf{When it matters most}: when treatment probability varies a lot
+  across strata \emph{and} effects are heterogeneous. Both are typical
+  in finance.
+\item
+  This is the same variance-weighting issue that resurfaces, far more
+  destructively, in staggered difference-in-differences.
+\end{itemize}
+\end{frame}
+
+\section{3. What Matching Cannot Do}\label{what-matching-cannot-do}
+
+\begin{frame}{Matching creates no new variation}
+\protect\phantomsection\label{matching-creates-no-new-variation}
+\begin{itemize}
+\tightlist
+\item
+  Matching \textbf{does not introduce exogenous variation}. It
+  reorganizes and reweights the data you already have, using observables
+  you already measured.
+\item
+  Consequence: if your OLS regression was biased by endogeneity,
+  \textbf{the matched estimate is biased too}.
+\item
+  Contrast this with the designs still to come:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{IV} imports variation from outside the model.
+  \item
+    \textbf{RDD} exploits assignment that is locally as good as random.
+  \item
+    \textbf{DiD} differences out fixed unobservables.
+  \end{itemize}
+\item
+  Matching belongs to a different category. It is a \emph{conditioning
+  strategy}, like regression --- not a research design.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What it cannot fix}
+\protect\phantomsection\label{what-it-cannot-fix}
+Matching is powerless against:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Unobserved confounders.} You cannot match on what you cannot
+  measure.
+\item
+  \textbf{Reverse causality.} Matching on \(X\) says nothing about
+  whether \(Y\) caused \(D\).
+\item
+  \textbf{Measurement error} in treatment or outcome.
+\item
+  \textbf{Bad controls.} Matching on a post-treatment variable is
+  exactly as damaging as controlling for it --- Lecture 2 applies
+  unchanged, and the collider \(F\) of Lecture 3a, §2, Confounders,
+  Covariates, and Colliders, is the warning.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{center}
+\emph{You cannot match on what you cannot measure.}
+\end{center}
+\end{frame}
+
+\begin{frame}{So what is it good for?}
+\protect\phantomsection\label{so-what-is-it-good-for}
+Given all that, matching still earns its place:
+
+\begin{enumerate}
+\tightlist
+\item
+  \textbf{A non-parametric benchmark.} It estimates the effect without
+  assuming a functional form. If matching and OLS disagree sharply, your
+  specification is doing more work than you thought.
+\item
+  \textbf{Common-support discipline.} Matching refuses to compare units
+  with no counterpart. Regression silently extrapolates into regions
+  with no data.
+\item
+  \textbf{Diagnostic value.} The propensity score distribution reveals
+  overlap problems that a regression table hides completely.
+\item
+  \textbf{Robustness when the functional form is wrong.} Matching can
+  outperform a misspecified regression in finite samples.
+\end{enumerate}
+
+\vspace{0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  Use it as a \emph{complement} to regression and a check on it --- not
+  as an identification strategy.
+\end{itemize}
+\end{frame}
+
+\section{4. Sensitivity Analysis}\label{sensitivity-analysis}
+
+\begin{frame}{The assumption you cannot test, revisited}
+\protect\phantomsection\label{the-assumption-you-cannot-test-revisited}
+\begin{itemize}
+\tightlist
+\item
+  Two things this course has said are both true and both final:
+  unconfoundedness is \textbf{untestable}, and no amount of matching
+  creates variation that fixes an unobserved confounder.
+\item
+  Neither is the end of the conversation. \textbf{Sensitivity analysis}
+  changes the question:
+\end{itemize}
+
+\begin{center}
+\emph{Not} ``is my design valid?'' --- unanswerable. \quad But: \\[0.25em]
+\textbf{how large would a hidden confounder have to be to overturn my conclusion?}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  The output is not a \(p\)-value. It is a \textbf{threshold}, plus an
+  argument about whether a confounder that large is plausible in your
+  setting. The argument is yours; the threshold is arithmetic.
+\item
+  Two families, matching the two routes of §1, Propensity Scores, and
+  §2, Regression:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{Design-based}, for matched pairs: Rosenbaum bounds.
+  \item
+    \textbf{Regression-based}, for the coefficient: Oster's \(\delta\),
+    and the Cinelli--Hazlett robustness value.
+  \end{itemize}
+\item
+  Referees in finance now ask for one of these by name. Budget a table
+  for it.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Rosenbaum bounds: one parameter, \(\Gamma\)}
+\protect\phantomsection\label{rosenbaum-bounds-one-parameter-gamma}
+\begin{itemize}
+\tightlist
+\item
+  Matching made two units identical in \(X\). Unconfoundedness then says
+  they had \textbf{equal} probability of treatment. Suppose they did
+  not.
+\item
+  Let \(\Gamma \geq 1\) bound how unequal. For any two units \(i, j\)
+  with \(X_i = X_j\), \[
+  \frac{1}{\Gamma} \;\leq\; \frac{\pi_i (1 - \pi_j)}{\pi_j (1 - \pi_i)} \;\leq\; \Gamma .
+  \]
+\item
+  \(\Gamma = 1\) \textbf{is} unconfoundedness. \(\Gamma = 2\) says a
+  hidden variable could leave one unit of the pair twice as likely, in
+  odds, to be treated.
+\item
+  For each \(\Gamma\), compute the \textbf{worst case} over every hidden
+  assignment consistent with that \(\Gamma\), and report the resulting
+  bound on the \(p\)-value of the randomization test.
+\item
+  Then read off \(\Gamma^{*}\): the point where the upper bound crosses
+  your threshold.
+\item
+  Note what \(\Gamma^{*}\) is \emph{not}. It is a statement about how
+  much hidden bias your \textbf{design} can absorb. It never says the
+  design is fine.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Reading a Rosenbaum bound}
+\protect\phantomsection\label{reading-a-rosenbaum-bound}
+\(200\) matched pairs; one-sided Wilcoxon signed-rank test on the
+within-pair differences.
+
+\begin{center}
+\small
+\begin{tabular}{lcccccccc}
+\toprule
+$\Gamma$ & $1.00$ & $1.10$ & $1.20$ & $1.30$ & $\mathbf{1.40}$ & $1.50$ & $1.75$ & $2.00$ \\
+\midrule
+upper bound on $p$ & $0.0001$ & $0.0008$ & $0.0040$ & $0.0149$ & $\mathbf{0.0415}$ & $0.0922$ & $0.3354$ & $0.6386$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  At \(\Gamma = 1\) the result looks bulletproof: \(p = 0.0001\). It is
+  not. \(\Gamma^{*} = 1.42\).
+\item
+  A hidden variable that shifts the odds of treatment by \(42\%\)
+  between two otherwise identical units is enough to make this finding
+  insignificant.
+\item
+  This is the standard and slightly deflating experience. Strong
+  \(p\)-values routinely coexist with small \(\Gamma^{*}\), because the
+  two answer different questions.
+\item
+  Which leaves the question the table cannot answer: \textbf{is \(1.42\)
+  big?}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Calibrating \(\Gamma\): what does \(1.42\) mean?}
+\protect\phantomsection\label{calibrating-gamma-what-does-1.42-mean}
+\begin{itemize}
+\tightlist
+\item
+  \(\Gamma\) is one number doing the work of two. Rosenbaum and Silber
+  (2009) split it back apart: let \(\Lambda\) be the odds ratio linking
+  the hidden variable to \textbf{treatment}, and \(\Delta\) the odds
+  ratio linking it to the \textbf{outcome}. Then \[
+  \Gamma \;=\; \frac{\Lambda\Delta + 1}{\Lambda + \Delta}.
+  \]
+\item
+  Every \((\Lambda, \Delta)\) on that curve produces the same
+  \(\Gamma\). At \(\Gamma^{*} = 1.42\):
+\end{itemize}
+
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+$\Lambda$ (odds of treatment) & $2.43$ & $3.00$ & $5.00$ \\
+$\Delta$ (odds of a higher outcome) & $2.43$ & $2.07$ & $1.71$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Now the question is one a \emph{finance} audience can argue about: is
+  there a plausible omitted characteristic that roughly \textbf{doubles}
+  the odds of treatment and \textbf{doubles} the odds of a better
+  outcome? Often the honest answer is yes.
+\item
+  \textbf{Benchmark it.} Compute \(\Lambda\) and \(\Delta\) for your
+  strongest \emph{measured} confounder. If the killer confounder must be
+  twice as strong as anything you measured, that is an argument. If half
+  as strong will do, so is that.
+\item
+  The bound is worst-case, so \(\Gamma^{*}\) understates the true
+  robustness.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Oster's \(\delta\): coefficient stability, done properly}
+\protect\phantomsection\label{osters-delta-coefficient-stability-done-properly}
+\begin{itemize}
+\tightlist
+\item
+  The informal version is in every seminar: \emph{``the coefficient
+  barely moved when I added controls, so unobservables cannot matter
+  much.'\,'}
+\item
+  That intuition is not wrong, it is \textbf{unfinished}. It ignores how
+  much the controls explained. A coefficient that is stable while
+  \(R^2\) barely moves has demonstrated nothing.
+\item
+  Altonji, Elder and Taber (2005) turned it into an argument; Oster
+  (2019) turned it into an estimator. Two inputs:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \(\delta\) --- selection on unobservables \textbf{relative to}
+    selection on observables. \(\delta = 1\) means they are equally
+    severe.
+  \item
+    \(R_{\max}\) --- the \(R^2\) of the infeasible regression that
+    included the unobservables.
+  \end{itemize}
+\item
+  With \((\mathring\beta, \mathring R)\) from the short regression and
+  \((\tilde\beta, \tilde R)\) from the controlled one, \[
+  \beta^{*} \;\approx\; \tilde\beta \;-\; \delta\,\big(\mathring\beta - \tilde\beta\big)\,\frac{R_{\max} - \tilde R}{\tilde R - \mathring R}.
+  \]
+\item
+  Two ways to report it: fix \(\delta = 1\) and give \(\beta^{*}\); or
+  set \(\beta^{*} = 0\) and solve for the \(\delta\) that would be
+  needed. Oster's calibration from randomized trials: \(\delta = 1\),
+  \(R_{\max} = \min(1.3\,\tilde R,\, 1)\).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Oster in practice: a warning}
+\protect\phantomsection\label{oster-in-practice-a-warning}
+Simulated data, one unobserved confounder, \textbf{true effect
+\(= 1.000\)}:
+
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+ & $\beta$ & $R^2$ \\
+\midrule
+short: $Y \sim D$ & $2.086$ & $0.452$ \\
+controlled: $Y \sim D + X$ & $1.743$ & $0.484$ \\
+infeasible: $Y \sim D + X + U$ & $1.014$ & $0.562$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Oster's default rule sets \(R_{\max} = 1.3 \times 0.484 = 0.629\), and
+  returns \(\beta^{*} = \mathbf{0.201}\) --- a correction that
+  overshoots the truth by a mile.
+\item
+  Feed it the \emph{true} \(R_{\max} = 0.562\) and it returns
+  \(\beta^{*} = \mathbf{0.918}\), almost exactly right. The method
+  works. The \textbf{guess} was what failed.
+\item
+  Meanwhile the \(\delta\) test passes: the \(\delta\) that would drive
+  \(\beta^{*}\) to zero is \(1.13 > 1\).
+\item
+  \textbf{The lesson.} Report \(\delta\), which is a bounded comparison
+  you can defend. Do not report \(\beta^{*}\) as if it were a point
+  estimate --- it is a linear function of a number you guessed. If you
+  show it, show it across a range of \(R_{\max}\).
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Cinelli and Hazlett (2020): the robustness value}
+\protect\phantomsection\label{cinelli-and-hazlett-2020-the-robustness-value}
+\begin{itemize}
+\tightlist
+\item
+  Same problem, third parameterization --- and the one that travels
+  best, because it uses \textbf{partial \(R^2\)} rather than odds ratios
+  or selection ratios.
+\item
+  \(RV_q\) is the minimum share of the residual variation that a
+  confounder must explain in \textbf{both} \(D\) and \(Y\) in order to
+  move the estimate by \(100q\%\).
+\item
+  In the regression above: \(t = 47.1\) and
+  \(RV_{q=1} = \mathbf{0.48}\). Any confounder explaining less than
+  \(48\%\) of what is left in both \(D\) and \(Y\) cannot drive the
+  effect to zero.
+\item
+  Is that reassuring? Check it against the confounder we planted: \(U\)
+  explains \(15\%\) of the residual variation in \(Y\) and \(34\%\) in
+  \(D\). Below the bar --- and indeed it does not kill the effect, it
+  moves it from \(1.743\) to \(1.014\).
+\item
+  The feature that sells it: \textbf{benchmark bounds.} Express \(RV\)
+  as a multiple of an observed covariate's partial \(R^2\) --- ``the
+  confounder would have to be \(3\times\) as important as firm size'\,'
+  is a sentence a referee can evaluate.
+\item
+  Software: \texttt{sensemakr} (R and Stata), \texttt{psacalc} for
+  Oster, \texttt{rbounds} and \texttt{mhbounds} for Rosenbaum.
+\end{itemize}
+\end{frame}
+
+\section{5. The NSW Demonstration}\label{the-nsw-demonstration}
+
+\begin{frame}{The 1970s empirical crisis}
+\protect\phantomsection\label{the-1970s-empirical-crisis}
+\begin{itemize}
+\tightlist
+\item
+  The methods in this lecture were not adopted because they were
+  elegant. They were adopted after a crisis of confidence in
+  observational work.
+\item
+  Job-training programs in the 1970s were evaluated observationally, and
+  the estimates were all over the place --- depending, apparently, on
+  the analyst.
+\item
+  The \textbf{National Supported Work (NSW) Demonstration} was
+  different: it \emph{randomized} participation. So the experimental
+  effect was known.
+\item
+  That created something rare and valuable: a \textbf{benchmark}. You
+  could now ask whether observational methods, applied to the same
+  treated units, recover the experimental answer.
+\item
+  Everything in this lecture gets graded against it.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What LaLonde did}
+\protect\phantomsection\label{what-lalonde-did}
+\begin{itemize}
+\tightlist
+\item
+  LaLonde (1986) ran the decisive test. He took the NSW experiment,
+  \textbf{threw away the experimental control group}, and replaced it
+  with comparison groups built from survey data (CPS and PSID).
+\item
+  He then applied the standard observational toolkit of the day and
+  compared the results to the experimental benchmark of roughly
+  \textbf{\$1,800} in annual earnings gains.
+\item
+  The observational estimates ranged from a fraction of the benchmark to
+  \textbf{the wrong sign} --- and which one you got depended heavily on
+  how the comparison group was built.
+\item
+  The paper was devastating and hugely influential. It is a major reason
+  the profession moved toward IV, RDD, and DiD --- the other river.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Dehejia and Wahba: not so fast}
+\protect\phantomsection\label{dehejia-and-wahba-not-so-fast}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Dehejia and Wahba (1999, 2002)} revisited LaLonde's data with
+  propensity score methods.
+\item
+  Their finding: the observational estimates \emph{did} recover the
+  experimental benchmark reasonably well --- \textbf{once common support
+  was imposed}.
+\item
+  The key diagnosis: much of LaLonde's failure was an \textbf{overlap}
+  problem, not only a confounding problem. The CPS and PSID comparison
+  groups contained enormous numbers of people utterly unlike the NSW
+  participants.
+\item
+  Discard the non-comparable units and the methods perform far better.
+\item
+  This is why the distinction of Lecture 3a, §3, Identification
+  Assumptions, matters so much. Two different assumptions were failing,
+  and only one of them is checkable.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Smith and Todd: not so fast either}
+\protect\phantomsection\label{smith-and-todd-not-so-fast-either}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Smith and Todd (2005)} re-examined the Dehejia--Wahba result
+  and found it fragile.
+\item
+  The success was \textbf{sensitive to the subsample} analysed and to
+  the \textbf{propensity score specification} chosen. Reasonable
+  alternative choices undid it.
+\item
+  Their charge is uncomfortable and worth stating plainly: the
+  specification that worked may have been found \emph{because} the
+  experimental answer was already known.
+\item
+  You cannot run that search in real research. In a genuine application
+  there is no benchmark to check against --- that is the entire point of
+  doing the study.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The honest summary}
+\protect\phantomsection\label{the-honest-summary}
+\begin{itemize}
+\tightlist
+\item
+  Selection on observables \textbf{can} work --- when overlap is genuine
+  and the confounders are truly measured.
+\item
+  Neither condition is verifiable in the setting where you need them:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Unconfoundedness is \textbf{untestable}, always.
+  \item
+    Common support is \textbf{checkable}.
+  \end{itemize}
+\item
+  So the practical lesson is asymmetric: do the check you can do, and
+  argue explicitly for the assumption you cannot.
+\item
+  \textbf{A useful exercise}: the NSW data are freely available. Apply
+  every method in this lecture and compare them to the \$1,800
+  benchmark. Cunningham's chapter walks through it, and it is the
+  fastest way to develop instincts about when these methods hold up.
+\end{itemize}
+\end{frame}
+
+\section{Wrapping Up}\label{wrapping-up}
+
+\begin{frame}[fragile]{Summary {[}Part 1{]}: the score and what it does}
+\protect\phantomsection\label{summary-part-1-the-score-and-what-it-does}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{The propensity score} reduces \(X\) to one number and defeats
+  the curse of dimensionality for \emph{conditioning}. It does nothing
+  for \textbf{identification} --- unconfoundedness is still assumed,
+  never delivered.
+\item
+  \textbf{Judge the score by balance achieved, not by fit.} A high
+  pseudo-\(R^2\) with bad balance is a bad score; the reverse is fine.
+  The whole stage is blind to \(Y\), which is what makes the
+  specification search legitimate.
+\item
+  \textbf{Balance means the distribution, not the mean.} Standardized
+  differences \emph{and} variance ratios. Our \texttt{Volatility}
+  covariate had \(\text{SMD} = -0.010\) and a variance ratio of
+  \(2.27\).
+\item
+  \textbf{IPW} reweights the sample into a pseudo-experiment:
+  \(1/\hat e\) for treated and \(1/(1-\hat e)\) for controls builds the
+  population; \(\hat e/(1-\hat e)\) on controls alone rebuilds the
+  \emph{treated} distribution. Watch the tails, and normalize.
+\item
+  \textbf{Propensity score matching} is the one use with a serious case
+  against it: King and Nielsen (2019) show it targets complete
+  randomization when you could have had blocking, so pruning can
+  \emph{increase} imbalance.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Summary {[}Part 2{]}: the verdict}
+\protect\phantomsection\label{summary-part-2-the-verdict}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Regression is a conditioning strategy too}, not a rival
+  family. FWL shows it uses the residual variation in \(D\), which is
+  why it weights strata by \(N_j p_j(1-p_j)\): \(2.167\) versus
+  matching's \(2.265\) in our example.
+\item
+  \textbf{Matching creates no new exogenous variation.} If OLS was
+  endogenous, matching is endogenous. It cannot fix an unobserved
+  confounder, reverse causality, or a bad control.
+\item
+  \textbf{Sensitivity analysis is the honest response} to an untestable
+  assumption. Report \(\Gamma^{*}\), or \(\delta\), or a robustness
+  value --- and calibrate it against a covariate you actually measured.
+\item
+  \textbf{NSW}: these methods can work when overlap is real and the
+  confounders are measured --- and you can only ever verify one of those
+  two.
+\item
+  Next lecture: designs that \emph{create} variation instead of assuming
+  it away.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A checklist for your own paper}
+\protect\phantomsection\label{a-checklist-for-your-own-paper}
+\begin{enumerate}
+\tightlist
+\item
+  State the \textbf{estimand} before the estimator. \(ATE\), \(ATT\), or
+  \(ATU\) --- and say why the policy question needs that one.
+\item
+  Defend the \textbf{assignment mechanism} in institutional terms. Name
+  the confounders and say how you measured them.
+\item
+  Justify every covariate as \textbf{pre-treatment}. Any post-treatment
+  control needs an argument, not a footnote.
+\item
+  \textbf{Plot the overlap.} Report what you trimmed and how the
+  estimand changed.
+\item
+  Report \textbf{balance}, not fit: standardized differences and
+  variance ratios, before and after.
+\item
+  Report \textbf{matching and regression}. If they disagree, diagnose
+  whether it is weights or extrapolation.
+\item
+  Run a \textbf{sensitivity analysis}, and calibrate the threshold
+  against an observed covariate.
+\item
+  Run a \textbf{placebo} on a pre-treatment period.
+\item
+  Say plainly what would break the design --- and what unobservable
+  would have to exist.
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{References}
+\protect\phantomsection\label{references}
+\scriptsize
+
+\begin{itemize}
+\tightlist
+\item
+  Cunningham, S. \emph{Causal Inference: The Remix}, Ch. 5.
+\item
+  Rosenbaum, P. and D. Rubin (1983). The Central Role of the Propensity
+  Score in Observational Studies for Causal Effects. \emph{Biometrika}
+  70, 41--55.
+\item
+  Hirano, K. and G. Imbens (2001). Estimation of Causal Effects Using
+  Propensity Score Weighting. \emph{Health Services and Outcomes
+  Research Methodology} 2, 259--278.
+\item
+  Imbens, G. (2004). Nonparametric Estimation of Average Treatment
+  Effects under Exogeneity. \emph{Review of Economics and Statistics}
+  86, 4--29.
+\item
+  King, G. and R. Nielsen (2019). Why Propensity Scores Should Not Be
+  Used for Matching. \emph{Political Analysis} 27, 435--454.
+\item
+  Ben-Michael, E., A. Feller and J. Rothstein (2021). The Augmented
+  Synthetic Control Method. \emph{JASA} 116, 1789--1803.
+\item
+  LaLonde, R. (1986). Evaluating the Econometric Evaluations of Training
+  Programs with Experimental Data. \emph{American Economic Review} 76,
+  604--620.
+\item
+  Dehejia, R. and S. Wahba (1999). Causal Effects in Nonexperimental
+  Studies. \emph{JASA} 94, 1053--1062.
+\item
+  Smith, J. and P. Todd (2005). Does Matching Overcome LaLonde's
+  Critique of Nonexperimental Estimators? \emph{Journal of Econometrics}
+  125, 305--353.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{References: sensitivity analysis}
+\protect\phantomsection\label{references-sensitivity-analysis}
+\scriptsize
+
+\begin{itemize}
+\tightlist
+\item
+  Rosenbaum, P. (2002). \emph{Observational Studies}, 2nd ed.~Springer.
+\item
+  Rosenbaum, P. and J. Silber (2009). Amplification of Sensitivity
+  Analysis in Matched Observational Studies. \emph{JASA} 104,
+  1398--1405.
+\item
+  Altonji, J., T. Elder and C. Taber (2005). Selection on Observed and
+  Unobserved Variables: Assessing the Effectiveness of Catholic Schools.
+  \emph{Journal of Political Economy} 113, 151--184.
+\item
+  Oster, E. (2019). Unobservable Selection and Coefficient Stability:
+  Theory and Evidence. \emph{Journal of Business \& Economic Statistics}
+  37, 187--204.
+\item
+  Cinelli, C. and C. Hazlett (2020). Making Sense of Sensitivity:
+  Extending Omitted Variable Bias. \emph{Journal of the Royal
+  Statistical Society Series B} 82, 39--67.
+\end{itemize}
+\end{frame}
+
+
+
+
+\end{document}

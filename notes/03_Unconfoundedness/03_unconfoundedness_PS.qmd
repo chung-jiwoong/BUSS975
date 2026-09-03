@@ -1,0 +1,116 @@
+---
+title: "Problem Set: Unconfoundedness"
+subtitle: "BUSS975 --- covering Lectures 3a and 3b"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+*Four problems. Plan on about three hours. Problem 4 asks you to run a short simulation in R (or Stata); attach your code and output. Nothing else requires software.*
+
+*Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
+
+*Further practice --- including the material cut from this set --- is in the companion file `03_unconfoundedness_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
+
+## Problem 1 (Estimands, identification, and subclassification)
+
+*What this is for: unconfoundedness does not deliver "the" treatment effect. It delivers whichever one you asked for, under an assumption whose strength depends on which one that is.*
+
+A regulator can grant a supervisory waiver ($D$) to banks. The outcome $Y$ is loan growth. Banks fall into three observable strata, and within each stratum treatment is as good as random:
+
+\begin{center}
+\begin{tabular}{lrrrrr}
+\toprule
+Stratum & $N$ & treated & control & $E[Y \mid D{=}1, X]$ & $E[Y \mid D{=}0, X]$ \\
+\midrule
+A & $400$ & $100$ & $300$ & $14$ & $10$ \\
+B & $400$ & $200$ & $200$ & $20$ & $18$ \\
+C & $200$ & $180$ & $\phantom{0}20$ & $31$ & $25$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+(a) Compute $e(X)$ in each stratum and the within-stratum effect. Then compute the $ATE$, the $ATT$ and the $ATU$, and verify that $ATE = \pi\, ATT + (1-\pi)\,ATU$.
+
+(b) Compute the simple difference in outcomes, $SDO = E[Y \mid D{=}1] - E[Y \mid D{=}0]$, pooling across strata. It is more than twice the $ATE$. Decompose the gap: how much comes from the strata having different baselines, and how much from treatment concentrating where the effect is largest?
+
+(c) Write out the identification argument for the $ATE$ in three lines --- starting from $ATE(x) = E[Y^1 \mid X{=}x] - E[Y^0 \mid X{=}x]$, applying unconfoundedness, applying the switching equation, then averaging. At which line, and on which term, is unconfoundedness used *twice*?
+
+(d) Now do the same for the $ATT$. Show that the $ATT$ needs unconfoundedness on the $Y^0$ term only, and that the weights change from $\Pr(X{=}x)$ to $\Pr(X{=}x \mid D{=}1)$. State the practical consequence: which of the two estimands survives if stratum C had contained *no* control banks at all?
+
+(e) Suppose the regulator's rule actually depended on a fourth characteristic you cannot observe. Which of your four numbers in (a) --- $e(X)$, $ATE$, $ATT$, $ATU$ --- is still correctly estimated, and which are not? Explain in one sentence why no balance table on A, B, C could reveal the problem.
+
+## Problem 2 (Matching: the discrepancy, the correction, the standard error)
+
+*What this is for: matching's three separate problems --- the match is imperfect, the imperfection is signed, and the matches are not independent --- and the fact that they need three different repairs.*
+
+Four treated banks are matched to the nearest control on a single covariate $X$, one neighbour, with replacement.
+
+\begin{center}
+\begin{tabular}{lrrrr@{\qquad}lrrrr}
+\toprule
+\multicolumn{5}{c}{\emph{Treated}} & \multicolumn{5}{c}{\emph{Control}} \\
+\cmidrule(r){1-5}\cmidrule(l){6-10}
+$X_i$ & $2$ & $6$ & $8$ & $10$ & $X_j$ & $1$ & $4$ & $9$ & $30$ \\
+$Y_i$ & $30$ & $44$ & $52$ & $58$ & $Y_j$ & $10$ & $16$ & $26$ & $68$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+(a) Find each treated bank's match, compute $\hat\tau_i = Y_i - Y_{j(i)}$, and report $\widehat{ATT}$. Which control is used twice, and which is never used at all? What does the unused one tell you about how matching treats a sample?
+
+(b) Compute $K_j$ for each control and then $\sum_j K_j(K_j - 1)$. Explain in words why this quantity, and not $\sum_j K_j$, is what the Abadie--Imbens variance estimator needs.
+
+(c) Take $\hat\sigma^2(X_j) = 50$ at the reused control. Compute both terms of
+$$
+\hat\sigma^2_{ATT} = \frac{1}{N_T}\sum_{i:D_i=1}\big(\hat\tau_i - \widehat{ATT}\big)^2
+\;+\; \frac{1}{N_T}\sum_{j:D_j=0}\frac{K_j(K_j-1)}{M^2}\,\hat\sigma^2(X_j),
+$$
+then report $\mathrm{SE}(\widehat{ATT}) = \sqrt{\hat\sigma^2_{ATT}/N_T}$. By what factor does the reuse term inflate the standard error relative to the first term alone?
+
+(d) Abadie and Imbens (2006) show the matching discrepancy is $O_p(N^{-1/k})$ with $k$ continuous covariates, while the standard error is $O_p(N^{-1/2})$. For $k = 1, 2, 3$, give the order of bias *relative to* the standard error and say what each case means for inference. Then state what the bias-corrected estimator subtracts, and why the regression it requires is a weaker assumption than running that regression on the full sample instead.
+
+## Problem 3 (Propensity scores: balance, weights, overlap)
+
+*What this is for: the score is a dimension-reduction device, not an identification device --- and almost every mistake people make with it comes from forgetting that.*
+
+(a) State the balancing property and the propensity score theorem. Then explain precisely what is **not** claimed: in what sense do two units with the same $\hat e$ resemble each other, and in what sense do they not?
+
+(b) A referee asks you to justify your score specification by reporting its pseudo-$R^2$ and a table of $t$-tests on covariate means. Give three separate reasons this is the wrong evidence, and say what you would report instead. Define the two statistics you would use and give the conventional thresholds for each.
+
+(c) In a sample, a covariate has standardized mean difference $0.01$ and a $t$-test $p$-value of $0.83$, but a variance ratio of $2.4$. What kind of selection produces this pattern? What single change to the propensity score specification would you try, and how would you know it had worked?
+
+(d) For the $ATE$ a control unit is weighted $1/(1 - \hat e)$; for the $ATT$ it is weighted $\hat e/(1 - \hat e)$. Derive the second weight from the requirement that the reweighted controls reproduce the *treated* covariate distribution, and explain why this makes the $ATT$ require overlap in one direction only.
+
+## Problem 4 (Simulation: does any of it work?)
+
+*What this is for: to run the four estimators of this lecture on data whose truth you know, and to see which ones are fooled by heterogeneity.*
+
+Simulate $n = 4{,}000$ observations:
+$$
+X_1, X_2 \sim N(0,1), \qquad D \sim \text{Bernoulli}\big(\Lambda(0.8X_1 + 0.6X_2 - 0.3)\big),
+$$
+$$
+Y = 2 + 3X_1 + 2X_2 + \underbrace{(1 + 0.8X_1)}_{\text{unit-level effect}} D + \varepsilon, \qquad \varepsilon \sim N(0,1).
+$$
+
+(a) The treatment effect varies with $X_1$. Compute the true $ATE$ and the true $ATT$ *in your simulated sample* by averaging $1 + 0.8X_1$ over the right set of units. Explain in one sentence why $ATT > ATE$ here, in terms of the assignment mechanism.
+
+(b) Report the naive $SDO$ and the coefficient on $D$ from `lm(Y ~ D + X1 + X2)`. The regression is correctly specified for the *outcome* and still does not return the $ATT$. Which estimand is it closer to, and why?
+
+(c) Estimate the propensity score by logit, then compute the IPW estimates of the $ATE$ and the $ATT$. Report all four numbers --- two truths, two estimates --- in one small table. Use the normalized (Hájek) form for the $ATT$ and say why.
+
+(d) Plot the estimated score separately for treated and control units, and report the largest weight any single observation receives. Then re-run with the selection coefficients tripled to $(2.4, 1.8)$ and report the same two things. What has happened to overlap, to the largest weight, and to the stability of your estimates?

@@ -237,26 +237,6 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \frame{\titlepage}
 
 
-\begin{frame}[fragile]{Acknowledgments and readings}
-\protect\phantomsection\label{acknowledgments-and-readings}
-\begin{itemize}
-\tightlist
-\item
-  These slides are based on Scott Cunningham, \emph{Causal Inference:
-  The Remix} (2nd ed.), Chapter 4, ``Potential Outcomes and
-  Randomization.''
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Free online: \texttt{https://mixtape.scunning.com}
-  \end{itemize}
-\item
-  The regression material in Part 6 is adapted from Todd Gormley's
-  lecture notes.
-\end{itemize}
-\end{frame}
-
 \begin{frame}{Outline}
 \protect\phantomsection\label{outline}
 \begin{enumerate}
@@ -278,7 +258,7 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \end{enumerate}
 \end{frame}
 
-\section{What Causality Is --- and
+\section{1. What Causality Is --- and
 Isn't}\label{what-causality-is-and-isnt}
 
 \begin{frame}{Motivation}
@@ -504,7 +484,7 @@ Causal effects are properties of the data \textbf{plus} the assignment mechanism
 \end{itemize}
 \end{frame}
 
-\section{The Potential Outcomes
+\section{2. The Potential Outcomes
 Framework}\label{the-potential-outcomes-framework}
 
 \begin{frame}{States of the world}
@@ -640,8 +620,7 @@ Bank & \(Y^1\) & \(Y^0\) & \(\delta\) \\
   \begin{itemize}
   \tightlist
   \item
-    An average can hide winners and losers. Remember this in week 10
-    (complex DiD).
+    An average can hide winners and losers.
   \end{itemize}
 \end{itemize}
 \end{frame}
@@ -708,7 +687,7 @@ Bank & \(D\) & \(Y^1\) & \(Y^0\) & \(\delta\) \\
 \end{itemize}
 \end{frame}
 
-\section{Selection Bias: The Perfect
+\section{3. Selection Bias: The Perfect
 Regulator}\label{selection-bias-the-perfect-regulator}
 
 \begin{frame}{The naive comparison}
@@ -805,7 +784,7 @@ Regulator}\label{selection-bias-the-perfect-regulator}
 
 \begin{frame}{Proving the decomposition}
 \protect\phantomsection\label{proving-the-decomposition}
-Let \(\pi = P(D{=}1)\). Two steps, no assumptions.
+Let \(\pi = P(D{=}1)\).
 
 \textbf{Step 1.} Add and subtract \(E[Y^0 \mid D{=}1]\) --- the
 \emph{counterfactual} mean for the treated: \[
@@ -830,9 +809,9 @@ three-term decomposition. \(\blacksquare\)
 \begin{itemize}
 \tightlist
 \item
-  Selection bias: \[
+  Selection bias: \small \[
   E[Y^0 \mid D{=}1] - E[Y^0 \mid D{=}0] = \frac{2+1+3+2+4}{5} - \frac{6+7+8+9+8}{5} = 2.4 - 7.6 = -5.2
-  \]
+  \] \normalsize
 
   \begin{itemize}
   \tightlist
@@ -922,7 +901,7 @@ three-term decomposition. \(\blacksquare\)
 \end{itemize}
 \end{frame}
 
-\section{Randomization and
+\section{4. Randomization and
 Independence}\label{randomization-and-independence}
 
 \begin{frame}{The independence assumption}
@@ -1211,7 +1190,7 @@ Independence}\label{randomization-and-independence}
 \end{itemize}
 \end{frame}
 
-\section{SUTVA}\label{sutva}
+\section{5. SUTVA}\label{sutva}
 
 \begin{frame}{The fine print under the potential outcomes}
 \protect\phantomsection\label{the-fine-print-under-the-potential-outcomes}
@@ -1360,7 +1339,7 @@ Independence}\label{randomization-and-independence}
 \end{center}
 \end{frame}
 
-\section{The Regression Bridge}\label{the-regression-bridge}
+\section{6. The Regression Bridge}\label{the-regression-bridge}
 
 \begin{frame}{Same problem, older dialect}
 \protect\phantomsection\label{same-problem-older-dialect}
@@ -1552,6 +1531,8 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
 
 \begin{frame}{Both biases, from one lemma}
 \protect\phantomsection\label{both-biases-from-one-lemma}
+\small
+
 \begin{itemize}
 \tightlist
 \item
@@ -1580,7 +1561,7 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
 \item
   Since \(\mathrm{var}(D) = \pi(1-\pi)\), dividing each by
   \(\mathrm{var}(D)\) \textbf{cancels that factor} --- leaving the
-  selection bias term and \(ATT - ATE\).
+  selection bias term and \(ATT - ATE\). \normalsize
 \end{itemize}
 \end{frame}
 
@@ -1670,7 +1651,7 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
   y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + u, \qquad x_2 = \gamma_0 + \gamma_1 x_1 + \varepsilon
   \]
 \item
-  then conditioning on \(x_2\) blocks part of the effect you want ---
+  Then conditioning on \(x_2\) blocks part of the effect you want ---
   and can \emph{introduce} selection bias where none existed.
 \item
   Rule of thumb: controls must be \textbf{pre-treatment} (determined
@@ -1681,7 +1662,7 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
 \end{itemize}
 \end{frame}
 
-\section{Randomization Inference}\label{randomization-inference}
+\section{7. Randomization Inference}\label{randomization-inference}
 
 \begin{frame}{Two null hypotheses}
 \protect\phantomsection\label{two-null-hypotheses}
@@ -1784,9 +1765,8 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
   \begin{itemize}
   \tightlist
   \item
-    \textbf{Synthetic control} (week 11): placebo tests permute the
-    treatment across donor units --- that \emph{is} randomization
-    inference.
+    \textbf{Synthetic control}: placebo tests permute the treatment
+    across donor units --- that \emph{is} randomization inference.
   \item
     \textbf{Small-N settings}: one treated state, one regulatory event,
     a handful of treated firms --- common in finance, hopeless for

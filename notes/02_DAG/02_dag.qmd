@@ -45,11 +45,6 @@ execute:
   cache: false
 ---
 
-## Acknowledgments and readings
-
-- These slides are based on Scott Cunningham, *Causal Inference: The Remix* (2nd ed.), Chapter 3, "Directed Acyclic Graphs."
-  - Free online: `https://mixtape.scunning.com`
-- The backdoor criterion and the adjustment formula follow Pearl (2009).
 
 ## Outline
 
@@ -62,7 +57,7 @@ execute:
 7. Neutral controls and precision
 8. What DAGs cannot do
 
-# Why Graphs?
+# 1. Why Graphs?
 
 ## Where we left off
 
@@ -111,10 +106,10 @@ control variable, and get an estimate with the wrong sign.}
 
 \vspace{0.5em}
 
-- We will simulate exactly this in §6, "Bad Controls."
+- We will simulate exactly this in §6, Bad Controls.
 - If controlling for things can do that, "control for everything" is not a strategy --- it is a coin flip.
 
-# DAG Notation
+# 2. DAG Notation
 
 ## Nodes and arrows
 
@@ -156,7 +151,7 @@ control variable, and get an estimate with the wrong sign.}
 
 - This is a real restriction for finance, where equilibrium feedback is everywhere: leverage and performance, price and demand, coverage and returns.
 - The usual fix is **time**: $\text{Leverage}_t \to \text{Perf}_{t+1} \to \text{Leverage}_{t+2}$ is acyclic.
-- Genuine simultaneity is beyond what a DAG can express. We return to this in §8.
+- Genuine simultaneity is beyond what a DAG can express. We return to this in §8, What DAGs Cannot Do.
 
 ## Observed and unobserved variables
 
@@ -226,7 +221,7 @@ control variable, and get an estimate with the wrong sign.}
   - (Kisgen and Strahan 2010: when the SEC certified DBRS in 2003, yields moved **39bp per notch** --- the label alone, with fundamentals unchanged.)
 - Ask of any empirical result: *is this a filter, or an intervention?*
 
-# Three Elemental Structures
+# 3. Three Elemental Structures
 
 ## Every DAG is built from three pieces
 
@@ -312,7 +307,7 @@ Collider          & $D \to C \leftarrow Y$ & No                   & \textbf{open
 - Mediators and colliders are both "leave alone" --- for opposite reasons. Blocking a mediator deletes the answer; opening a collider invents one.
 - Conditioning on a **descendant** of a collider partially opens it too. A proxy for a collider is still a collider.
 
-# Backdoor Paths and the Backdoor Criterion
+# 4. Backdoor Paths and the Backdoor Criterion
 
 ## Backdoor paths
 
@@ -467,7 +462,7 @@ $$
 - This is the legitimate version of "add controls to make the estimate sharper" --- legitimate precisely because you verified the backdoor criterion *first*.
 - The illegitimate version, adding controls and hoping, is what the rest of this lecture is about.
 
-# Collider Bias
+# 5. Collider Bias
 
 ## Colliders create correlation out of nothing
 
@@ -615,7 +610,7 @@ round(c(none        = b(wage ~ female),
 - The rescue only worked because ability was **observable in the simulation**. In your data it is not.
 - The finance version is exactly this shape: study a shock's effect on firm value, control for leverage, and unobserved quality does the work that ability does here.
 
-# Bad Controls
+# 6. Bad Controls
 
 ## The bad control problem
 
@@ -711,7 +706,7 @@ Common post-treatment controls, and what they do:
 - The operational rule from last lecture, now justified: **controls must be determined before treatment**.
 - When in doubt, report the specification without the questionable control. If the estimate moves a lot, you have learned something --- and you must explain which specification the DAG supports.
 
-# Neutral Controls and Precision
+# 7. Neutral Controls and Precision
 
 ## Not every control matters
 
@@ -778,7 +773,7 @@ round(rbind(mean = apply(r, 1, mean), sd = apply(r, 1, sd)), 4)
 - Never reverse the order. Choosing controls by what tightens the standard error is how sign flips get published.
 - The $X_4$ case is the seed of the weak-instrument problem in the IV lecture: an instrument is a variable that predicts $D$ and nothing else.
 
-# What DAGs Cannot Do
+# 8. What DAGs Cannot Do
 
 ## Honest limitations
 

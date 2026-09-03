@@ -1,0 +1,481 @@
+\documentclass[11pt, a4paper]{article}
+%\usepackage{geometry}
+\usepackage[inner=1.5cm,outer=1.5cm,top=2.5cm,bottom=2.5cm]{geometry}
+\pagestyle{empty}
+\usepackage{graphicx}
+\usepackage{fancyhdr, lastpage, bbding, pmboxdraw}
+\usepackage[usenames,dvipsnames]{color}
+\definecolor{darkblue}{rgb}{0,0,.6}
+\definecolor{darkred}{rgb}{.7,0,0}
+\definecolor{darkgreen}{rgb}{0,.6,0}
+\definecolor{red}{rgb}{.98,0,0}
+\usepackage[colorlinks,pagebackref,pdfusetitle,urlcolor=darkblue,citecolor=darkblue,linkcolor=darkred,bookmarksnumbered,plainpages=false]{hyperref}
+\renewcommand{\thefootnote}{\fnsymbol{footnote}}
+
+\pagestyle{fancyplain}
+\fancyhf{}
+\lhead{ \fancyplain{}{Causal Inference} }
+%\chead{ \fancyplain{}{} }
+\rhead{ \fancyplain{}{\today} }
+%\rfoot{\fancyplain{}{page \thepage\ of \pageref{LastPage}}}
+\fancyfoot[RO, LE] {page \thepage\ of \pageref{LastPage} }
+\thispagestyle{plain}
+
+%%%%%%%%%%%% LISTING %%%
+\usepackage{listings}
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+\usepackage{verbatim} % used to display code
+\usepackage{fancyvrb}
+\usepackage{acronym}
+\usepackage{amsthm}
+\VerbatimFootnotes % Required, otherwise verbatim does not work in footnotes!
+
+
+
+\definecolor{OliveGreen}{cmyk}{0.64,0,0.95,0.40}
+\definecolor{CadetBlue}{cmyk}{0.62,0.57,0.23,0}
+\definecolor{lightlightgray}{gray}{0.93}
+
+
+
+\lstset{
+%language=bash,                          % Code langugage
+basicstyle=\ttfamily,                   % Code font, Examples: \footnotesize, \ttfamily
+keywordstyle=\color{OliveGreen},        % Keywords font ('*' = uppercase)
+commentstyle=\color{gray},              % Comments font
+numbers=left,                           % Line nums position
+numberstyle=\tiny,                      % Line-numbers fonts
+stepnumber=1,                           % Step between two line-numbers
+numbersep=5pt,                          % How far are line-numbers from code
+backgroundcolor=\color{lightlightgray}, % Choose background color
+frame=none,                             % A frame around the code
+tabsize=2,                              % Default tab size
+captionpos=t,                           % Caption-position = bottom
+breaklines=true,                        % Automatic line breaking?
+breakatwhitespace=false,                % Automatic breaks only at whitespace?
+showspaces=false,                       % Dont make spaces visible
+showtabs=false,                         % Dont make tabls visible
+columns=flexible,                       % Column format
+morekeywords={__global__, __device__},  % CUDA specific keywords
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\begin{center}
+{\Large \textsc{BUSS975: Causal Inference in Financial Research}}
+\end{center}
+\begin{center}
+Fall 2026
+\end{center}
+
+\begin{center}
+\rule{6.5in}{0.4pt}
+\begin{minipage}[t]{.75\textwidth}
+\begin{tabular}{llccll}
+\textbf{Instructor:} & Ji-Woong Chung & & &   \textbf{Time:} & Thu, 1:30-4:15pm  \\
+\textbf{Email:} &  \href{mailto:chung\_jiwoong@korea.ac.kr}{chung\_jiwoong@korea.ac.kr} & & & \textbf{Location:} & TBA
+\end{tabular}
+\end{minipage}
+\rule{6.5in}{0.4pt}
+\end{center}
+\vspace{.5cm}
+\setlength{\unitlength}{1in}
+\renewcommand{\arraystretch}{2}
+
+
+\noindent\textbf{Course Pages:} \url{https://chung-jiwoong.github.io/BUSS975}
+
+
+\vskip.15in
+\noindent\textbf{Office Hours:} By appointment via E-mail.
+
+\vskip.15in
+\noindent\textbf{Teaching Assistant:} Seunghwan Lee (seunghwan514@korea.ac.kr)
+
+\vskip.15in
+\noindent\textbf{Course Description:}
+This course explores the empirical methods used in financial research to identify causal effects. We will focus on understanding these methods intuitively, emphasizing the practical frameworks that guide research. The methods learned in this course will be applicable not only to finance but also to other areas of business research.
+
+%\vskip.15in
+%\noindent\textbf{Course Structure:} The term runs in three phases.
+%
+%\begin{itemize}
+%\item[--] \textbf{Weeks 1--8 (Sept.\ 3 -- Nov.\ 5), lectures.} We build the toolkit in order, from the potential-outcomes framework through the major research designs. Each lecture has an accompanying problem set.
+%\item[--] \textbf{Week 9 (Nov.\ 12), exam.} A closed-book, in-class exam covering the lecture material.
+%\item[--] \textbf{Weeks 10--12 (Nov.\ 19 -- Dec.\ 3), paper presentations.} Students present published finance papers, chosen for how they use the designs we have studied. Because the methods are behind us by this point, these sessions are pure discussion.
+%\item[--] \textbf{Weeks 13--14 (Dec.\ 10 and 17), proposal presentations.} Each student presents an outline of an original research proposal and receives feedback.
+%\end{itemize}
+%
+%\noindent This ordering is deliberate. Reading an identification strategy critically requires knowing the design first, so the entire methods sequence is completed before anyone presents a paper.
+
+\vskip.15in
+\noindent\textbf{Learning Objectives:} By the end of this course, students should be able to:
+\begin{itemize}
+\item Frame an empirical question in the potential-outcomes framework and state the assumptions a causal claim requires;
+\item Represent an identification problem as a directed acyclic graph, and use it to decide which variables to condition on --- and which to leave alone;
+\item Choose an appropriate research design---selection on observables, panel/fixed effects, difference-in-differences, instrumental variables, or regression discontinuity---for a given question and setting;
+\item Critically evaluate the identification strategy, threats to validity, and robustness of published empirical work;
+\item Recognize common pitfalls in applied work (e.g., bad controls, staggered-treatment bias in two-way fixed-effects difference-in-differences, and inappropriate standard errors) and the current remedies;
+\item Assess how sensitive a result is to the assumption it rests on, when that assumption cannot be tested; and
+\item Develop an original research proposal that applies a credible causal-inference design to a novel question.
+\end{itemize}
+
+
+\vskip.15in
+\noindent\textbf{Prerequisites:}  Basic Econometrics  (OLS / probability / matrix algebra)
+
+\vskip.15in
+\noindent\textbf{Main References:}
+\begin{itemize}
+\item Scott Cunningham, {\textit{Causal Inference: The Remix}} (2nd ed.),  \url{https://mixtape.scunning.com/}
+
+\item Joshua Angrist and J\"orn-Steffen Pischke, {\textit{Mostly Harmless Econometrics}}
+
+\item Roberts, Michael R., and Toni M. Whited, 2011, ``Endogeneity in Empirical Corporate
+Finance,'' \url{http://ssrn.com/abstract=1748604}
+
+\item Todd Gormley's lecture notes \url{http://www.gormley.info/phd-notes.html}
+
+\end{itemize}
+
+\vskip.15in
+\noindent\textbf{Lecture Notes and Problem Sets:} Slides and problem sets are posted on the course page and are revised continuously. Problem sets are not collected and not separately graded, but the exam draws heavily on them, and working through them is the intended way to prepare. Each set also has a companion file of optional further problems, which is good preparation for the comprehensive exam.
+
+\vskip.15in
+\noindent\textbf{Grading Policy:}
+
+\begin{itemize}
+	\item 40\%: One exam  \vspace{-5pt}
+	\begin{itemize}
+		\item[--] A closed-book, in-class exam will be held on \textbf{November 12} (tentative).
+	\end{itemize}
+
+	\item 20\%: Student presentations
+	\begin{itemize}
+		\item[--] During the presentation weeks (\textbf{November 19, November 26, and December 3}), students deliver presentations summarizing the key contents of selected journal articles, chosen for their use of causal inference methodologies. The exact number of articles each student must present will depend on the total enrollment; assignments will be announced once enrollment closes. Each presentation should be no longer than 25 minutes (=15 minutes for your talk + 10 minutes for discussion). You'll be assigned an article, but you can also choose a paper that aligns with your research interests.
+		\item[--] Your talk should include: 1) A concise summary of the article's core content, 2) An analytical discussion of the identification strategy and causality, 3) A critical review of the paper's strengths and weaknesses.
+		\item[--] Please upload your slides to the LMS before class.
+	\end{itemize}
+
+	\item 10\%: Participation
+	\begin{itemize}
+		\item[--] Active participation is key to success in this course. \textbf{During the presentation weeks}, you are expected to prepare every paper on the day's list, not only your own: 1) Read the articles in advance, 2) Formulate your own views on each study's strengths and weaknesses, 3) Consider any interesting or related research ideas that come to mind.
+	\end{itemize}
+
+
+	\item 30\%: Research proposal
+	\begin{itemize}
+		\item[--] By the end of the course, each student must submit a well-developed research proposal. This proposal should be original and must incorporate the causal inference methodologies discussed during the course.
+
+		\item[--] The timeline is summarized in the last column of the course outline. A \textbf{one-page memo} setting out the key aspects of your proposal is due by \textbf{Friday, November 20}. Each student must then meet with the instructor outside class hours for feedback; schedule this one-on-one meeting for the window \textbf{November 23 -- December 4}, by e-mail. During the last two sessions \textbf{(December 10 and 17)}, students present an outline of their proposal and receive feedback; upload your slides to the LMS before class. The \textbf{final proposal} is due by midnight on \textbf{Wednesday, December 23} via e-mail.
+
+		\item[--] There is no need to submit a completed paper with empirical results. However, the proposal should include at least: (i) an introduction (the research question and its significance), (ii) a review of related literature (focusing on directly relevant works), (iii) hypotheses development (empirical predictions and theoretical arguments supporting them), and (iv) research design (key empirical challenges, chosen causal inference methodologies to address these challenges, justification of identifying assumptions, model specifications, and data sources).
+	\end{itemize}
+
+\end{itemize}
+
+
+\vskip.15in
+\noindent\textbf{Attendance:} This is a discussion-based seminar, and much of its value comes from in-class engagement. Regular attendance is expected. If you must miss a session, please notify the instructor in advance. Repeated unexcused absences will lower the participation component of your grade.
+
+\vskip.15in
+\noindent\textbf{Academic Integrity:} All work you submit---presentations, the one-page memo, and the research proposal---must be your own. Ideas, data, and text drawn from others must be properly attributed and cited. Plagiarism, fabrication, and other forms of academic dishonesty are subject to the University's disciplinary policies.
+
+\vskip.15in
+\noindent\textbf{Use of Generative AI:} You may use generative-AI tools (e.g., large language models) to help you understand the material, debug code, or improve the writing of your proposal. You may not use them to produce the substantive intellectual content---research questions, hypotheses, identification strategies, or analysis---that you present as your own. When such tools materially shape a deliverable, briefly note how you used them. You remain fully responsible for the accuracy, integrity, and originality of everything you submit.
+
+
+\vskip.15in
+\noindent\textbf{Course Outline}
+
+
+\begin{table}[h]
+	\small
+	\renewcommand{\arraystretch}{1.15}
+	\begin{tabular}{llp{6.3cm}}
+		\multicolumn{1}{c}{Date} & \multicolumn{1}{c}{Topic} & \multicolumn{1}{c}{Research Proposal} \\ \hline
+		9/3   & Introduction; Causality and Potential Outcomes & \\
+		9/10  & Directed Acyclic Graphs & \\
+		9/17  & Unconfoundedness I: Assumptions and Matching & \\
+		9/24  & \textit{Chuseok --- No Class} & \\
+		10/1  & Unconfoundedness II: Propensity Scores and Regression & \\
+		10/8  & Regression Discontinuity & \\
+		10/15 & Instrumental Variables & \textit{Begin identifying a question} \\
+		10/22 & \textit{Mid-term Week --- No Class} & \\
+		10/29 & Panel Data, Fixed Effects, and Standard Errors & \textit{Discuss candidate topics informally} \\
+		11/5  & Difference-in-Differences & \\[2pt]
+		11/12 & \textbf{Exam} (Tentative) & \\[2pt]
+		11/19 & Paper presentations & \textbf{One-page memo due Fri.\ 11/20} \\
+		11/26 & Paper presentations & One-on-one meeting (schedule within 11/23--12/4) \\
+		12/3  & Paper presentations & One-on-one meeting, cont. \\
+		12/10 & Research proposal presentations (1) & Slides to LMS before class \\
+		12/17 & Research proposal presentations (2) & \textbf{Final proposal due Wed.\ 12/23} \\ \hline
+	\end{tabular}
+\end{table}
+
+
+\newpage
+
+\vskip.15in
+\noindent{\Large\textbf{PRESENTATION PAPERS}}
+
+
+\vskip.2in
+\noindent\textbf{Causality}
+
+\begin{itemize}
+	\item Rajan, Raghuram G., and Luigi Zingales, 1998, ``Financial dependence and growth,'' American Economic Review, 88(3), 559-586. \\
+	- Financial development \& growth
+
+	\item Matsa, David A., 2010 ``Capital structure as a strategic variable: Evidence from collective bargaining,'' Journal of Finance, 65(3), 1197-1232. \\
+	- Capital structure \& union bargaining
+
+	\item Agrawal, Ashwini, and David A. Matsa, 2013, ``Labor unemployment risk and corporate financing decision,'' Journal of Financial Economics, 108(2), pp. 449-470. \\
+	- Labor unemployment risk \& corporate policy
+\end{itemize}
+
+\noindent\textbf{Selection on Observables (Matching and Propensity Scores)}
+
+\begin{itemize}
+	\item Morse, Adair, 2011, ``Payday lenders: heroes or villains?'' Journal of Financial Economics,
+	102, 28-44. \\
+	- Payday lenders
+
+	\item Colak, Gonul and Toni Whited, 2007, ``Spin-offs, divestitures, and conglomerate
+	investment,'' Review of Financial Studies 20, 557-595. \\
+	- Spin-offs, divestitures, and investment
+
+	\item  Almeida, Heitor, Igor Cunha, Miguel A. Ferreira, and Felipe Restrepo, 2017, ``The Real
+	Effects of Credit Ratings: The Sovereign Ceiling Channel,'' Journal of Finance, 72, 249-290. \\
+	- Credit ratings \& sovereign credit ceiling
+\end{itemize}
+
+\noindent\textit{Background reading:} Roberts and Whited (2011), \S3; King and Nielsen (2019, Political Analysis) on why propensity scores should not be used for matching.
+
+\vskip.15in
+\noindent\textbf{Regression Discontinuity}
+
+\begin{itemize}
+	\item Malenko, Nadya, and Yao Shen, 2016, ``The role of proxy advisory firms: Evidence from
+	a regression-discontinuity design,'' Review of Financial Studies, 29(12) 3394--3427. \\
+	- Role of proxy advisory firms
+
+	\item  Keys, Benjamin, Tanmoy Mukherjee, Amit Seru, and Vikrant Vig, 2010, ``Did
+	securitization lead to lax screening? Evidence from subprime loans,'' Quarterly Journal of
+	Economics 125, 307-362. \\
+	- Securitization and screening of loans
+
+	\item Almeida, Heitor, Vyacheslav Fos, and Mathias Kronlund, 2016, ``The Real Effects of
+	Share Repurchases,'' Journal of Financial Economics, 119 (1), 168-185. \\
+	- Impact of share repurchases
+\end{itemize}
+
+\noindent\textbf{Instrumental Variables}
+
+\begin{itemize}
+	\item Gormley, Todd A., 2010, ``The impact of foreign bank entry in emerging markets:
+	evidence from India,'' Journal of Financial Intermediation, 19(1), 26-51.\\
+	- Foreign bank entry and credit access
+
+	\item Bennedsen, M., K. Nielsen, F. Perez-Gonzalez, and D. Wolfenzon, 2007, ``Inside the
+	family firm: The role of families in succession decisions and performance,'' Quarterly
+	Journal of Economics, 122, 647-691. \\
+	- CEO family succession and performance
+
+	\item  Giroud, Xavier, Holger M. Mueller, Alex Stomper, and Arne Westerkamp, 2012, ``Snow
+	and leverage,'' Review of Financial Studies, 25, 680-710. \\
+	- Debt overhang and performance
+\end{itemize}
+
+\noindent\textbf{Panel Data}
+
+\begin{itemize}
+	\item Khwaja, Asim Ijaz, and Atif Mian, 2008, ``Tracing the Impact of Bank Liquidity Shocks:
+	Evidence from an Emerging Market,'' American Economic Review, 98(4), 1413-1442.\\
+	- Bank liquidity shocks
+
+	\item Paravisini, Daniel, Veronica Rappoport, Philipp Schnabl, and Daniel Wolfenzon, 2014,
+	``Dissecting the effect of credit supply on trade: Evidence from matched credit-export
+	data,'' Review of Economic Studies, 1-26. \\
+	- Impact of credit supply on trade
+
+	\item Becker, Bo, Zoran Ivkovic, and Scott Weisbenner, 2011, ``Local dividend clienteles,''
+	Journal of Finance, 66(2), 655-683. \\
+	- Local dividend clienteles
+\end{itemize}
+
+\noindent\textbf{Difference-in-Differences}
+
+\begin{itemize}
+	\item Bertrand, Marianne, and Sendhil Mullainathan, 2003, ``Enjoying the quiet life? Corporate governance and managerial preferences,'' Journal of Political Economy, 111(5), 1043-1075. \\
+	- Anti-takeover laws \& the ``quiet life'' (staggered adoption)
+
+	\item Giroud, Xavier, and Holger M. Mueller, 2010, ``Does corporate governance matter in competitive industries?'' Journal of Financial Economics, 95(3), 312-331. \\
+	- Governance, product-market competition \& firm value
+
+	\item Gormley, Todd A., and David A. Matsa, 2011, ``Growing out of trouble? Corporate responses to liability risk,'' Review of Financial Studies, 24(8), 2781-2821. \\
+	- Corporate responses to a liability shock
+\end{itemize}
+
+\noindent\textit{Background reading (modern DiD):} Bertrand, Duflo, and Mullainathan (2004, QJE); Goodman-Bacon (2021, JoE); Callaway and Sant'Anna (2021, JoE); de Chaisemartin and D'Haultf\oe uille (2020, AER); Sun and Abraham (2021, JoE); and the survey by Roth, Sant'Anna, Bilinski, and Poet (2023, JoE), which is the one to read first.
+
+\vskip.15in
+\noindent\textbf{Natural Experiments}
+
+\begin{itemize}
+	\item Jayaratne, Jith, and Philip Strahan, 1996, ``The finance-growth nexus evidence from bank
+	branch deregulation,'' Quarterly Journal of Economics, 111(3), 639-670.\\
+	- Bank deregulation and economic growth
+
+	\item Hayes, Rachel M., Michael Lemmon, and Mingming Qiu, 2012, ``Stock options and
+	managerial incentives for risk taking: evidence from FAS 123R,'' Journal of Financial
+	Economics, 105, 174-190. \\
+	- Stock options and managerial incentives
+
+	\item  Agrawal, Ashwini, 2013, ``The impact of investor protection law on corporate policy and
+	performance: evidence from the blue sky laws,'' Journal of Financial Economics, 107, 417-35. \\
+	- Investor protection laws \& corporate policies
+\end{itemize}
+
+\noindent\textbf{Standard Errors etc.}
+
+\begin{itemize}
+	\item Jenter, Dirk, Thomas Schmid, and Daniel Urban, 2023, ``Does board size matter?'' ECGI Finance Working Paper 916/2023. \\
+	- Board size and value
+
+	\item Iliev, Peter, 2010, ``The effect of SOX Section 404: Costs, earnings quality, and stock
+	prices,'' Journal of Finance 65(3), 1163-1196.\\
+	- Effect of SOX on accounting costs
+
+	\item Appel, Ian R., Todd A. Gormley, and Donald B. Keim, 2016, ``Passive Investors, Not Passive
+	Owners,'' Journal of Financial Economics, 121(1), 111-141. \\
+	- Impact of passive investors on governance
+\end{itemize}
+
+\noindent\textbf{Common Errors}
+
+\begin{itemize}
+	\item  Gormley, Todd A., Vishal Gupta, David A. Matsa, Sandra Mortal, and Lukai Yang, 2023,
+	``The Big Three and Board Gender Diversity: The Effectiveness of Shareholder Voice,''
+	Journal of Financial Economics \\
+	- Impact of Big 3 on boards' gender diversity
+
+	\item Bennedsen, Morten, Francisco Perez-Gonzalez, and Daniel Wolfenzon, 2020,
+	``Do CEOs Matter? Evidence from Hospitalization Events,'' Journal of Finance, 75(4), 1877-1911. \\
+	- CEO hospitalization events
+
+	\item Baker, Andrew C., David F. Larcker, and Charles C. Y. Wang, 2022, ``How much should we trust staggered difference-in-differences estimates?'' Journal of Financial Economics, 144(2), 370-395. \\
+	- Pitfalls of two-way fixed-effects DiD with staggered treatment timing
+\end{itemize}
+
+\begin{comment}
+	
+
+\newpage
+
+\vskip.15in
+\noindent\textbf{OTHER PAPERS} %\footnotemark
+
+\vskip.15in
+\noindent\textbf{Causality} %\footnotemark
+
+\begin{itemize}
+	\item Bowen, Donald, Laurent Fresard, and Jerome Taillard, 2015, What’s your Identification Strategy? Technology Adoption in Corporate Finance, Management Science
+\end{itemize} 
+
+
+
+\noindent\textbf{Panel Data} %\footnotemark
+
+\begin{itemize}
+	\item Bertrand, Marianne, and Antoinette Schoar, 2003, Managing with Style: The Effect of Managers of Firm Policies, Quarterly Journal of Economics 118, 1169‐1208.
+	\item Hadlock and Pierce, 2011
+\end{itemize} 
+
+
+
+
+\noindent\textbf{Instrumental Variables} %\footnotemark
+
+\begin{itemize}
+	\item Chaney, Thomas, David Sraer, and David Thesmar, 2012, The Collateral Channel: How Real
+	Estate Shocks Affect Corporate Investment, American Economic Review 102, 2381‐2409.
+\end{itemize} 
+
+
+
+\noindent\textbf{Natural Experiments} %\footnotemark
+
+\begin{itemize}
+
+	\item Baghai, Ramin, Rui Silva, Viktor Thell, and Vikrant Vig (2021), Talent in Distressed Firms: Investigating the Labor Costs of Financial Distress. Journal of Finance 76: 2907–2961.
+	
+	\item Bernstein, Shai, Xavier Giroud, and Richard Townsend (2016), The impact of venture capital monitoring. Journal of Finance 71: 1591–1622.
+	
+	\item Agrawal, Ashwini, and David Matsa (2013), Labor unemployment risk and corporate financing
+	decisions. Journal of Financial Economics 108: 449–470.
+	
+	\item Shue, Kelley, Executive Networks and Firm Policies: Evidence from the Random Assignment
+	of MBA Peers." Review of Financial Studies 26, 1401-1442.
+	
+	\item Bertrand, Marianne, and Sendhil Mullainathan, 2003, Enjoying the quiet life? Corporate
+	governance and managerial preferences, Journal of Political Economy 111, 1043-1075.
+\end{itemize} 
+
+
+
+
+\noindent\textbf{Regression Discontinuity} %\footnotemark
+
+\begin{itemize}
+	
+	\item Akey, Pat, and Ian Appel (2021), The limits of limited liability: Evidence from industrial pollution. Journal of Finance 76, 5–55.
+	
+	\item Chava, Sudheer and Michael Roberts, 2008, “How Does Financing Impact Investment? The Role of Debt Covenants”, Journal of Finance, 2085-2121
+	
+	\item Mian, A., Su, A. and Trebbi, F., 2015. Foreclosures, house prices, and the real economy.
+	The Journal of Finance, 70(6), pp.2587-2634.
+	
+	
+\end{itemize} 
+
+
+
+\noindent\textbf{Common Errors} %\footnotemark
+
+\begin{itemize}
+	
+	\item  
+	
+\end{itemize} 
+
+
+
+
+
+\noindent\textbf{Matching} %\footnotemark
+
+\begin{itemize}
+	
+	
+	\item 
+\end{itemize} 
+
+
+
+\noindent\textbf{Standard errors etc.} %\footnotemark
+
+\begin{itemize}
+	
+	\item Petersen, Mitchell, 2008, Estimating Standard Errors in Finance Panel Datasets: Comparing
+	Approaches, Review of Financial Studies 22, 435‐480.
+	
+\end{itemize} 
+
+\end{comment}
+
+
+\end{document}
