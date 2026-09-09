@@ -106,7 +106,7 @@ control variable, and get an estimate with the wrong sign.}
 
 \vspace{0.5em}
 
-- We will simulate exactly this in §6, Bad Controls.
+<!-- REMOVED: forward reference to §6 -->
 - If controlling for things can do that, "control for everything" is not a strategy --- it is a coin flip.
 
 # 2. DAG Notation
@@ -208,7 +208,7 @@ control variable, and get an estimate with the wrong sign.}
 - **Setting $X$** intervenes: "if we *assigned* $X = x$ to every firm." The population stays fixed; only $X$ moves.
 - Prediction needs only the first. Causal inference needs the second.
 - In graph terms, setting $X$ means **deleting every arrow into $X$** --- $X$ is no longer caused by its parents; it is caused by us.
-  - That is exactly what a randomized experiment does physically: the coin, not the firm's characteristics, becomes the parent of $D$.
+  - That is exactly what a randomized experiment does physically.
   - It is why randomization needs no controls. There are no arrows left to block.
 
 ## Ratings predict default; ratings do not prevent it
@@ -216,9 +216,9 @@ control variable, and get an estimate with the wrong sign.}
 - Let $Y = 1$ if a firm defaults within five years, and let $X$ be its credit rating.
 - **Filtering**: among AAA issuers, default is rare. Ratings are superb *predictors* --- selling this number is a profitable business.
 - **Setting**: suppose a regulator relabelled every junk issuer AAA. Default rates would barely move. The label is not the cash flows.
-- Filtering **selects** firms that were already creditworthy; setting **changes the label** and leaves creditworthiness untouched.
-- The causal effect is not exactly zero --- ratings do move borrowing costs, covenant triggers, and forced buying and selling by investors whose mandates are rating-based --- but nothing like the AAA-to-junk gap.
-  - (Kisgen and Strahan 2010: when the SEC certified DBRS in 2003, yields moved **39bp per notch** --- the label alone, with fundamentals unchanged.)
+- Filtering **selects** firms that were already creditworthy; setting **changes the label** and leaves creditworthiness untouched.\footnote{The causal effect is not exactly zero. Kisgen and Strahan 2010: when the SEC certified DBRS in 2003, yields moved 39bp per notch --- the label alone, with fundamentals unchanged.}
+<!-- - The causal effect is not exactly zero --- ratings do move borrowing costs, covenant triggers, and forced buying and selling by investors whose mandates are rating-based --- but nothing like the AAA-to-junk gap.
+  - (Kisgen and Strahan 2010: when the SEC certified DBRS in 2003, yields moved **39bp per notch** --- the label alone, with fundamentals unchanged.) -->
 - Ask of any empirical result: *is this a filter, or an intervention?*
 
 # 3. Three Elemental Structures
@@ -253,15 +253,15 @@ Any path, however long, is a chain of three-node segments of exactly three types
 \end{tikzpicture}
 \end{center}
 
-- A **collider** on a path is a node where two arrowheads meet: $\to C \leftarrow$.
-- Whether a node is a collider is a property of the **path**, not of the variable.
+<!-- - A **collider** on a path is a node where two arrowheads meet: $\to C \leftarrow$.
+- Whether a node is a collider is a property of the **path**, not of the variable. -->
 
 ## Chain: $D \to M \to Y$
 
 - $M$ is a **mediator**: the causal effect of $D$ travels *through* it.
 - The path is **open** by default --- $D$ and $Y$ are correlated, and the correlation is causal.
 - Conditioning on $M$ **closes** the path --- and thereby destroys the very effect you are trying to measure.
-- Finance example: a credit shock raises investment, which raises employment.
+- Example: a credit shock raises investment, which raises employment.
   - $\text{Credit} \to \text{Investment} \to \text{Employment}$.
   - Controlling for investment when estimating the effect of credit on employment removes most of the answer.
 - **Do not control for mediators** when you want the total effect.
@@ -272,7 +272,7 @@ Any path, however long, is a chain of three-node segments of exactly three types
 - The path is **open** by default --- $D$ and $Y$ are correlated, but the correlation is **not** causal.
 - Conditioning on $X$ **closes** the path and removes the bias.
 - This is exactly omitted variable bias from last lecture, drawn as a picture.
-- Finance example: firm quality drives both whether a firm has a lending relationship and how much it invests.
+- Example: firm quality drives both whether a firm has a lending relationship and how much it invests.
 - **Do control for confounders** --- if you can measure them.
 
 ## Collider: $D \to C \leftarrow Y$
@@ -281,7 +281,7 @@ Any path, however long, is a chain of three-node segments of exactly three types
 - The path is **closed** by default --- $D$ and $Y$ are *not* correlated through it.
 - Conditioning on $C$ **opens** the path and *creates* a correlation that did not exist.
 - This is the one with no counterpart in your regression training, and it is where most damage is done.
-- Finance example: skill and luck are independent, but both determine whether a fund survives. Study only survivors and skill and luck become correlated.
+- Example: skill and luck are independent, but both determine whether a fund survives. Study only survivors and skill and luck become correlated.
 - **Do not control for colliders** --- and note that "control for" includes *sample selection*.
 
 ## The one table to memorize
@@ -386,8 +386,9 @@ round(c(naive = b(Y ~ D), control_Q = b(Y ~ D + qual)), 3)
 ```
 
 - Leaving the backdoor open: the estimate is too large by about $0.66$.
-- Blocking it at $Q$: we recover the truth. This is OVB from last lecture, now read off a graph.
-- Here "blocking" just means putting $Q$ in the regression. There is a more general way to do it --- reweighting rather than regressing --- which we take up with **inverse probability weighting** in the DiD lecture.
+- Blocking it at $Q$: we recover the truth.
+- Here "blocking" just means putting $Q$ in the regression.
+<!-- There is a more general way to do it --- reweighting rather than regressing --- which we take up with **inverse probability weighting** in the DiD lecture. -->
 
 <!-- DEFERRED TO THE DiD LECTURE. The reweighting point lands better alongside
      inverse probability weighting and doubly-robust DiD, where it is actually used.
@@ -459,8 +460,8 @@ $$
 - Any of them gives an **unbiased** estimate --- so choose among them on **precision**.
 - Rule of thumb: prefer the set that includes strong predictors of $Y$.
   - They do not change identification; they shrink residual variance and tighten standard errors.
-- This is the legitimate version of "add controls to make the estimate sharper" --- legitimate precisely because you verified the backdoor criterion *first*.
-- The illegitimate version, adding controls and hoping, is what the rest of this lecture is about.
+- This is the legitimate version of "add controls to make the estimate sharper".
+<!-- - The illegitimate version, adding controls and hoping, is what the rest of this lecture is about. -->
 
 # 5. Collider Bias
 
@@ -470,7 +471,7 @@ $$
 - Intuition. Suppose a fund survives only if $\text{skill} + \text{luck}$ is high enough.
   - Among survivors, a manager with low skill *must* have had high luck --- otherwise they would not be in the sample.
   - So within survivors, skill and luck are **negatively** correlated, though they are independent in the population.
-- Nothing was manipulated, no arrow was drawn. The correlation is manufactured entirely by **who is in the sample**.
+- The correlation is manufactured entirely by **who is in the sample**.
 
 ## Survivorship as a collider
 
@@ -512,7 +513,7 @@ round(c(slope_all       = unname(coef(lm(perf ~ skill))[2]),
 ```
 
 - Skill and luck: independent in the population, correlated $-0.64$ among survivors.
-- The return to skill looks like $0.36$ instead of $1.00$ --- understated by nearly two thirds.
+- The return to skill looks like $0.36$ instead of $1.00$ --- understated.
 
 ## This is not a hypothetical
 
@@ -523,7 +524,7 @@ round(c(slope_all       = unname(coef(lm(perf ~ skill))[2]),
   - **Rated firms only**: a firm is rated when it chooses to issue public debt.
   - **IPO samples**: going public is a common effect of quality and market conditions.
 - Empirical finance treats these as a list of separate warnings --- survivorship bias, sample coverage, deal completion. They are **one structural error**: conditioning on a collider.
-- The DAG turns a folklore checklist into a rule you can check.
+<!-- - The DAG turns a folklore checklist into a rule you can check. -->
 
 <!--
 ## So what do you do about it?
@@ -545,7 +546,7 @@ No single fix. Roughly in order of how convincing they are:
 
 ## Selection *is* conditioning
 
-- Emphasize: you do not need to type a variable into a regression to condition on it.
+- You do not need to type a variable into a regression to condition on it.
 - You condition on a variable whenever you
   - include it as a control,
   - stratify or match on it,
@@ -561,54 +562,74 @@ No single fix. Roughly in order of how convincing they are:
 
 - Practical advice: write *how the sample was constructed* into the DAG, as nodes. Sample-construction filters are conditioning statements.
 
-## Sign reversal: the classic example
+## Discrimination and collider bias
 
-- Cunningham's example, following Pearl: does gender discrimination lower wages?
-- Discrimination pushes women into lower-paying occupations, *and* lowers pay directly. Ability raises both occupation and wage.
+- Gender discrimination is often denied like this: *condition on occupation and the wage gap shrinks or disappears* --- within the same job, women are paid the same. **But what if occupation is itself a consequence of discrimination?**
+- Suppose every woman is "treated" with discrimination and no man is. Firms respond in **two ways**: they pay her less, *and* they do not promote her --- so she is paid less again.
 
+\vspace{-0.2em}
 \begin{center}
 \begin{tikzpicture}
-\node[dnode] (F) at (0,0) {$F$};
-\node[dnode] (W) at (5.4,0) {$W$};
-\node[bnode] (O) at (2.7,-1.3) {$O$};
-\node[unode] (A) at (2.7,1.2) {$A$};
-\draw[de] (F) -- (W);
-\draw[de] (F) -- (O);
+\node[dnode] (F) at (-2.2,0) {$F$};
+\node[dnode] (D) at (0,0) {$D$};
+\node[dnode] (Y) at (5.4,0) {$Y$};
+\node[bnode] (O) at (2.7,-0.95) {$O$};
+\node[unode] (A) at (2.7,0.9) {$A$};
+\draw[de] (F) -- (D);
+\draw[de] (D) -- (Y);
+\draw[de] (D) -- (O);
+\draw[de] (O) -- (Y);
 \draw[dde] (A) -- (O);
-\draw[dde] (A) -- (W);
-\node[font=\small] at (2.7,-2.2) {$F$ = female, $O$ = occupation, $A$ = ability (unobserved), $W$ = wage};
+\draw[dde] (A) -- (Y);
+\node[font=\footnotesize] at (1.6,-1.75) {$F$ = female, $D$ = discrimination, $O$ = occupation, $A$ = ability (unobserved), $Y$ = wage};
 \end{tikzpicture}
 \end{center}
+\vspace{-0.4em}
 
-- $O$ is a **collider** on $F \to O \leftarrow A \to W$. It is also a **mediator** on $F \to O \to W$.
-- Controlling for it does both bad things at once: blocks part of the real effect, and opens a spurious path.
+- Men and women are **equally productive**, so there is no arrow $F \to Y$. We are not after the effect of *female* on earnings; we are after the effect of **discrimination**.
 
-## Simulating the sign reversal
+## What controlling for occupation actually does
+
+Three paths run from $D$ to $Y$:
+
+1. $D \to Y$ --- the **direct** effect. The causal path of interest.
+2. $D \to O \to Y$ --- **mediation**, not a backdoor path: discrimination worsens the job, and the worse job pays less.
+3. $D \to O \leftarrow A \to Y$ --- contains the **collider** $O$, so it is *closed* to begin with.
+
+\vspace{0.2em}
+
+- Regress $Y$ on $D$ alone and you get the **total effect**: the direct effect plus the part mediated by occupational sorting.
+- Now add occupation, to "compare men and women in similar jobs." Two things happen at once:
+  - it **closes** the mediation channel $D \to O \to Y$ --- reasonable, if the direct effect is what you want;
+  - it **opens** path 3, because conditioning on a collider opens it. The control ironically introduces a new pattern of bias.
+- To shut path 3 again you would have to control for occupation **and ability** --- and ability is unobserved. So this design **does not satisfy the backdoor criterion**.
+
+## The simulation
 
 ```{r}
 #| echo: true
 set.seed(975)
-n       <- 10000
-female  <- rbinom(n, 1, 0.5)
-ability <- rnorm(n)                                    # unobserved in practice
-occ     <- 1 + 2*ability - 2*female  + rnorm(n)        # discrimination -> worse occupation
-wage    <- 1 - 1*female + 1*occ + 2*ability + rnorm(n) # direct effect of discrimination = -1
+n              <- 10000
+female         <- as.integer(runif(n) >= 0.5)   # half the population is female
+ability        <- rnorm(n)                      # independent of gender; UNOBSERVED
+discrimination <- female                        # all women experience discrimination
+occupation     <- 1 + 2*ability - 2*discrimination + rnorm(n)
+wage           <- 1 - 1*discrimination + 1*occupation + 2*ability + rnorm(n)
 
-b <- function(f) unname(coef(lm(f))[2])
-round(c(none        = b(wage ~ female),
-        occ_only    = b(wage ~ female + occ),
-        occ_ability = b(wage ~ female + occ + ability)), 3)
+b <- function(f) unname(round(coef(lm(f))["discrimination"], 3))
+c(unconditional = b(wage ~ discrimination),
+  add_occupation = b(wage ~ discrimination + occupation),
+  add_occ_ability = b(wage ~ discrimination + occupation + ability))
 ```
 
-- True **direct** effect $= -1$; true **total** effect $= -1 + 1\times(-2) = -3$.
+- Discrimination is **hard-coded**: $-1$ directly on wages, and $-2$ on occupation. True direct effect $=-1$; true total effect $= -1 + 1\times(-2) = -3$.
 
-## Reading the sign reversal
+## Reading the three regressions
 
-- **No controls** $\approx -3$: recovers the *total* effect. Correct, if total is what you want.
-- **Control for occupation** $\approx +0.6$: **the sign flips.** Within an occupation, a woman must have had higher ability to get there --- so the female dummy now partly proxies for ability, which raises wages.
-- **Control for occupation and ability** $\approx -1$: recovers the direct effect, because conditioning on $A$ closes the path that conditioning on $O$ opened.
-- The rescue only worked because ability was **observable in the simulation**. In your data it is not.
-- The finance version is exactly this shape: study a shock's effect on firm value, control for leverage, and unobserved quality does the work that ability does here.
+- **Unconditional $\approx -3$.** A large negative effect --- the combination of the direct effect and the indirect effect through occupation. This is the *total* effect, and it is correct if that is what you want.
+- **Add occupation $\approx +0.6$.** **The sign flips: it literally becomes positive.** We know this is wrong, because the direct effect was hard-coded at $-1$. Conditioning on the collider $O$ opened $D \to O \leftarrow A \to Y$, and the spurious path is strong enough to pervert the entire relationship.
+- **Add occupation and ability $\approx -1$.** Now we recover the direct effect, because conditioning on $A$ closes the path that conditioning on $O$ opened.
+- The rescue only worked because ability was **observable in the simulation**. In real data it is not --- which is the whole point. "Control for occupation" is not the fix; it is the bug.
 
 # 6. Bad Controls
 
@@ -658,7 +679,7 @@ round(c(no_controls     = b(Y ~ D),
 ```
 
 - Treatment was randomized. The true effect is $+1$. One control variable turns it into $-0.5$.
-- Nothing here is mismeasured, nonlinear, or small-sample. $n = 100{,}000$ and the bias is structural.
+
 
 ## Reading the damage
 
@@ -703,7 +724,7 @@ Common post-treatment controls, and what they do:
 
 \vspace{0.4em}
 
-- The operational rule from last lecture, now justified: **controls must be determined before treatment**.
+- The operational rule: **controls must be determined before treatment**.
 - When in doubt, report the specification without the questionable control. If the estimate moves a lot, you have learned something --- and you must explain which specification the DAG supports.
 
 # 7. Neutral Controls and Precision
@@ -765,13 +786,13 @@ round(rbind(mean = apply(r, 1, mean), sd = apply(r, 1, sd)), 4)
 
 - All three are **unbiased** --- every mean is $2.000$. Identification is settled; only variance differs.
 - Adding $X_3$, which predicts **only $Y$**, cuts the standard deviation from $0.074$ to $0.017$ --- four times sharper. It soaks up residual variance without touching identification.
-- Adding $X_4$, which predicts **only $D$**, raises it to $0.130$ --- nearly twice as noisy. It absorbs the variation in $D$ you were relying on.
-- Same bias, a sevenfold spread in precision.
+- Adding $X_4$, which predicts **only $D$**, raises it to $0.130$. It absorbs the variation in $D$ you were relying on.
+
 - **Practical guidance**:
   1. First use the DAG to find sets that identify the effect. That is about *bias*.
   2. Then, among those sets, prefer strong predictors of $Y$ and avoid strong predictors of $D$ alone. That is about *variance*.
 - Never reverse the order. Choosing controls by what tightens the standard error is how sign flips get published.
-- The $X_4$ case is the seed of the weak-instrument problem in the IV lecture: an instrument is a variable that predicts $D$ and nothing else.
+<!-- - The $X_4$ case is the seed of the weak-instrument problem in the IV lecture: an instrument is a variable that predicts $D$ and nothing else. -->
 
 # 8. What DAGs Cannot Do
 
@@ -801,7 +822,7 @@ Inference and standard errors            & Proving an effect is \emph{not} ident
 \vspace{0.5em}
 
 - Use the DAG to decide your specification; use potential outcomes to say what the coefficient means.
-- A referee-proof paper does both, and says so explicitly.
+<!-- - A referee-proof paper does both, and says so explicitly.-->
 
 ## How to use this in your own work
 
@@ -810,7 +831,7 @@ Inference and standard errors            & Proving an effect is \emph{not} ident
 3. List every path from $D$ to $Y$. Classify each: directed, or backdoor.
 4. Find a set satisfying the backdoor criterion. If none exists using observables, **say so** --- and go find a research design (IV, RDD, DiD) instead of more controls.
 5. Among valid sets, pick for precision.
-6. Put the DAG in the paper. Referees can then argue about your assumptions, which is the argument worth having.
+<!-- 6. Put the DAG in the paper. Referees can then argue about your assumptions, which is the argument worth having.-->
 
 # Wrapping Up
 

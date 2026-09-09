@@ -19,7 +19,7 @@ format:
         \usepackage{booktabs}
 ---
 
-*Four problems. Plan on about three hours. Problem 4 asks you to run a short simulation in R (or Stata); attach your code and output. Nothing else requires software.*
+*Five problems. Plan on about four hours. Problem 4 asks you to run a short simulation in R (or Stata); attach your code and output. Nothing else requires software --- Problem 5 is arithmetic you can do by hand.*
 
 *Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
@@ -114,3 +114,35 @@ $$
 (c) Estimate the propensity score by logit, then compute the IPW estimates of the $ATE$ and the $ATT$. Report all four numbers --- two truths, two estimates --- in one small table. Use the normalized (Hájek) form for the $ATT$ and say why.
 
 (d) Plot the estimated score separately for treated and control units, and report the largest weight any single observation receives. Then re-run with the selection coefficients tripled to $(2.4, 1.8)$ and report the same two things. What has happened to overlap, to the largest weight, and to the stability of your estimates?
+
+## Problem 5 (Regression when treatment effects are heterogeneous)
+
+*What this is for: the canonical model returns a number that is none of the three estimands --- and you can say exactly which number it is.*
+
+A supervisor grants waivers ($D$) to banks in two size classes. Within each class, assignment is as good as random. The outcome is loan growth.
+
+\begin{center}
+\begin{tabular}{lrrrrr}
+\toprule
+Class & $N$ & treated & control & $E[Y^0]$ & effect \\
+\midrule
+Small & $600$ & $120$ & $480$ & $10$ & $+2$ \\
+Large & $400$ & $280$ & $120$ & $20$ & $+8$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+(a) Compute the $ATE$, the $ATT$, the $ATU$ and the treated share $\rho$. Then fit the canonical model $Y = \alpha + \tau D + \gamma X + \varepsilon$ with $X = \mathbf{1}\{\text{Large}\}$ and report $\hat\tau$. Verify it equals the variance-weighted average with weights $N_j\, p_j(1-p_j)$, and confirm that $\hat\tau$ is **none** of the three estimands.
+
+(b) Słoczyński (2022) shows $\hat\tau = w_1 ATT + w_0 ATU$, where
+$$
+w_1 = \frac{(1-\rho)\,V[p(X) \mid D{=}0]}{\rho\,V[p(X) \mid D{=}1] + (1-\rho)\,V[p(X) \mid D{=}0]}, \qquad w_0 = 1 - w_1 .
+$$
+With one binary covariate the propensity score is exact, so compute both conditional variances by hand, then $w_1$ and $w_0$, and verify that they reproduce your $\hat\tau$ **exactly**. Why is $w_1 > \rho$, and what does that tell you about which estimand $\hat\tau$ leans toward?
+
+(c) Verify his two corollaries on your own numbers: $\hat\tau - ATT = w_0\,(ATU - ATT)$ and $\hat\tau - ATE = \delta\,(ATU - ATT)$ with $\delta = \rho - w_1$. Then compute the rule-of-thumb versions, $w_0 \approx \rho$ and $\delta \approx 2\rho - 1$, report how close they come here, and state the assumption they require.
+
+(d) Now fit the fully interacted model $Y = \alpha + \delta D + \gamma_{01} X + \gamma_{11}\, D \cdot X + \varepsilon$. Report $\hat\delta$ and $\hat\gamma_{11}$, then recover the $ATE$ and the $ATT$ from them. Note that $\hat\delta$ **alone is not the $ATE$**: state the condition under which it would be, and verify it by re-fitting with $X$ demeaned.
+
+(e) Write the canonical model's bias term $\hat\tau_{OLS} - \delta$ in terms of $\gamma_{11}$ and $\gamma_{01}$, and state the two assumptions under which it vanishes. Which one does regression adjustment remove, and which does it leave standing? Answer the second part in one sentence.
+

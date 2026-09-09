@@ -13,9 +13,10 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | Topic | Slides | Problem Set |
 |---|---|---|
 | 1. Causality and Potential Outcomes | [Slides][caus-pdf] | [Problems] |
-| 2. Directed Acyclic Graphs | [Slides] | [Problems] |
+| 2. Directed Acyclic Graphs | [Slides][dag-pdf] | [Problems] |
 | 3a. Unconfoundedness: Assumptions and Matching | [Slides] | [Problems] |
-| 3b. Propensity Scores, Regression, and Sensitivity | [Slides] | [Problems] |
+| 3b. Propensity Scores and Regression | [Slides] | [Problems] |
+| 4. Regression Discontinuity | [Slides] | [Problems] |
 
 ---
 
@@ -32,6 +33,8 @@ Course materials for BUSS975, including lecture slides and problem sets.
 [unc-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/03_Unconfoundedness/03a_unconfoundedness.pdf
 [unc-b-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/03_Unconfoundedness/03b_propensity_scores.pdf
 [unc-ps]:    https://chung-jiwoong.github.io/BUSS975/notes/03_Unconfoundedness/03_unconfoundedness_PS.pdf
+
+[rd-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/04_RD/04_regression_discontinuity.pdf
 
 <!--
 

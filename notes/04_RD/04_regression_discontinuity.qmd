@@ -1,0 +1,1234 @@
+---
+title: "Regression Discontinuity"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+author: "Professor Ji-Woong Chung"
+institute: "Korea University"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    slide-level: 2
+    toc: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \setbeamertemplate{navigation symbols}{}
+        \setbeamertemplate{footline}[frame number]
+        \setbeamertemplate{itemize items}[circle]
+        \setbeamertemplate{itemize subitem}[triangle]
+        \setbeamercolor{frametitle}{fg=black}
+        \setbeamerfont{frametitle}{series=\bfseries}
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+        \usepackage{tikz}
+        \usetikzlibrary{arrows.meta,positioning,calc}
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\scriptsize}
+        \makeatletter
+        \def\verbatim@font{\scriptsize\ttfamily}
+        \makeatother
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+---
+
+
+# 6.1 Bird's-Eye View of RD
+
+## Where we left off
+
+- Lecture 3 ended on a trade. **Matching** needs common support; **regression** needs a correctly specified outcome model and will extrapolate where the data are silent.
+- In regression discontinuity, at any value of the running variable, you observe treated units **or** control units. Overlap is exactly zero.
+- So extrapolation is the entire design. The question becomes: *how short a distance can we extrapolate, and how honestly?*
+- The answer --- extrapolate to a **point**, from both sides --- is what makes RD a credible observational design we have. 
+
+<!--
+## Sixty years old, and suddenly everywhere
+
+- **Thistlethwaite and Campbell (1960).** Merit awards assigned on a test-score cutoff; they compared students just above and just below. The design was there, fully formed, in 1960 --- invented by an educational psychologist.
+- **Goldberger (1972)** discussed it. Economics ignored it for another 27 years: too niche, too specialised.
+- **1999, two papers in the *QJE*.** Angrist and Lavy used Israeli class-size rules that mechanically split classes past a threshold. Black used school-district boundaries --- the first "spatial RD".
+- **Lee and Lemieux (2010)** in the *JEL*, plus *Mostly Harmless Econometrics*, made it standard.
+- What actually made it spread: **administrative data**. RD needs many observations packed around one point, and that is exactly what registry data provide.
+-->
+
+## The intuition: drinking at 21
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.8
+RED <- "#B2182B"; BLU <- "#2166AC"
+set.seed(21)
+par(mfrow = c(1, 2), mar = c(4, 4.2, 2.2, 1), cex = 0.8)
+
+## --- stylised: share of days drinking -------------------------------------
+ag <- seq(19, 23, by = 1/12)
+f  <- function(a) 6.6 + 0.62*(a - 19) - 0.02*(a - 19)^2
+sh <- f(ag) + 1.9*(ag >= 21) + rnorm(length(ag), 0, 0.22)
+plot(ag, sh, pch = 16, cex = 0.6, col = "grey35", xlab = "age",
+     ylab = "share of days drinking (%)", main = "Drinking behaviour", ylim = c(6, 12))
+abline(v = 21, lty = 2, col = "grey45")
+for (s in 0:1) {
+  k  <- if (s == 0) ag < 21 else ag >= 21
+  dd <- data.frame(a = ag[k], y = sh[k])
+  m  <- lm(y ~ poly(a, 2, raw = TRUE), data = dd)
+  aa <- seq(min(dd$a), max(dd$a), length.out = 100)
+  lines(aa, predict(m, data.frame(a = aa)), col = if (s == 0) BLU else RED, lwd = 2.4)
+}
+
+## --- stylised: motor-vehicle mortality ------------------------------------
+g  <- function(a) 35 - 2.4*(a - 19) + 0.25*(a - 19)^2
+mo <- g(ag) + 5*(ag >= 21) + rnorm(length(ag), 0, 0.7)
+plot(ag, mo, pch = 16, cex = 0.6, col = "grey35", xlab = "age",
+     ylab = "deaths per 100,000", main = "Motor-vehicle mortality", ylim = c(27, 40))
+abline(v = 21, lty = 2, col = "grey45")
+for (s in 0:1) {
+  k  <- if (s == 0) ag < 21 else ag >= 21
+  dd <- data.frame(a = ag[k], y = mo[k])
+  m  <- lm(y ~ poly(a, 2, raw = TRUE), data = dd)
+  aa <- seq(min(dd$a), max(dd$a), length.out = 100)
+  lines(aa, predict(m, data.frame(a = aa)), col = if (s == 0) BLU else RED, lwd = 2.4)
+}
+```
+
+\vspace{-0.3em}
+\footnotesize
+Drinking rises at 21 because that is when it becomes legal. Motor-vehicle mortality falls steadily with age, then jumps back up at exactly the same point.
+
+
+## What makes it an RD figure
+
+Three elements, and every RD figure has all three:
+
+1. **The dots.** Average outcomes within narrow bins of the running variable --- here, one dot per month of age. Not raw observations.
+2. **The lines.** Fitted values from a regression, estimated **separately on each side** of the cutoff. The curvature comes from a polynomial in age.
+3. **The break.** That gap is the whole estimate.
+
+\vspace{0.3em}
+
+- The break exists only because two different models were fit. Nothing forces them to meet --- so if they do meet, there is no effect.
+- **The magnitude.** Roughly $5$ extra deaths per $100{,}000$ at age 21. With about $4.3$ million 21-year-olds in the US, that is $5 \times 43 \approx \mathbf{215}$ additional deaths a year attributable to legal drinking.
+<!-- - Two figures, one story: drinking jumps, and so does the thing drinking causes.-->
+
+## The jargon
+
+- **Running variable** ($X$): the score that assigns treatment. Age, a test score, a credit score, a vote share, a BAC reading. Ideally continuous; a fine enough grid will do.
+- **Cutoff** or **threshold** ($c_0$): the known value where assignment changes.
+- **Trends**: how the *outcome* moves with the running variable --- **not** time trends. In the mortality figure, deaths fall with age; that is an outcome trend.
+- **Discontinuity** or **jump**: the break in the conditional mean at $c_0$. That break is the estimate.
+- The design is named for the discontinuity, but it lives or dies on the **trends**. Strong trends make effects hard to detect and easy to manufacture. 
+
+## Where do running variables come from?
+
+- They sound exotic. They are everywhere, because **humans write rules**, and rules need thresholds.
+- **Governments**: Medicare at 65, the drinking age at 21, adult criminal liability at 18, income thresholds for transfer programs.
+- **Firms and markets**: credit-score cutoffs in lending, index membership rules, covenant thresholds, EPS targets in compensation contracts, a $50\%$ vote share.
+- **Algorithms**: surge pricing, credit limits, automated underwriting. 
+- Finding one requires **institutional knowledge**, not econometrics. Knowing the rule exists, and exactly how it is applied, is the hard part.
+
+## And RD needs a great deal of data
+
+- The estimate comes from observations **near the cutoff**. Everything else only helps pin down the two limits.
+- So the binding constraint is not the number of rows in your dataset. It is the number of rows in a neighbourhood of one point.
+- Strong trends make this worse: the more steeply the outcome moves with $X$, the more data you need to separate the jump from the slope.
+- This is why RD studies are overwhelmingly built on **administrative records** --- birth registries, school records, court records, credit bureaus.
+- It is also why RD in finance is often underpowered. We return to this.
+
+# 6.2 Identification Assumptions
+
+
+## Sharp and fuzzy
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+ & Sharp & Fuzzy \\
+\midrule
+$\Pr(D = 1 \mid X)$ at $c_0$ & jumps $0 \to 1$ & jumps, but not to $1$ \\
+Treatment is       & a deterministic function of $X$ & influenced by $X$ \\
+The cutoff is      & the assignment rule & an \emph{instrument} \\
+Example            & Medicare at $65$ & Israeli class-size rules \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- We do the **sharp** design here. The fuzzy design is an instrumental-variables problem, so it waits for the IV lecture.
+- Many finance applications are fuzzy. A shareholder proposal that passes with $51\%$ is not always implemented.
+
+## The sharp design
+
+In a sharp RD, treatment status is a **deterministic, discontinuous** function of the running variable:
+$$
+D_i = \begin{cases} 1 & \text{if } X_i \geq c_0 \\ 0 & \text{if } X_i < c_0 \end{cases}
+$$
+
+- Know $X_i$ and you know $D_i$ with certainty. Know someone's age and their country, and you know whether they may legally drink.
+- Contrast the fuzzy design, where crossing $c_0$ raises $\Pr(D=1)$ without driving it to one.
+<!-- - Medicare at 65 is the textbook sharp case --- setting aside early eligibility through disability.-->
+
+## The key feature: no common support
+
+- This is a selection-on-observables design: condition on $X$ and treatment is fully determined, so **unconfoundedness holds trivially**.
+- But the other assumption of Lecture 3 fails completely. At any value of $X$ you see treated units or controls, never both:
+$$
+e(X) = \Pr(D = 1 \mid X) \in \{0, 1\} \quad \text{everywhere.}
+$$
+- No 19-year-old may legally drink; every 21-year-old may. There is no overlap to exploit.
+- **Every tool from last week is unusable.** You cannot match, stratify, or weight --- no unit has a counterpart at its own value of $X$.
+- What replaces overlap is a **smoothness** assumption, plus a limiting argument at a single point.
+
+## The target parameter
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.7
+c0 <- 21; xs <- seq(19, 26, 0.05)
+RED <- "#B2182B"; BLU <- "#2166AC"
+YL <- c(7, 17)                       # a common scale, so the two gaps are comparable
+par(mfrow = c(1, 2), mar = c(4, 4, 2.2, 1), cex = 0.8)
+
+## --- left: a constant effect of 4 ------------------------------------------
+g0 <- function(x) 8 + 0.6*(x - 19)
+g1 <- function(x) g0(x) + 4
+plot(NULL, xlim = c(19, 26), ylim = YL, xlab = "age", ylab = "outcome",
+     main = "Homogeneous effects")
+abline(v = c0, lty = 2, col = "grey45")
+lines(xs, g1(xs), col = RED, lwd = 2.2); lines(xs, g0(xs), col = BLU, lwd = 2.2)
+arrows(c0, g0(c0), c0, g1(c0), code = 3, length = 0.04)
+text(c0 + 0.2, (g0(c0) + g1(c0))/2, "4", adj = 0, cex = 0.85)
+text(25.8, g1(25.8) + 0.55, expression(E*"["*Y^1*"|"*X*"]"), col = RED, cex = 0.75, adj = 1)
+text(25.8, g0(25.8) - 0.75, expression(E*"["*Y^0*"|"*X*"]"), col = BLU, cex = 0.75, adj = 1)
+text(22.6, 7.4, "the gap is 4 at every age", cex = 0.7, col = "grey25")
+
+## --- right: 5.5 at 19, 2.35 at the cutoff, 0 at 23, negative after ---------
+u  <- function(x) x - 19
+h0 <- function(x) 8    + 0.900*u(x) - 0.02*u(x)^2
+h1 <- function(x) 13.5 - 0.875*u(x) + 0.08*u(x)^2
+plot(NULL, xlim = c(19, 26), ylim = YL, xlab = "age", ylab = "outcome",
+     main = "Heterogeneous effects")
+abline(v = c0, lty = 2, col = "grey45")
+lines(xs, h1(xs), col = RED, lwd = 2.2); lines(xs, h0(xs), col = BLU, lwd = 2.2)
+arrows(c0, h0(c0), c0, h1(c0), code = 3, length = 0.04)
+text(c0 + 0.2, (h0(c0) + h1(c0))/2, "2.35", adj = 0, cex = 0.85)
+points(23, h0(23), pch = 21, bg = "white", cex = 1.1, lwd = 1.6)
+text(23, 9.7, "they cross at 23", cex = 0.7, col = "grey25")
+text(19.2, h1(19.2) + 0.75, expression(E*"["*Y^1*"|"*X*"]"), col = RED, cex = 0.75, adj = 0)
+text(19.2, h0(19.2) - 0.75, expression(E*"["*Y^0*"|"*X*"]"), col = BLU, cex = 0.75, adj = 0)
+```
+
+\vspace{-0.3em}
+\footnotesize
+Left: parallel potential outcomes, so the vertical gap is the same at every age and the number at the cutoff describes everyone. Right: the functions curve and **cross at 23** --- the effect is $5.5$ at age 19, $2.35$ at the cutoff, zero at 23, and *negative* beyond. RD returns the gap **at the dashed line** in both panels, and nothing else. 
+
+## The estimand is a limit
+
+$$
+\tau \;=\; \underbrace{\lim_{x \downarrow c_0} E[Y_i \mid X_i = x]}_{\text{from the right}} \;-\; \underbrace{\lim_{x \uparrow c_0} E[Y_i \mid X_i = x]}_{\text{from the left}}
+\;=\; E[Y^1_i - Y^0_i \mid X_i = c_0]
+$$
+
+- It is only *in the limit* that overlap is restored. Approaching $c_0$ from either side, the two groups become arbitrarily similar in $X$.
+- This is an $ATE$, but for the subpopulation $\{X = c_0\}$ --- which is why it is often called a **local** average treatment effect.
+- Note what it is **not**: not the $ATE$, not the $ATT$. It is an average at one point of one covariate.
+- Data from a wide range of $X$ are used only to estimate those two limits precisely. The estimand still lives at $c_0$.
+
+## Smoothness: the assumption that does the work
+
+- **Hahn, Todd and Van der Klaauw (2001)** proved the effect at the cutoff is identified if the conditional expectations of **both** potential outcomes are continuous at $c_0$:
+$$
+E[Y^0_i \mid X_i = x] \quad\text{and}\quad E[Y^1_i \mid X_i = x] \quad\text{are continuous at } x = c_0 .
+$$
+<!-- - In words: you could trace both functions through the cutoff **without picking up your pen**. Nothing shifts the outcomes at $c_0$ except the treatment. -->
+- This is the RD version of "nature does not jump." The null is continuity; a jump is evidence that *something* happened, and the design's job is to make treatment the only candidate.
+<!-- - Weaker than it looks in one way --- no functional form is assumed --- and stronger in another: it must hold for the **unobservable** counterfactual branch on each side. --> 
+
+## Smoothness, in a simulation
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.8
+set.seed(975)
+c0 <- 250; n <- 1200
+x  <- runif(n, 150, 350)
+y1 <- 100 + 1.25*x + rnorm(n, 0, 15)      # Cunningham's DGP
+y0 <-  50 + 0.75*x + rnorm(n, 0, 15)
+RED <- "#B2182B"; BLU <- "#2166AC"
+par(mfrow = c(1, 2), mar = c(4, 4, 2.2, 1), cex = 0.8)
+
+plot(x, y1, pch = 16, cex = 0.35, col = adjustcolor(RED, 0.5), ylim = c(80, 500),
+     xlab = "running variable", ylab = "outcome", main = "Both potential outcomes")
+points(x, y0, pch = 16, cex = 0.35, col = adjustcolor(BLU, 0.5))
+abline(v = c0, lty = 2, col = "grey35")
+abline(lm(y1 ~ x), col = RED, lwd = 2.2); abline(lm(y0 ~ x), col = BLU, lwd = 2.2)
+text(320, 480, expression(E*"["*Y^1*"]"), col = RED, cex = 0.85)
+text(330, 235, expression(E*"["*Y^0*"]"), col = BLU, cex = 0.85)
+
+D <- as.integer(x >= c0); y <- ifelse(D == 1, y1, y0)
+plot(x, y, pch = 16, cex = 0.35, col = adjustcolor("grey30", 0.5), ylim = c(80, 500),
+     xlab = "running variable", ylab = "outcome", main = "What you actually see")
+abline(v = c0, lty = 2, col = "grey35")
+ml <- lm(y ~ x, subset = D == 0); mr <- lm(y ~ x, subset = D == 1)
+xl <- seq(150, c0, 1); xr <- seq(c0, 350, 1)
+lines(xl, predict(ml, data.frame(x = xl)), col = BLU, lwd = 2.4)
+lines(xr, predict(mr, data.frame(x = xr)), col = RED, lwd = 2.4)
+lines(xr, predict(ml, data.frame(x = xr)), col = BLU, lwd = 1.1, lty = 3)
+lines(xl, predict(mr, data.frame(x = xl)), col = RED, lwd = 1.1, lty = 3)
+a <- predict(ml, data.frame(x = c0)); b <- predict(mr, data.frame(x = c0))
+arrows(c0, a, c0, b, code = 3, length = 0.05, lwd = 1.8)
+text(c0 + 8, (a + b)/2, expression(tau), adj = 0, cex = 0.95)
+```
+
+\vspace{-0.3em}
+\footnotesize
+$Y^1 = 100 + 1.25X + \varepsilon$ and $Y^0 = 50 + 0.75X + \varepsilon$. Neither jumps at $X = 250$ --- **nothing happens at the cutoff** in the potential outcomes. Apply the switching equation and the *observed* outcome jumps anyway, by exactly the vertical distance between the two functions there. That distance is $\tau$.
+
+## The price of the design
+
+- **You get** an effect that is credible, visible, and hard to fake --- identified by a rule you can read in a statute or a contract.
+- **You pay** by learning about one point. If the policy question is "what would this do to everyone?", RD does not answer it.
+- The gap between what RD identifies and what a policymaker wants is often large. A study of a drinking age of 21 says nothing about a drinking age of 18.
+- **Extrapolating away from the cutoff** requires extra assumptions (Angrist and Rokkanen 2015). Most papers do not, and should say so.
+- State the estimand as what it is: *"the average effect for units at the threshold."* Not "the effect." 
+
+# 6.3 Estimation
+
+## Two steps
+
+**Step 1. Recentre the running variable** at the cutoff:
+$$
+\tilde X_i = X_i - c_0 .
+$$
+Once centred, the running variable is zero at the cutoff, so the coefficient on $D$ is the jump **there** rather than at $X = 0$.
+
+**Step 2. Regress the outcome on treatment, the running variable, and their interaction:**
+$$
+Y_i = \alpha + \tau D_i + \beta_1 \tilde X_i + \beta_2\, D_i \cdot \tilde X_i + \varepsilon_i .
+$$
+
+- $\beta_1$ is the slope **below** the cutoff, $\beta_1 + \beta_2$ the slope **above**, and $\hat\tau$ estimates the jump.
+- The interaction is not optional. It lets the two expected potential-outcome functions have different slopes --- which is to say, it allows heterogeneous treatment effects. Drop it and any difference in trend is loaded onto $\hat\tau$.
+
+## Where the specification comes from
+
+Model each potential outcome as a $p$th-order polynomial in the centred running variable:
+$$
+E[Y^0 \mid X] = \mu + \beta_{01}\tilde X + \cdots + \beta_{0p}\tilde X^{\,p}, \qquad
+E[Y^1 \mid X] = \mu + \tau + \beta_{11}\tilde X + \cdots + \beta_{1p}\tilde X^{\,p}
+$$
+
+Apply the **switching equation**, $Y_i = D_i Y^1_i + (1 - D_i)Y^0_i = Y^0_i + D_i(Y^1_i - Y^0_i)$, and take expectations given $X$:
+$$
+E[Y \mid X] = E[Y^0 \mid X] + D\big(E[Y^1 \mid X] - E[Y^0 \mid X]\big)
+$$
+
+which is the regression you actually run:
+$$
+Y_i = \mu + \beta_{01}\tilde X_i + \cdots + \beta_{0p}\tilde X_i^{\,p}
+\;+\; \tau D_i + \gamma_1 D_i \tilde X_i + \cdots + \gamma_p D_i \tilde X_i^{\,p} + \varepsilon_i
+$$
+
+- with $\gamma_k = \beta_{1k} - \beta_{0k}$. Interacting $D$ with **every** polynomial term is what lets the two sides take genuinely different shapes.
+- The treatment effect **at the cutoff** is $\tau$. 
+
+## Get the shape wrong and the answer is nonsense
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.85
+set.seed(1234)
+n <- 4000; c0 <- 250
+x  <- rnorm(n, 250, 30); xc <- x - c0; D <- as.integer(x >= c0)
+y  <- 1000 + 0.75*xc - 0.5*xc^2 + 1.5*xc^3 + rnorm(n, 0, 1000)   # TRUE EFFECT IS ZERO
+RED <- "#B2182B"; BLU <- "#2166AC"
+w  <- c(190, 310)                                   # zoom: the cubic tails are off-scale
+b  <- seq(w[1], w[2], length.out = 31); mid <- head(b, -1) + diff(b)/2
+k  <- x >= w[1] & x <= w[2]
+bm <- tapply(y[k], cut(x[k], b), mean)
+tau <- numeric(3)                                   # kept for the table on the next slide
+par(mfrow = c(1, 2), mar = c(4, 4, 2.2, 1), cex = 0.8)
+for (deg in 1:3) {
+  lim <- numeric(2)
+  if (deg != 2) {
+    plot(mid, bm, pch = 16, cex = 0.6, col = "grey45", xlim = w,
+         xlab = "running variable", ylab = "outcome",
+         main = if (deg == 1) "Linear fit (underfit)" else "Cubic fit (correct)")
+    abline(v = c0, lty = 2, col = "grey45")
+  }
+  for (s in 0:1) {
+    dk <- data.frame(x = x[D == s], y = y[D == s])  # fitted on ALL the data, not the window
+    m  <- lm(y ~ poly(x, deg, raw = TRUE), data = dk)
+    lim[s + 1] <- predict(m, data.frame(x = c0))
+    if (deg != 2) {
+      xx <- seq(if (s == 0) w[1] else c0, if (s == 0) c0 else w[2], length.out = 200)
+      lines(xx, predict(m, data.frame(x = xx)), col = if (s == 0) BLU else RED, lwd = 2.3)
+    }
+  }
+  tau[deg] <- lim[2] - lim[1]
+  if (deg != 2) {
+    arrows(c0, lim[1], c0, lim[2], code = 3, length = 0.05, lwd = 1.8)
+    text(c0 + 8, mean(lim), paste0(if (tau[deg] > 0) "+" else "-",
+         formatC(abs(tau[deg]), format = "d", big.mark = ",")), adj = 0, cex = 0.85, font = 2)
+  }
+}
+```
+
+\vspace{-0.3em}
+\footnotesize
+The truth is a **cubic** in the running variable and the treatment effect is exactly **zero** --- the two potential outcomes are identical, so they touch everywhere. Straight lines cannot bend where the data bend, so they arrive at the cutoff at the wrong heights and manufacture a jump out of nothing.
+
+## The damage, quantified
+
+```{r}
+#| echo: false
+#| results: asis
+cat("\\begin{center}\\small\n\\begin{tabular}{lrrr}\n\\toprule\n")
+cat("Fitted polynomial & $X$ & $X, X^2$ & $X, X^2, X^3$ \\\\\n\\midrule\n")
+cat(sprintf("$\\hat\\tau$ & $%s$ & $%s$ & $%s$ \\\\\n",
+    formatC(tau[1], format = "d", big.mark = ","),
+    formatC(tau[2], format = "d", big.mark = ","),
+    formatC(tau[3], format = "d", big.mark = ",")))
+cat("\\bottomrule\n\\end{tabular}\n\\end{center}\n")
+```
+
+
+- **The true effect is zero.** Underfit by two orders and you get about $-170{,}000$; by one, about $+59{,}000$. Get the order right and the estimate collapses into noise.
+- These are not merely biased --- they are wrong by *five orders of magnitude*, and they would be reported as **highly statistically significant**.
+- The mechanism is the extrapolation. $\hat\tau$ is the gap between two fitted values **at a boundary**, and boundary predictions are exactly where a misspecified polynomial errs most.
+
+## But do not solve it with more polynomials
+
+- The obvious fix --- keep raising $p$ --- is the wrong one. **Gelman and Imbens (2019)** give three reasons not to go above quadratic:
+  1. High-order polynomials put **large, erratic weights** on observations far from the cutoff, so distant data drive an estimate that is supposed to be local.
+  2. Estimates are **highly sensitive** to the order chosen, with no principled way to pick it.
+  3. The resulting confidence intervals have **poor coverage**.
+- Their recommendation, now standard: **local linear or local quadratic**, fitted only near the cutoff.
+<!-- - Note that underfitting is a threat too --- that is what the last slide showed. Both directions produce spurious estimates.-->
+- Which reframes the problem. Instead of "what shape fits the whole range?", ask "how small a neighbourhood can I afford, and fit a line inside it." 
+
+## The boundary problem with "rectangular kernel"
+
+```{r}
+#| echo: false
+#| fig-width: 5
+#| fig-height: 1.75
+c0 <- 5
+RED <- "#B2182B"; BLU <- "#2166AC"
+f0 <- function(x) 2 + 0.55*x
+f1 <- function(x) f0(x) + 2.4
+par(mar = c(3.4, 3.5, 0.6, 0.8), mgp = c(2.1, 0.7, 0), cex = 0.7)
+plot(NULL, xlim = c(1.6, 8.6), ylim = c(2.4, 10.2),
+     xlab = "running variable", ylab = "outcome")
+abline(v = c(3, 7), col = "grey86"); abline(v = c0, lty = 2, col = "grey30")
+xs <- seq(1.6, 8.6, 0.02)
+lines(xs, f0(xs), col = BLU, lwd = 2); lines(xs, f1(xs), col = RED, lwd = 2)
+## a bin mean sits at the bin CENTRE, so it hits the boundary at the wrong height
+segments(3, f0(4), 5, f0(4), col = BLU, lwd = 3)
+segments(5, f1(6), 7, f1(6), col = RED, lwd = 3)
+points(c0, f0(c0), pch = 16, cex = 1.2); points(c0, f1(c0), pch = 16, cex = 1.2)
+points(c0, f0(4), pch = 21, bg = "white", col = BLU, cex = 1.3, lwd = 2)
+points(c0, f1(6), pch = 21, bg = "white", col = RED, cex = 1.3, lwd = 2)
+text(c0 + 0.13, f0(c0) + 0.30, "A", adj = 0, cex = 0.95, font = 2)
+text(c0 + 0.13, f1(c0) - 0.32, "B", adj = 0, cex = 0.95, font = 2)
+text(c0 - 0.13, f0(4) - 0.32, "A'", adj = 1, cex = 0.95, col = BLU)
+text(c0 - 0.13, f1(6) + 0.30, "B'", adj = 1, cex = 0.95, col = RED)
+arrows(4.15, f0(c0), 4.15, f1(c0), code = 3, length = 0.05, lwd = 1.6)
+text(4.03, (f0(c0) + f1(c0))/2, "true", adj = 1, cex = 0.8)
+arrows(5.85, f0(4), 5.85, f1(6), code = 3, length = 0.05, lwd = 1.6, col = "grey25")
+text(5.85, f0(4) - 0.6, "from the bins", adj = 0.5, cex = 0.8, col = "grey25")
+```
+
+\vspace{-0.4em}
+\footnotesize
+The true effect is $\overline{AB} = 2.4$. But a bin mean sits at the bin's **centre**, not at its edge, so the left limit is read off at $A'$ and the right at $B'$: the estimate is $\overline{A'B'} = 3.5$, too large by $46\%$. **The trends cause the bias** --- flatten the two lines and $A' \to A$, $B' \to B$. 
+<!-- It is a property of the estimator, not of noise, so it does not shrink with sample size.-->
+
+## Kernel and bandwidth
+
+- The standard fix (Hahn, Todd and Van der Klaauw): fit a **line** inside the window rather than a mean, and let it extrapolate the short distance to the boundary. That is local linear regression, and it substantially reduces the bias.
+
+$$
+(\hat a, \hat b) \;=\; \arg\min_{a, b} \sum_{i=1}^n \big(Y_i - a - b(X_i - c_0)\big)^2\,
+K\!\left(\frac{X_i - c_0}{h}\right) \mathbf{1}\{X_i > c_0\}
+$$
+
+- Think of kernel regression as a weighted regression restricted to a window. Two distinct choices, often confused:
+  - The **kernel** $K(\cdot)$ is the *shape* of the window --- how weight declines with distance from the cutoff.
+  - The **bandwidth** $h$ is the *width* of the window --- how far from the cutoff you are willing to look.
+- Averaging within a bin **is** a rectangular kernel: equal weight to every unit inside. That is exactly the biased case above.
+
+## Three choices: $h$, $K(\cdot)$, and $p$
+
+- **The bandwidth $h$.** Smaller: fewer observations, less bias, more variance. Larger: more data, less variance, more bias if the included units depart from the true function. This choice matters most.
+- **The kernel $K(\cdot)$.**
+  - *Rectangular*: equal weight inside the window, zero outside --- a plain window.
+  - *Triangular*: weight declines linearly to zero at the edge.
+  - *Epanechnikov*: parabolic weighting.
+- **The polynomial order $p$.** $p = 0$ is a difference in means --- intuitive, but it *is* the boundary problem. $p > 1$ addresses it but risks overfitting and instability. **Local linear ($p = 1$) is generally preferred.**
+- Calonico, Cattaneo and Titiunik (2014) recommend the **triangular kernel with an MSE-optimal bandwidth**: maximum weight at the cutoff, zero at the window's edge.
+- There is no universally correct answer. Report what you chose, and show the answer does not turn on it.
+
+## The three kernels, written out
+
+Let $u = (X_i - c_0)/h$, so that $|u| \leq 1$ means "inside the window".
+
+\vspace{-0.3em}
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+Rectangular (uniform) & $K(u) = \tfrac{1}{2}\,\mathbf{1}\{|u| \leq 1\}$ \\
+Triangular            & $K(u) = (1 - |u|)\,\mathbf{1}\{|u| \leq 1\}$ \\
+Epanechnikov          & $K(u) = \tfrac{3}{4}(1 - u^2)\,\mathbf{1}\{|u| \leq 1\}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+```{r}
+#| echo: false
+#| fig-width: 5
+#| fig-height: 1.15
+u <- seq(-1.6, 1.6, 0.002)
+ins <- abs(u) <= 1
+kr <- ifelse(ins, 0.5, 0)
+kt <- ifelse(ins, 1 - abs(u), 0)
+ke <- ifelse(ins, 0.75*(1 - u^2), 0)
+RED <- "#B2182B"; BLU <- "#2166AC"
+par(mar = c(3.2, 3.4, 0.5, 0.8), mgp = c(1.9, 0.6, 0), cex = 0.65)
+plot(NULL, xlim = c(-1.6, 1.6), ylim = c(0, 1.08), xlab = "u = (X - c0)/h",
+     ylab = "K(u)")
+abline(v = 0, lty = 2, col = "grey60"); abline(h = 0, col = "grey80")
+lines(u, kr, col = "grey35", lwd = 2.4)
+lines(u, kt, col = RED,     lwd = 2.4)
+lines(u, ke, col = BLU,     lwd = 2.4)
+legend("topright", c("rectangular", "triangular", "Epanechnikov"),
+       col = c("grey35", RED, BLU), lwd = 2.4, bty = "n", cex = 0.9, seg.len = 1.4)
+```
+
+\vspace{-0.4em}
+\footnotesize
+
+- All three have **compact support** --- $K(u) = 0$ once $|u| > 1$.
+- The constants $\tfrac12$ and $\tfrac34$ make each integrate to one, and are **irrelevant here**: scaling every weight equally leaves the WLS solution unchanged.
+<!-- - **Why triangular is the default.** It is MSE-optimal for estimating a regression function *at a boundary point* (Cheng, Fan and Marron 1997) --- which is exactly the RD problem. -->
+
+## The recipe
+
+1. Choose a polynomial order $p$ and a kernel $K(\cdot)$.
+2. Select a bandwidth $h$.
+3. **Above the cutoff**, run weighted least squares of $Y$ on a constant and $p$ terms in $(X_i - c_0)$, with weights $K((X_i - c_0)/h)$. The intercept estimates $\mu_+ = \lim_{x \downarrow c_0} E[Y \mid X = x]$:
+$$
+\hat Y_i = \hat\mu_+ + \hat\mu_{+,1}(X_i - c_0) + \cdots + \hat\mu_{+,p}(X_i - c_0)^p
+$$
+4. **Repeat below the cutoff** for $\hat\mu_-$.
+5. The sharp RD point estimate is the difference of the two intercepts:
+$$
+\hat\tau = \hat\mu_+ - \hat\mu_- .
+$$
+
+- In practice this is one line: `rdrobust(y, x, c = 0)` in R, `rdrobust y x, c(0)` in Stata.
+
+## What "weighted least squares" means in step 3
+
+Give unit $i$ the weight $w_i = K\!\big((X_i - c_0)/h\big)$ and minimise the **weighted** sum of squares:
+$$
+\hat\beta \;=\; \arg\min_{\beta} \sum_{i=1}^{n} w_i \big(Y_i - x_i'\beta\big)^2 ,
+\qquad x_i = \big(1,\; \tilde X_i,\; \tilde X_i^2, \ldots, \tilde X_i^{\,p}\big)', \quad \tilde X_i = X_i - c_0
+$$
+with the closed form $\;\hat\beta = (X'WX)^{-1}X'WY$, where $W = \operatorname{diag}(w_1, \ldots, w_n)$.
+
+<!-- - **The intercept is the answer.** At the cutoff $\tilde X = 0$, so $x = (1, 0, \ldots, 0)'$ and $\hat\mu_+ = \hat\beta_1$. Recentring means the boundary prediction *is* a coefficient --- there is no separate extrapolation step. -->
+- Units with $|\tilde X_i| > h$ get $w_i = 0$ and contribute nothing to either $X'WX$ or $X'WY$.
+- **Rectangular kernel $\Rightarrow$ plain OLS on the subsample**, because every in-window weight is then equal. 
+
+<!-- 
+## These are not the weights from your econometrics course
+
+- In the standard treatment, WLS is a **GLS** device: with heteroskedastic errors $\mathrm{Var}(\varepsilon_i) = \sigma_i^2$, setting $w_i \propto 1/\sigma_i^2$ delivers the *efficient* estimator. The weights are chosen to buy **precision**.
+- Here the weights are a function of $X_i$ alone --- they know nothing about $\sigma_i^2$ --- and they buy **locality** instead. We downweight distant, informative observations *on purpose*, to cut bias.
+- So this estimator is **inefficient by construction**, and that is the point: the whole apparatus of §6.3 is spending variance to buy bias reduction near the boundary.
+- Two consequences worth stating:
+  1. The weights do **not** correct heteroskedasticity. You still need heteroskedasticity-robust standard errors --- and, from the earlier slide, you still must not cluster on the running variable.
+  2. Reported sample sizes are misleading. `rdrobust` prints an *effective* $N$ for this reason: with a triangular kernel, a unit at the edge of the window counts for almost nothing. \hfill \emph{(added)}
+-->
+
+## Choosing the bandwidth
+
+Bias grows with $h$, variance falls with it. Writing each as a function of $h$ and minimising:
+$$
+\mathrm{MSE}(h) \;\approx\; \underbrace{B^2 h^{2(p+1)}}_{\text{bias}^2} + \underbrace{\frac{V}{nh}}_{\text{variance}}
+\qquad\Longrightarrow\qquad
+h_{MSE} \;\propto\; \underbrace{V^{\frac{1}{2p+3}}}_{\text{noise}}\;
+\underbrace{B^{-\frac{2}{2p+3}}}_{\text{curvature}}\;
+\underbrace{n^{-\frac{1}{2p+3}}}_{\text{sample size}}
+$$
+
+
+
+- **Noise $V$: positive exponent.** Noisier data $\Rightarrow$ a **wider** window, to average the noise away. If $V \to 0$, then $h \to 0$ --- use only points at the cutoff.\footnote{*The Remix* states the $n$ and noise directions the other way round. }
+- **Curvature $B$: negative.** More curvature $\Rightarrow$ a **narrower** window. If $B \to 0$ (a truly linear CEF), $h \to \infty$ --- just run OLS on everything.
+- **Sample size $n$: negative.** More data $\Rightarrow$ a **narrower** window. The extra data buys *less bias*, not a wider window --- though the count inside it, $nh \propto n^{(2p+2)/(2p+3)}$, still grows.
+- Imbens and Kalyanaraman (2012) gave the first data-driven rule; Calonico, Cattaneo and Titiunik (2014) is the standard. Bandwidths may differ by side.
+
+
+## Why the obvious confidence interval is wrong
+
+- The local polynomial is a **nonparametric approximation** to an unknown function. It does not fit perfectly inside the window, so $\hat\tau$ carries an approximation bias $B$ as well as sampling noise. Honest inference needs
+$$
+CI = \big[(\hat\tau - B) \pm 1.96 \sqrt{V}\big].
+$$
+- The conventional interval, $CI_{us} = [\hat\tau \pm 1.96\sqrt{\hat V}]$, simply **assumes $B = 0$** --- it centres the interval on a biased point estimate.
+- The consequence is **over-rejection** of the null of no effect. Cattaneo, Jansson and Ma discourage reporting these, and they are not credible under even moderate bias.
+- Worse, there is an internal contradiction: the MSE-optimal bandwidth is chosen *to trade bias against variance*, so at that bandwidth the bias is deliberately **not** negligible.
+
+## Three intervals
+
+\begin{center}
+\small
+\begin{tabular}{lccl}
+\toprule
+Interval & Centred at & Standard error & Verdict \\
+\midrule
+Conventional, $CI_{us}$        & $\hat\tau$          & $\sqrt{\hat V}$      & do not use \\
+Bias-corrected, $CI_{bc}$      & $\hat\tau - \hat B$ & $\sqrt{\hat V}$      & better, but ignores noise in $\hat B$ \\
+Robust bias-corrected, $CI_{rbc}$ & $\hat\tau - \hat B$ & $\sqrt{\hat V_{bc}}$ & \textbf{report this} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Bias correction subtracts an estimate of $B$. But $\hat B$ is itself estimated, and pretending otherwise distorts coverage in finite samples.
+- **Robust** bias correction folds the variability of $\hat B$ into the variance term. Intervals get somewhat wider for the same bandwidth --- that is the honest price of the correction.
+- This is what `rdrobust` reports by default. Report the robust row, and say that you did.
+
+## Two more things about standard errors
+
+- **Do not cluster on the running variable.** Lee (2008) and Lee and Card (2008) recommended it and the practice spread through most subsequent RD studies. **Kolesár and Rothe (2018)** show it performs badly, with inflated Type I error. Use heteroskedasticity-robust errors, or "honest" intervals (`RDHonest`).
+- **Sparse data near the cutoff** is the recurring practical problem. When observations are thin, or the running variable is coarse with large gaps between values, robust intervals may fail to centre properly --- more often than practitioners realise.
+- **Randomization inference** (Cattaneo, Frandsen and Titiunik) offers an alternative: assume that within a **small window** around the cutoff, treatment is effectively randomly assigned, then analyse that window as an experiment.
+- It gives exact or approximate $p$-values under weaker assumptions than local polynomials, and does better when data are sparse. It also matches the experimental analogy RD keeps invoking.
+
+# 6.4 Challenges to Identification
+
+## Five ways continuity fails
+
+Continuity is the whole design. It breaks when:
+
+1. The **assignment rule is known** in advance;
+2. Agents are **interested** in adjusting their score;
+3. Agents **have time** to adjust;
+4. The **cutoff is endogenous** --- something else changes at $c_0$ too;
+5. There is **nonrandom heaping** along the running variable.
+
+\vspace{0.3em}
+
+- Conditions 1--3 together are the recipe for **sorting**: retaking an exam, reporting income just below a threshold, delaying a birth. All three are needed --- an agent with an incentive *and* an opportunity.
+- Condition 4 is different, and often overlooked. Turning 18 brings adult criminal penalties --- and also voting rights, high-school graduation, and much else. The cutoff is real but not clean, and the confound is not a variable you forgot to control for.
+- Condition 5 is mechanical rather than strategic, and gets its own treatment below.
+
+## Sorting, and the two rooms
+
+- Two rooms of patients waiting for a life-saving treatment. Room A will receive it; room B knowingly receives nothing. What do you do if you are in room B?
+- You stand up, open the door, and walk across the hall. The only thing that would keep you in room B is if crossing were impossible.
+- And if everyone crosses, room A ends up crowded and room B nearly empty. That imbalance is the **observable footprint** of sorting: you cannot see motives, but you can count how many ended up on each side.
+- Formally: with a desirable treatment and rule $X \geq c_0$, agents choose $X$ just above $c_0$ whenever they are able. If their *ability* to do so is related to their potential outcomes, the comparison at the cutoff is contaminated.
+- Behavioural theory makes a **testable prediction** --- a discontinuity in the *density* of the running variable. Statistics built on optimising behaviour can take you further than statistics alone.
+
+## The McCrary density test
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.5
+RED <- "#B2182B"
+par(mfrow = c(1, 2), mar = c(4, 4, 2.2, 1), cex = 0.8)
+xs <- seq(-1, 1, 0.002); c0 <- 0
+f  <- function(x) dnorm(x, 0, 0.45)
+plot(xs, f(xs), type = "n", xlab = "running variable", ylab = "density",
+     main = "No manipulation", ylim = c(0, 1.55))
+lines(xs[xs <  c0], f(xs[xs <  c0]), lwd = 2.4, col = "grey25")
+lines(xs[xs >= c0], f(xs[xs >= c0]), lwd = 2.4, col = "grey25")
+abline(v = c0, lty = 2, col = RED)
+text(0.07, 1.42, "continuous through the cutoff", adj = 0, cex = 0.68, col = "grey30")
+
+g <- function(x) ifelse(x < c0, f(x)*0.72, f(x)*1.28)
+plot(xs, g(xs), type = "n", xlab = "running variable", ylab = "density",
+     main = "Manipulation", ylim = c(0, 1.55))
+lines(xs[xs <  c0], g(xs[xs <  c0]), lwd = 2.4, col = "grey25")
+lines(xs[xs >= c0], g(xs[xs >= c0]), lwd = 2.4, col = "grey25")
+abline(v = c0, lty = 2, col = RED)
+arrows(0, g(-1e-6), 0, g(1e-6), code = 3, length = 0.04, lwd = 1.6, col = RED)
+text(0.07, 1.42, "room B emptied into room A", adj = 0, cex = 0.68, col = "grey30")
+```
+
+\vspace{-0.4em}
+
+- Under the null of no manipulation the density of $X$ is **continuous** at $c_0$; under the alternative it bunches on the treated side.
+- Mechanically: partition the running variable into bins, count observations per bin, treat the counts as an outcome, fit a local linear regression on each side, and test whether the limits agree.
+- Use `rddensity` (Cattaneo, Jansson and Ma) --- local polynomials with less bias at the border than the original. **It needs a lot of data at $c_0$** to separate a real jump from noise.
+
+## Covariate balance and placebo cutoffs
+
+- **Covariate balance.** Pre-treatment characteristics cannot be caused by treatment, so they must not jump at $c_0$. Run the same RD with each covariate as the outcome and find nothing. Lee, Moretti and Butler (2004) is the template: real income, share with a high-school degree, share Black, share eligible to vote --- all smooth through the $50\%$ Democratic vote share.
+- A jump in a covariate is serious. It means something *other than* treatment changes at the cutoff --- and if an observed characteristic jumps, unobserved ones probably do too.
+- **Placebo cutoffs.** Imbens and Lemieux (2008): take one side of the discontinuity, use the median of the running variable there as a fake cutoff $c_0'$, and test for a jump in the outcome. You do not want to find anything.
+- The identifying assumptions cannot be tested directly. What these do is supply **indirect evidence** that may be persuasive --- placebo logic, looking where there should be no effect.
+
+## Nonrandom heaping
+
+- **Almond, Doyle, Kowalski and Williams (2010)** wanted the returns to medical care --- hard, because doctors assign care by expected outcome, which is selection bias by construction. The Perfect Doctor problem again.
+- Their insight: babies below $1{,}500$g are classified "very low birth weight" and receive heightened attention. Using hospital records linked to mortality, they found one-year mortality about **one percentage point lower** just below the threshold, against a mean of $5.5\%$. Large, and apparently far exceeding the cost.
+- They ran the McCrary test at $1{,}500$g and **found nothing**. Satisfied, they proceeded.
+- **Barreca, Guldi, Lindo and Waddell** then looked at the *shape* of the whole distribution rather than at one discontinuity, and found **heaping**: excess mass at every round $100$g mark, from hospitals rounding to the nearest integer --- or, more troublingly, from staff rounding *to* $1{,}500$g to trigger specialised care.
+- Nature does not produce piles of babies every hundred grams. Heaping is either rounding or manipulation.
+
+## What passing the density test does *not* prove
+
+- The babies heaped exactly at $1{,}500$g had **unusually high mortality** --- outliers relative to units on *both* sides.
+- The consequence, in Barreca et al.'s words: the heaping alone makes it look "good" to be **strictly below any** $100$g cutoff between $1{,}000$ and $3{,}000$g. That is not a treatment effect; it is a composition effect.
+- The McCrary test asks one question --- *is the density continuous?* --- and the answer was yes. The problem lived in a different feature of the same distribution.
+- **The lesson is the one from Lecture 3.** A test on one feature cannot clear a problem living in another. There, means passed while variances failed. Here, the density was continuous while the composition was not. \hfill \emph{(added)}
+- Plot the raw distribution. Do not rely on a test statistic alone.
+
+## The donut-hole RD
+
+- If units *at* the cutoff are suspect --- heaped, rounded, or manipulated --- but units nearby are fine, drop the suspect ones and re-estimate. That is the **donut hole**.
+- The justification is clean: RD compares means *as we approach* the threshold, so the estimate should not be sensitive to observations exactly at it.
+- In Almond et al.'s data, dropping about **$2\%$** of observations cut the estimated one-year mortality effect roughly **in half**.
+- The costs are real:
+  - You lose observations you often cannot afford to lose, so it may be infeasible when the heap is large relative to the sample.
+  - The estimand changes. It is now local to a population defined by a hole in its middle --- harder to describe, and further still from anything a policymaker asked about.
+- Heaping is not fatal. But report both, with and without the donut, and let the reader see the difference.
+
+# 6.5 Medicare and Universal Healthcare
+
+## The question
+
+- **Card, Dobkin and Maestas (2008)**: what does universal health insurance do to healthcare use? Medicare arrives sharply at age **65**.
+- The stakes are large. In 2014 Medicare was $14\%$ of the US federal budget --- $\$505$ billion.
+- Around $20\%$ of non-elderly US adults were uninsured in 2005, mostly from lower-income families, nearly half Black or Hispanic. Unequal coverage is a leading explanation for disparities in healthcare use and health outcomes.
+- **Why observational comparisons fail.** Both the supply of and the demand for insurance depend on health status, so $\mathrm{cov}(u, C) \neq 0$. Comparing the insured with the uninsured measures selection as much as treatment --- and even among the insured, copays and deductibles vary with health.
+- For the elderly the picture inverts: **under $1\%$ are uninsured**, most on fee-for-service Medicare, and the transition happens at one known age.
+
+## The empirical design
+
+Healthcare use $y$ depends on characteristics $C^k$ of coverage (copayments, generosity), for individual $i$, group $j$, age $a$. **$C$ is endogenous**, so OLS does not identify $\pi_k$:
+$$
+y_{ija} = X_{ija}\beta + f_j(a) + \textstyle\sum_k \pi_k C^k_{ija} + u_{ija}
+$$
+
+Model two coverage dummies --- any coverage, and generous coverage --- as jumping at 65, with $D_a = \mathbf{1}\{a \geq 65\}$:
+$$
+C^k_{ija} = X_{ija}\beta^k_j + g^k_j(a) + D_a\,\delta^k_j + v^k_{ija}, \qquad k = 1, 2
+$$
+
+Substituting, the jump in $y$ at 65 is a **combination** of the two coverage jumps: $\;\delta^y_j = \pi_1 \delta^1_j + \pi_2 \delta^2_j$.
+
+- If $f_j$, $g^1_j$ and $g^2_j$ are all **continuous at 65** --- the identifying assumption --- any discontinuity in $y$ is due to insurance.
+- One group gives one equation in two unknowns. With **several groups**, regressing $\delta^y_j$ on $\delta^1_j$ and $\delta^2_j$ across $j$ separates $\pi_1$ from $\pi_2$.
+
+## The data
+
+- **NHIS, 1992--2003.** Reports birth year, birth month, and calendar quarter of interview --- enough to construct **age in quarters**. Someone reaching 65 in the interview quarter is coded 65 and 0 quarters; assuming uniform interview dates, half of them are up to six weeks younger than 65 and half up to six weeks older.
+- Restricted to ages 55--75. Final sample: **$160{,}821$** observations.
+- **Hospital discharge records** for California, Florida and New York --- a complete census of discharges, with **age in months** at admission. Transfers dropped, ages 60--70 kept. Sample sizes $4{,}017{,}325$, $2{,}793{,}547$ and $3{,}121{,}721$.
+- **The institution is genuinely sharp.** Coverage begins on the first day of the month you turn 65. Individuals are notified shortly before their birthday, and must enrol and choose whether to take Part B. Part A is free; Part B costs a modest premium.
+
+## What jumps at 65: insurance
+
+\begin{center}
+\scriptsize
+\begin{tabular}{lrrrrr}
+\toprule
+ & On Medicare & Any insurance & Private & 2+ forms & Managed care \\
+\midrule
+Overall sample        & $59.7$ & $9.5$  & $-2.9$ & $44.1$ & $-28.4$ \\
+                      & $(4.1)$ & $(0.6)$ & $(1.1)$ & $(2.8)$ & $(2.1)$ \\[0.3em]
+White, some college   & $68.4$ & $4.4$  & $-2.3$ & $55.1$ & $-40.1$ \\
+                      & $(4.7)$ & $(0.5)$ & $(1.8)$ & $(4.0)$ & $(2.6)$ \\[0.3em]
+Minority, HS dropout  & $44.5$ & $21.5$ & $-1.2$ & $19.4$ & $-8.3$ \\
+                      & $(3.1)$ & $(2.1)$ & $(2.5)$ & $(1.9)$ & $(3.1)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\footnotesize
+Percentage-point discontinuities at 65, from quadratics in age fully interacted with the post-65 dummy, plus controls for gender, education, race, region and year. Pooled 1999--2003 NHIS.
+\normalsize
+
+- The **first stage is enormous**: Medicare coverage jumps about $60$ points, and holding two or more forms of coverage jumps $44$.
+- Who *gains* insurance and who merely **swaps** it differs sharply. Minority dropouts gain coverage ($+21.5$); white college-goers were already insured and mostly change its form ($+4.4$, with managed care down $40$ points).
+
+## The confounder: what else happens at 65?
+
+- Continuity requires that **everything else** trends smoothly through 65 --- observed and unobserved. But 65 is also the traditional retirement age, and non-workers have more time to visit a doctor.
+- If employment fell discontinuously at 65, part of any jump in healthcare use would be leisure, not insurance.
+- So the authors bring in a **third dataset**, the March CPS 1996--2004, and run the same RD with employment as the outcome. They find **no discontinuity at 65**.
+- This is the covariate-balance logic of §6.4, aimed at the one confounder that institutional knowledge flags as dangerous.
+- **The general lesson.** "Does anything else change at the cutoff?" is not a statistical question first. You answer it by knowing the institution, and then testing what that knowledge suggests. \hfill \emph{(added)}
+
+## What jumps at 65: access and use
+
+\begin{center}
+\scriptsize
+\begin{tabular}{lrrrr}
+\toprule
+ & Delayed care & Did not get care & Saw a doctor & Hospital stay \\
+\midrule
+Overall sample        & $-1.8$ & $-1.3$ & $1.3$ & $1.2$ \\
+                      & $(0.4)$ & $(0.3)$ & $(0.7)$ & $(0.4)$ \\[0.3em]
+White non-Hispanic    & $-1.6$ & $-1.2$ & $0.6$ & $1.3$ \\
+                      & $(0.4)$ & $(0.3)$ & $(0.8)$ & $(0.5)$ \\[0.3em]
+Hispanic              & $-4.9$ & $-3.8$ & $8.2$ & $11.8$ \\
+                      & $(0.8)$ & $(0.7)$ & $(0.8)$ & $(1.6)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\footnotesize
+Percentage-point discontinuities at 65. First two columns from the 1997--2003 NHIS, last two from 1992--2003.
+\normalsize
+
+- Overall the effects are **small but precisely estimated**: care delayed over cost falls $1.8$ points, unmet need $1.3$, doctor visits rise $1.3$, hospital stays $1.2$.
+- The averages hide the story. For **Hispanics** the effects are three to ten times larger --- an $11.8$-point rise in hospital stays. Coverage matters most for those who had least.
+
+## And mortality
+
+\begin{center}
+\scriptsize
+\begin{tabular}{lrrrrrr}
+\toprule
+Death rate within & 7 days & 14 days & 28 days & 90 days & 180 days & 365 days \\
+\midrule
+Quadratic + controls & $-1.0$ & $-0.8$ & $-0.9$ & $-0.9$ & $-0.8$ & $-0.7$ \\
+                     & $(0.2)$ & $(0.2)$ & $(0.3)$ & $(0.3)$ & $(0.3)$ & $(0.4)$ \\[0.3em]
+Cubic + controls     & $-0.7$ & $-0.7$ & $-0.6$ & $-0.9$ & $-0.9$ & $-0.4$ \\
+                     & $(0.3)$ & $(0.2)$ & $(0.4)$ & $(0.4)$ & $(0.5)$ & $(0.5)$ \\[0.3em]
+Local OLS, ad hoc bandwidths & $-0.8$ & $-0.8$ & $-0.8$ & $-0.9$ & $-1.1$ & $-0.8$ \\
+                     & $(0.2)$ & $(0.2)$ & $(0.2)$ & $(0.2)$ & $(0.3)$ & $(0.3)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\footnotesize
+From Card, Dobkin and Maestas (2009), a follow-up study. Percentage-point discontinuities at 65. The chapter's fourth row --- a quadratic with no controls --- is omitted here.
+\normalsize
+
+- Roughly a **one-percentage-point** reduction in death rates, stable from 7 days out to a year.
+- Note what the table is really doing: reporting the same estimate under a quadratic, a cubic, and local OLS. **Answers that barely move across specifications** are the point of the exercise --- compare the §6.3 simulation, where they moved by five orders of magnitude.
+
+## What to take from Card, Dobkin and Maestas
+
+- **The design is textbook sharp.** A statutory age, a first stage of $60$ percentage points, and an institution that gives individuals no way to move their birthday.
+- **The chain is explicit.** Coverage jumps $\rightarrow$ access improves $\rightarrow$ utilisation rises $\rightarrow$ mortality falls slightly. Every link is estimated at the same cutoff, in the same design.
+- **The confounder was named before it was tested.** Retirement at 65 is the obvious threat, and they went to a third dataset to rule it out.
+- **Heterogeneity is where the economics is.** On average Medicare mostly *swaps* one form of coverage for another, and the average effect on access is small. Both averages conceal large gains for the previously uninsured.
+- Contrast with Hansen, coming next: there the estimate is large and the *mechanism* stays ambiguous. Here the mechanism is clear and the average effect is small. \hfill \emph{(added)}
+
+# 6.6 DUI and Recidivism: A Data Exercise
+
+## Why deterrence is hard to identify
+
+- Becker (1968): crime is deterred either by raising the **probability of arrest** or by raising the **punishment** conditional on conviction. Both are policy levers, and the "scared straight" reading says the mere communication of a severe penalty may be enough.
+- The empirical problem is that harsher penalties do two things at once. They may **deter** --- offenders rationally reoffend less --- and they certainly **incapacitate**, by removing offenders from the population at risk.
+- Longer sentences are the leading example, and the main driver of US mass incarceration. Crime falls, but is that rational deterrence or simply that more people are behind bars? Aggregate data cannot separate the two.
+- Two designs that can: **Drago, Galbiati and Vertova (2009)** exploit an Italian collective pardon that left otherwise-identical offenders with different residual sentences. **Lee and McCrary (2017)** use exact birth dates and the jump in penalties at 18. Both find small deterrence effects.
+- **Hansen (2015)** found a third: something close to a coin flip inside a breathalyzer.
+
+## The setting
+
+- In Washington State, a driver stopped on suspicion blows into a breathalyzer, which records **blood alcohol content**. At $\mathbf{0.08}$ or above they are charged with DUI. Punishments **escalate with prior offences**, and a second threshold at $0.15$ marks "aggravated" DUI --- we use $0.08$ only.
+
+\begin{center}
+\scriptsize
+\begin{tabular}{lrrrr}
+\toprule
+ & \multicolumn{2}{c}{1st offence} & \multicolumn{2}{c}{2nd offence} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}
+ & DUI & Agg. DUI & DUI & Agg. DUI \\
+\midrule
+Minimum fine        & \$865.50 & \$1{,}120.50 & \$1{,}120.50 & \$1{,}545.50 \\
+Minimum jail time   & 24 hours & 48 hours & 30 days & 45 days \\
+Licence suspension  & 90 days & 365 days & 2 years & 900 days \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **The design:** compare drivers who blew $0.079$ with drivers who blew $0.081$. If those just above reoffend less, the escalated punishment deterred them.
+- **The outcome:** recidivism --- the same person stopped again and blowing above $0.08$, measurable because the records carry persistent personal identifiers.
+- Our extract has $214{,}558$ stops against Hansen's $512{,}694$, so we **copy** his steps rather than replicate his numbers.
+
+## Continuous, or merely fine-grained?
+
+- Washington's breathalyzers reported to $0.001$. That is precise --- but it is not continuous, and the distinction matters.
+- **Truly continuous** running variable: the probability that any two units share a value is zero.
+- **Multi-valued** running variable: the scale is coarsened, so many units share values. Nobody can sit *between* two $0.001$ bins.
+- Consequences, both practical:
+  - Density tests "can be a little funky" when the running variable is not continuous --- there is mass *at* points, not merely near them.
+  - `rdrobust` warns *"Mass points detected in the running variable"* on these data, and **Kolesár and Rothe (2018)** was written for exactly this case.
+- It rarely invalidates the design. But it is the kind of institutional detail that belongs in the paper rather than in a footnote. \hfill \emph{(added)}
+
+## Step 1: is the running variable manipulated?
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.75
+dwi <- read.csv("data/hansen_dwi.csv")
+RED <- "#B2182B"
+par(mar = c(4, 4, 1.2, 1), cex = 0.8)
+                                       # round first: the raw floats (0.13699999,
+                                       # 0.13600001) collide inside 0.001-wide bins
+bb <- round(dwi$bac1, 3); bb <- bb[bb > 0 & bb <= 0.25]
+tb <- table(bb)
+plot(as.numeric(names(tb)), as.integer(tb), type = "h", col = "grey55",
+     xlab = "BAC", ylab = "number of stops", xlim = c(0, 0.25), lwd = 1)
+abline(v = 0.08, col = RED, lwd = 2, lty = 2)
+text(0.085, max(as.integer(tb))*0.92, "0.08", col = RED, adj = 0, cex = 0.9)
+```
+
+\vspace{-0.3em}
+\footnotesize
+No bunching at $0.08$, and --- unlike the birth-weight data --- no heaping at round numbers. `rddensity` gives $T = -0.14$, $p = 0.89$. That is what the institution predicts. **Recall the five conditions:** the rule is known and drivers would dearly like to adjust, but the officer operates the machine and they have no opportunity. Two of three conditions are not enough.
+
+## Step 2: do covariates jump at the cutoff?
+
+\begin{center}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+ & white & male & age & accident \\
+\midrule
+Effect of DUI & $0.0057$ & $0.0062$ & $-0.1405$ & $-0.0034$ \\
+              & $(0.0050)$ & $(0.0057)$ & $(0.1644)$ & $(0.0041)$ \\
+Mean of outcome & $0.853$ & $0.792$ & $34.17$ & $0.101$ \\
+$N$ & $89{,}967$ & $89{,}967$ & $89{,}967$ & $89{,}967$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Hansen's specification: $Y_i = \alpha + \tau\, \mathrm{DUI}_i + \beta_1 \mathrm{BAC}_i + \beta_2 \mathrm{BAC}_i \cdot \mathrm{DUI}_i + X_i\gamma + \varepsilon_i$, on $0.03 \leq \mathrm{BAC} \leq 0.13$ --- a **rectangular** kernel with bandwidth $0.05$ on each side, robust standard errors. Unweighted OLS *is* a rectangular kernel.
+- Nothing is significant, and the point estimates are tiny against the means: $0.6$ percentage points on an $85\%$ base, a tenth of a year on a mean age of $34$.
+- These are **precise nulls**, which is the useful kind. A null with enormous standard errors would tell you nothing at all.
+
+## Step 2, in pictures
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 3.0
+RED <- "#B2182B"; BLU <- "#2166AC"
+w  <- subset(dwi, bac1 >= 0.03 & bac1 <= 0.13)
+br <- seq(0.03, 0.13, 0.002); mid <- head(br, -1) + 0.001
+vars <- c("male", "white", "aged", "acc")
+labs <- c("male", "white", "age", "accident")
+par(mfrow = c(2, 2), mar = c(3.2, 3.8, 1.5, 0.8), mgp = c(2.3, 0.7, 0), cex = 0.6)
+for (j in seq_along(vars)) {
+  v  <- w[[vars[j]]]
+  bm <- tapply(v, cut(w$bac1, br), mean)
+  plot(mid, bm, pch = 16, cex = 0.7, col = "grey40", xlab = "BAC", ylab = labs[j],
+       main = labs[j], cex.main = 1.15)
+  abline(v = 0.08, lty = 2, col = "grey45")
+  for (s in 0:1) {
+    k  <- if (s == 0) w$bac1 < 0.08 else w$bac1 >= 0.08
+    dd <- data.frame(b = w$bac1[k], y = v[k])
+    m  <- lm(y ~ b, data = dd)
+    xx <- seq(min(dd$b), max(dd$b), length.out = 50)
+    lines(xx, predict(m, data.frame(b = xx)), col = if (s == 0) BLU else RED, lwd = 2)
+  }
+}
+```
+
+\vspace{-0.3em}
+\footnotesize
+Means in $0.002$-wide BAC bins, with a line fitted on each side. The lines **meet** at $0.08$ in all four panels --- which is what the regression table said, now visible. Note how much more convincing the picture is than the coefficients were.
+
+## Step 3: look at the outcome
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.9
+RED <- "#B2182B"; BLU <- "#2166AC"
+bm <- tapply(w$recidivism, cut(w$bac1, br), mean)
+par(mfrow = c(1, 2), mar = c(4, 4, 2.2, 1), cex = 0.8)
+for (deg in 1:2) {
+  plot(mid, bm, pch = 16, cex = 0.7, col = "grey40", ylim = c(0.07, 0.15),
+       xlab = "BAC", ylab = "recidivism",
+       main = if (deg == 1) "Linear" else "Quadratic")
+  abline(v = 0.08, lty = 2, col = "grey45")
+  for (s in 0:1) {
+    k  <- if (s == 0) w$bac1 < 0.08 else w$bac1 >= 0.08
+    xx <- seq(min(w$bac1[k]), max(w$bac1[k]), length.out = 100)
+    m  <- lm(recidivism ~ poly(bac1, deg, raw = TRUE), data = w[k, ])
+    lines(xx, predict(m, data.frame(bac1 = xx)), col = if (s == 0) BLU else RED, lwd = 2.3)
+  }
+}
+```
+
+\vspace{-0.3em}
+\footnotesize
+Now the lines **do not** meet. Recidivism runs between $8\%$ and $14\%$ --- not common, so the estimated effect will be large in relative terms --- and it falls discontinuously for drivers who blew just over the limit. Eyeballing the left panel: about $11.5\%$ drops to about $9.75\%$, so roughly $1.75$ points. The quadratic gives a slightly smaller gap, nearer $1.25$--$1.5$.
+
+## Step 4: the regressions
+
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+Outcome: recidivism & (1) & (2) \\
+\midrule
+Effect of DUI & $-0.0236$ & $-0.0143$ \\
+              & $(0.0044)$ & $(0.0062)$ \\
+\midrule
+Polynomial & BAC & BAC, BAC$^2$ \\
+Mean of outcome & $0.107$ & $0.107$ \\
+$N$ & $89{,}967$ & $89{,}967$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Same window and kernel as the balance table; column (2) interacts DUI with BAC **and** BAC$^2$, modelling the potential-outcome functions more flexibly. Coefficients and standard errors reproduce Hansen's Table 6.7 exactly.
+- Column (1): a $2.4$ percentage-point fall against a base of $10.7\%$ --- a drop of more than a fifth, taking recidivism at the cutoff to about $9.3\%$. Column (2) allows curvature and gives $1.4$ points.
+- Both match the eyeballed figures. But **the specification moves the answer by 40%** --- §6.3's misspecification problem in a real dataset. Which is why the next step is not optional.
+
+## Step 5: data-driven bandwidths
+
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+ & $p = 0$ & $p = 1$ & $p = 2$ \\
+\midrule
+Effect of DUI & $-0.0189$ & $-0.0195$ & $-0.0209$ \\
+              & $(0.0051)$ & $(0.0061)$ & $(0.0071)$ \\
+\midrule
+Bandwidth (left)  & $0.020$ & $0.033$ & $0.038$ \\
+Bandwidth (right) & $0.014$ & $0.054$ & $0.094$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- `rdrobust` with a **triangular** kernel, MSE-optimal bandwidths allowed to differ by side, and robust bias-corrected inference. This goes beyond what Hansen himself did.
+- The estimates sit in a tight band, $-1.9$ to $-2.1$ points, and are **far more stable across $p$** than the fixed-bandwidth regressions were --- and not far from them either.
+- Bandwidths **widen** as $p$ rises. That is the $n^{-1/(2p+3)}$ formula at work, not a judgement call: more polynomial terms mechanically buy a wider window.
+
+## The code
+
+```r
+library(rdrobust); library(rddensity)
+d <- read.csv("hansen_dwi.csv")
+
+# 1. manipulation
+rddensity(X = d$bac1, c = 0.08)                       # T = -0.14, p = 0.89
+
+# 2. covariate balance, Hansen's window and kernel
+d$dui <- as.integer(d$bac1 >= 0.08); d$bacc <- d$bac1 - 0.08
+w <- subset(d, bac1 >= 0.03 & bac1 <= 0.13)
+lm(white ~ dui * bacc, data = w)                      # repeat for male, aged, acc
+
+# 3. the main regressions
+lm(recidivism ~ dui * bacc, data = w)                 # -0.0236
+lm(recidivism ~ dui * (bacc + I(bacc^2)), data = w)   # -0.0143
+# 4. data-driven bandwidths
+rdrobust(y = d$recidivism, x = d$bac1, c = 0.08, p = 1,
+         kernel = "triangular", bwselect = "msetwo")  # -0.0195
+```
+
+- `bwselect = "msetwo"` allows the bandwidth to differ by side. With a common bandwidth (`"mserd"`, the default) the estimate is $-0.0168$: a default is still a choice.
+
+## What the replication shows
+
+- **The evidence is coherent.** A continuous density, four flat covariates, a visible break in the picture, and estimates between $-1.4$ and $-2.4$ percentage points across every specification we tried.
+- **The steps are the general recipe**, not something specific to drunk driving: density of the running variable, covariate balance, pictures, parametric regressions, then optimal bandwidths.
+- **The interpretation is less clean than the identification.** Getting a DUI charge reduces the chance of another. But is that deterrence from the escalated penalty, the shock of the arrest itself, or being scared into getting help? RD identifies the effect of *crossing the threshold*, not of any single mechanism that crossing sets off.
+- That gap between a well-identified effect and a well-understood mechanism is not a flaw in the design. It is a limit on what any threshold can tell you, and it should be stated rather than glossed.
+- **The estimand, precisely:** the average effect of being charged with a DUI, for drivers whose BAC was almost exactly $0.08$. Not for drivers at $0.15$, and not for drivers never stopped.
+
+# RD in Finance *(added section)*
+
+## Where the cutoffs are
+
+- Finance is full of rules with thresholds, which is why RD has spread quickly in the field.
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+Paper & Running variable & Cutoff & Design \\
+\midrule
+Keys et al.\ (2010)       & FICO credit score  & $620$   & sharp-ish \\
+Malenko and Shen (2016)   & ISS voting-policy score & policy threshold & sharp \\
+Almeida et al.\ (2016)    & EPS relative to consensus & $0$ & sharp \\
+Cu\~nat et al.\ (2012)    & shareholder vote share & $50\%$ & fuzzy \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Index membership rules, covenant thresholds, credit ratings at the investment-grade boundary, regulatory size thresholds --- all candidates.
+- The econometrics is identical to Hansen's. What differs is how plausible **no manipulation** is: in finance the agents are sophisticated, well advised, and highly motivated. Conditions 1--3 of §6.4 are routinely all satisfied.
+
+## Three finance applications
+
+- **Keys, Mukherjee, Seru and Vig (2010).** Securitisation rules of thumb made loans just above a FICO of $620$ substantially easier to securitise. Loans just above the cutoff default more --- evidence that securitisation weakened screening incentives. The running variable is a credit score the lender observes and the borrower cannot easily move.
+- **Malenko and Shen (2016).** ISS issues a negative say-on-pay recommendation when a firm crosses a threshold in its scoring policy. Firms just past it see a large drop in voting support, identifying the causal influence of proxy advisers rather than merely their information.
+- **Almeida, Fos and Kronlund (2016).** Firms that would just miss the consensus EPS forecast repurchase shares to push EPS above it. Running variable: EPS before repurchases, relative to consensus. Cutoff: zero.
+- Notice the last one. The whole point of the paper is that firms **manipulate their position** relative to the threshold. That is a design where the running variable is endogenous by construction --- the assumption violation, studied as the finding.
+
+## Close votes: the most-used and most-questioned design
+
+- A shareholder proposal passing at $50\%$ looks like the ideal RD. Vote shares are near-continuous, the threshold is a legal rule, and outcomes are observable. Governance research uses this design heavily.
+- **But are close votes as good as random?** In political science, Caughey and Sekhon (2011) found that US House candidates who *barely won* differed systematically from those who barely lost --- in incumbency, spending, and experience. Density and covariates both failed near $50\%$.
+- Eggers, Fowler, Hainmueller, Hall and Snyder (2015) then examined some $40{,}000$ close elections across many settings and found the sorting was largely **specific to the post-war US House**, not a general feature of close elections.
+- For **shareholder** votes the concern is sharper than for elections. Management sees preliminary tallies, can lobby large holders, and can adjourn a meeting. Nudging $49\%$ to $51\%$ is precisely the sorting McCrary tests for.
+- So: run the density test, check covariate balance, and read the institutional detail. And note that vote-share designs are usually **fuzzy** --- passing is not implementing.
+
+## How much data do you actually have?
+
+- RD estimates come from a **neighbourhood**, not a sample. What matters is how many observations sit inside the bandwidth, not how many rows the dataset has.
+- Hansen's data have $214{,}558$ stops, and the MSE-optimal bandwidths still discard most of the range --- with the triangular kernel down-weighting even what survives.
+- Now consider a typical governance study: a few hundred close votes in total, perhaps forty within a few percentage points of $50\%$. That is a very small experiment.
+- This is the same idea as the effective sample size from Lecture 3. Weighting concentrates influence; RD concentrates it at a point.
+- **Practical consequence:** in finance, RD is often badly underpowered, and an underpowered RD produces large, noisy, occasionally significant estimates. If you cannot see it in the picture, it probably is not there.
+
+# 6.7 Practical Advice
+
+## Visualising the outcome
+
+- RD is an **unusually visualisation-intensive** method. Get ready to make a lot of pictures.
+- The rule of thumb: *if you cannot see the effect in the data, you are probably underpowered, or it is not there.* A regression that finds what the picture does not show deserves suspicion, not a footnote.
+- What is universal in practice: outcomes plotted as **means within bins** of the running variable. Whether to overlay the fitted lines is a matter of taste --- some readers want the raw data alone, others want the fit that the regression implies. Both are common.
+- Either make the bins yourself, or use automated software. **Binscatter** (Cattaneo, Crump, Farrell and Feng 2024) is the popular alternative, and chooses bin widths on a principled basis rather than by eye.
+- Show **more than one fit** --- linear and quadratic at least. If the discontinuity is visible under both, that is evidence; if it appears under only one, that is a specification, not a finding.
+
+## Show that the answer does not depend on the bandwidth
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.75
+suppressMessages(library(rdrobust))
+hs <- seq(0.01, 0.06, by = 0.0025)
+res <- t(sapply(hs, function(h) {
+  r <- rdrobust(y = dwi$recidivism, x = dwi$bac1, c = 0.08, p = 1,
+                kernel = "triangular", h = h)
+  c(r$coef[1], r$ci[3, 1], r$ci[3, 2])
+}))
+RED <- "#B2182B"
+par(mar = c(4, 4.2, 1.2, 1), cex = 0.8)
+plot(hs, res[, 1], type = "n", ylim = range(res), xlab = "bandwidth h",
+     ylab = "estimated effect on recidivism")
+abline(h = 0, col = "grey60")
+polygon(c(hs, rev(hs)), c(res[, 2], rev(res[, 3])), col = "grey90", border = NA)
+lines(hs, res[, 1], col = RED, lwd = 2.4); points(hs, res[, 1], pch = 16, cex = 0.6, col = RED)
+abline(v = 0.033, lty = 2, col = "grey35")
+text(0.0335, max(res)*0.9, "MSE-optimal (left)", adj = 0, cex = 0.75, col = "grey30")
+```
+
+\vspace{-0.3em}
+\footnotesize
+Hansen's data, local linear with a triangular kernel, robust bias-corrected intervals. The point estimate moves only between $-0.016$ and $-0.021$ across a six-fold range of bandwidths. **This is what a robust result looks like.** A plot that swings across zero, or that is significant only in a narrow window, is telling you something --- and it is not good news. \hfill \emph{(added)}
+
+## Checking the probability of treatment
+
+- When assignment is **not** sharp, plot $\Pr(D = 1)$ against the running variable. This is the **first stage**, and without a clear jump --- without "bite" --- there is nothing to estimate.
+- **Hoekstra (2009)** is the model. Before estimating the returns to attending a state flagship university, he shows that admission at the test-score cutoff produces a sharp jump in *attendance*. The effect on earnings comes second.
+- Two things this picture does for you:
+  1. It shows the rule is real and enforced, in the data rather than in the statute.
+  2. Its **size** determines your precision. A first stage of $0.6$ means the reduced form must be scaled up by $1/0.6$, and so must its standard error.
+- Report the first-stage plot even in a design you believe is sharp. If the jump is not to one, you have a fuzzy design whether you wanted one or not.
+
+## Checking density and covariate balance
+
+- **Density.** Run the McCrary test --- but plot the distribution first. A test statistic summarises one feature; the picture shows heaping, gaps, mass points, and coarseness that the statistic will miss. Almond et al. is the cautionary case.
+- **Covariate balance.** Plot each covariate against the running variable, with the same bins and the same fits as the main result. Lee, Moretti and Butler (2004) is the template.
+- A jump in a covariate is a real problem: it says the two sides differ in something other than treatment, and if an *observed* characteristic jumps, unobserved ones probably do too.
+- Use the **same specification** for the balance tests as for the main estimate. A balance test at a different bandwidth, or a different polynomial order, is not testing the design you actually ran.
+
+## A checklist for an RD paper
+
+\small
+
+1. **Name the rule.** Cite the statute, policy document or contract. Say who assigns the score and who can see it.
+2. **Plot the density** of the running variable and run a formal test. Look for heaping, not just a jump.
+3. **Plot the outcome** in bins, with fits on each side. If the effect is not visible, be sceptical of the regression that finds it.
+4. **Show covariate balance**, in a table and a figure, using the same specification as the main result.
+5. **Report the main estimate** with a triangular kernel, an MSE-optimal bandwidth, and **robust bias-corrected** intervals.
+6. **Vary the bandwidth** and plot the estimates. Vary the polynomial order too, staying at or below quadratic.
+7. **Run placebo cutoffs** where nothing should happen.
+8. **State the estimand** as a local effect at the threshold, and resist calling it "the" effect.
+9. If the running variable is coarse or heaped, show a **donut-hole** estimate too. \hfill \emph{(added)}
+
+# 6.8 Concluding Remarks
+
+## What the design buys
+
+- **Treatment assignment is known**, not assumed. You can read the rule in a statute or a contract, which is what makes RD the most credible design among observational methods.
+- **Unconfoundedness is free.** Conditional on the running variable, treatment is deterministic --- so the assumption that carried all the weight in Lecture 3 is satisfied by construction.
+- **The identifying assumption is about smoothness**, and smoothness has testable implications: a continuous density, balanced covariates, no effects at placebo cutoffs.
+- **The evidence is visual.** A reader can see the design work, or fail, before any regression appears.
+- **And it seems harder to game.** Brodeur, Cook and Heyes (2020) find RD studies show less sign of $p$-hacking than other observational designs --- plausibly because so much raw data is on display, the regressions are simple, and there are few researcher choices with real power to squeeze water from a rock.
+
+## What it costs
+
+- **The estimand is local**, at one point of one variable. It is not the $ATE$ and generally cannot be extrapolated without further assumptions.
+- **Overlap is zero**, so everything rests on extrapolating to a boundary --- and boundary estimation is exactly where misspecification does the most damage. Our cubic example returned $-170{,}165$ against a truth of zero.
+- **The design is data-hungry**, because it estimates effects at the boundary of a cutoff. In finance that often means a few dozen observations doing the work.
+- **Diagnostics are necessary, not sufficient.** Almond et al. passed the density test, and the donut hole still moved their answer by half.
+- Acquiring the right data has nothing to do with the econometrics --- but if you do not know the econometrics when the opportunity appears, you will not recognise it. **Luck favours the prepared.**
+- Next: the fuzzy design, where the cutoff shifts the *probability* of treatment --- which makes it an instrument, and takes us to instrumental variables.
+
+## References
+
+\tiny
+
+- Almeida, H., V. Fos and M. Kronlund (2016). The Real Effects of Share Repurchases. *Journal of Financial Economics* 119, 168--185.
+- Almond, D., J. Doyle, A. Kowalski and H. Williams (2010). Estimating Marginal Returns to Medical Care. *QJE* 125, 591--634.
+- Angrist, J. and V. Lavy (1999). Using Maimonides' Rule to Estimate the Effect of Class Size. *QJE* 114, 533--575.
+- Angrist, J. and M. Rokkanen (2015). Wanna Get Away? RD Estimation Away from the Cutoff. *JASA* 110, 1331--1344.
+- Barreca, A., M. Guldi, J. Lindo and G. Waddell (2011). Saving Babies? *QJE* 126, 2117--2123.
+- Becker, G. (1968). Crime and Punishment: An Economic Approach. *JPE* 76, 169--217.
+- Black, S. (1999). Do Better Schools Matter? *QJE* 114, 577--599.
+- Brodeur, A., N. Cook and A. Heyes (2020). Methods Matter. *AER* 110, 3634--3660.
+- Calonico, S., M. Cattaneo and R. Titiunik (2014). Robust Nonparametric Confidence Intervals for RD Designs. *Econometrica* 82, 2295--2326.
+- Card, D., C. Dobkin and N. Maestas (2008). The Impact of Nearly Universal Insurance Coverage on Health Care Utilization. *AER* 98, 2242--2258.
+- Card, D., C. Dobkin and N. Maestas (2009). Does Medicare Save Lives? *QJE* 124, 597--636.
+- Carpenter, C. and C. Dobkin (2009). The Effect of Alcohol Consumption on Mortality. *AEJ: Applied* 1, 164--182.
+- Cattaneo, M., R. Crump, M. Farrell and Y. Feng (2024). On Binscatter. *AER* 114, 1488--1514.
+- Cattaneo, M., B. Frandsen and R. Titiunik (2015). Randomization Inference in the RD Design. *Journal of Causal Inference* 3, 1--24.
+- Cattaneo, M., N. Idrobo and R. Titiunik (2020). *A Practical Introduction to Regression Discontinuity Designs*. Cambridge University Press.
+- Cattaneo, M., M. Jansson and X. Ma (2020). Simple Local Polynomial Density Estimators. *JASA* 115, 1449--1455.
+- Caughey, D. and J. Sekhon (2011). Elections and the Regression Discontinuity Design. *Political Analysis* 19, 385--408.
+- Cheng, M.-Y., J. Fan and J. Marron (1997). On Automatic Boundary Corrections. *Annals of Statistics* 25, 1691--1708.
+- Cunningham, S. *Causal Inference: The Remix*, Ch. 6 --- this lecture follows it closely.
+- Cu\~nat, V., M. Gin\'e and M. Guadalupe (2012). The Vote Is Cast. *Journal of Finance* 67, 1943--1977.
+- Drago, F., R. Galbiati and P. Vertova (2009). The Deterrent Effects of Prison. *JPE* 117, 257--280.
+
+## References (continued)
+
+\tiny
+
+- Eggers, A., A. Fowler, J. Hainmueller, A. Hall and J. Snyder (2015). On the Validity of the RD Design for Electoral Effects. *AJPS* 59, 259--274.
+- Gelman, A. and G. Imbens (2019). Why High-Order Polynomials Should Not Be Used in RD Designs. *JBES* 37, 447--456.
+- Goldberger, A. (1972). Selection Bias in Evaluating Treatment Effects. Discussion paper, Wisconsin.
+- Hahn, J., P. Todd and W. van der Klaauw (2001). Identification and Estimation with a RD Design. *Econometrica* 69, 201--209.
+- Hansen, B. (2015). Punishment and Deterrence: Evidence from Drunk Driving. *AER* 105, 1581--1617.
+- Hoekstra, M. (2009). The Effect of Attending the Flagship State University on Earnings. *ReStat* 91, 717--724.
+- Imbens, G. and K. Kalyanaraman (2012). Optimal Bandwidth Choice for the RD Estimator. *ReStud* 79, 933--959.
+- Imbens, G. and T. Lemieux (2008). Regression Discontinuity Designs: A Guide to Practice. *Journal of Econometrics* 142, 615--635.
+- Keys, B., T. Mukherjee, A. Seru and V. Vig (2010). Did Securitization Lead to Lax Screening? *QJE* 125, 307--362.
+- Kolesár, M. and C. Rothe (2018). Inference in RD Designs with a Discrete Running Variable. *AER* 108, 2277--2304.
+- Lee, D. and J. McCrary (2017). The Deterrence Effect of Prison. *Advances in Econometrics* 38, 73--146.
+- Lee, D. and T. Lemieux (2010). Regression Discontinuity Designs in Economics. *JEL* 48, 281--355.
+- Lee, D., E. Moretti and M. Butler (2004). Do Voters Affect or Elect Policies? *QJE* 119, 807--859.
+- Malenko, N. and Y. Shen (2016). The Role of Proxy Advisory Firms. *RFS* 29, 3394--3427.
+- McCrary, J. (2008). Manipulation of the Running Variable in the RD Design. *Journal of Econometrics* 142, 698--714.
+- Thistlethwaite, D. and D. Campbell (1960). Regression-Discontinuity Analysis. *Journal of Educational Psychology* 51, 309--317.

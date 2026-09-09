@@ -93,12 +93,23 @@ Earnings ($Y^0$) & $\$225$ & $\$500$ & $\$200$ & $\$190$ & $\$180$ & $\$140$ \\
 
 ## Problem E5 (Regression, matching, and what neither can do)
 
-(a) State the Frisch--Waugh--Lovell theorem. Use it to show that OLS with a saturated set of stratum dummies estimates a **variance-weighted** average of within-stratum effects, and write down the weights.
+(a) State the Frisch--Waugh--Lovell theorem in its three steps. Cunningham's `fwl.do` residualizes the **regressor only**; the standard statement residualizes **both sides**. Show that the two return the same $\hat\beta_1$, but that only the double-residual version reproduces the full regression's residuals. Then explain why the single-residual standard error is simply wrong, while the double-residual one is too small by exactly $\sqrt{(n-2)/(n-p)}$ --- and say where that factor comes from.
 
-(b) Matching weights strata by the share of *treated* units; regression weights them by within-stratum treatment variance. Construct a three-stratum example in which the two estimates differ by more than 50%, and say which one answers "what did the program do for its participants?"
+(b) The section opens by calling matching an **interpolation** method and regression an **extrapolation** one. Say what each does when a treated unit has no comparable control. Then state what regression buys with that extrapolation and what it pays for it, and explain why “regression needs no common support” is a claim about the estimator rather than about the data.
 
 (c) Regression adjustment (outcome imputation) and IPW use two different models. State what each assumes, then explain what a doubly robust estimator buys and what it does *not* buy.
 
 (d) "Matching creates no new variation." Explain what this means operationally, and use it to answer: can matching fix an unobserved confounder, reverse causality, or a bad control? Answer each separately.
 
 (e) LaLonde (1986), Dehejia and Wahba (1999), and Smith and Todd (2005) reached three different verdicts on the same data. State each verdict in one sentence, and say what the sequence as a whole establishes about propensity score methods.
+
+## Problem E6 (Horvitz--Thompson versus Hájek)
+
+(a) Write both estimators of $E[Y^1]$. Show that replacing $Y_i$ by $Y_i + c$ changes the HT estimate by $c\,\hat 1_T$, where $\hat 1_T = \frac{1}{N}\sum_i D_i/\hat e_i$, but changes the Hájek estimate by exactly $c$. Name the property this establishes, and say why it is the reason to prefer Hájek (Ding 2024, Proposition 11.1).
+
+(b) Four treated banks have $\hat e = (0.5,\, 0.4,\, 0.25,\, 0.2)$ and **every one has $Y = 20$**. With $N = 10$, compute both estimates. No score is anywhere near $0$ or $1$, yet HT is $35\%$ too high. Identify the quantity that fails to equal what HT assumes about it.
+
+(c) Now suppose the fourth bank's score was $0.02$ and its outcome $44$, the others unchanged. Recompute both estimates and report the largest single weight share. One of the two estimates lies **outside the range of the observed data** --- say which, and explain why that is a worse failure than merely being biased.
+
+(d) In (c) the Hájek estimate is defensible arithmetic but not a reliable estimate. Explain the distinction, and name the diagnostic you would report beside it. Then explain why retreating to the $ATT$ removes this particular problem, and construct a case in which it would not.
+
