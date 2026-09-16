@@ -12,7 +12,7 @@ Course materials for BUSS975, including lecture slides and problem sets.
 
 | Topic | Slides | Problem Set |
 |---|---|---|
-| 1. Causality and Potential Outcomes | [Slides][caus-pdf] | [Problems] |
+| 1. Causality and Potential Outcomes | [Slides][caus-pdf] \| [Updated][caus-upd-pdf] | [Problems] |
 | 2. Directed Acyclic Graphs | [Slides][dag-pdf] | [Problems] |
 | 3a. Unconfoundedness: Assumptions and Matching | [Slides] | [Problems] |
 | 3b. Propensity Scores and Regression | [Slides] | [Problems] |
@@ -24,8 +24,9 @@ Course materials for BUSS975, including lecture slides and problem sets.
 
 [syllabus]: https://chung-jiwoong.github.io/BUSS975/notes/00_Syllabus/00_syllabus_2026.pdf
 
-[caus-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/01_Causality/01_causality.pdf
-[caus-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/01_Causality/01_causality_PS.pdf
+[caus-pdf]:     https://chung-jiwoong.github.io/BUSS975/notes/01_Causality/01_causality.pdf
+[caus-upd-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/01_Causality/01_causality_update.pdf
+[caus-ps]:      https://chung-jiwoong.github.io/BUSS975/notes/01_Causality/01_causality_PS.pdf
 
 [dag-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/02_DAG/02_dag.pdf
 [dag-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/02_DAG/02_dag_PS.pdf

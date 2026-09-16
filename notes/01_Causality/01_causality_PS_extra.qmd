@@ -78,7 +78,7 @@ Suppose treatment is assigned by lottery, so that $(Y^1, Y^0) \indep D$.
 
 ## Problem E4 (Two channels of selection)
 
-The regression error from the assigned Problem 3(b) has two pieces, and $D$ can be correlated with either:
+The regression error from Problem E7(b) has two pieces, and $D$ can be correlated with either:
 $$
 u_i = \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}} \;+\; \underbrace{D_i(\delta_i - \delta)}_{\text{gain}}
 $$
@@ -98,7 +98,7 @@ $$
 
 ## Problem E5 (The lemma, step by step)
 
-The assigned Problem 3 asked you to prove the binary-covariance lemma and then apply it in one move. If that move was too fast, here it is in stages. For binary $D$ with $\pi = P(D{=}1)$,
+Problem E7 asks you to prove the binary-covariance lemma and then apply it in one move. If that move was too fast, here it is in stages. For binary $D$ with $\pi = P(D{=}1)$,
 $$
 \mathrm{cov}(D, W) \;=\; \pi(1-\pi)\Big(E[W \mid D{=}1] - E[W \mid D{=}0]\Big).
 $$
@@ -138,3 +138,36 @@ Rewrite this as a regression of $y_i$ on $x_i$ and identify the composite error 
 (e) With binary $x_i$, map the random coefficients model onto the potential outcomes framework: what are $a_i$ and $b_i$ in potential outcomes notation, and what do the two conditions in (d) correspond to?
 
 (f) A paper reports an average effect and separately argues at length that the effect is much stronger for financially constrained firms. Explain the tension between these two claims, and state how the paper should phrase its interpretation of the average coefficient.
+
+## Problem E7 (The regression bridge)
+
+*Cut from the assigned set when the regression-bridge lecture section was dropped. What this is for: economists speak two dialects --- omitted variable bias and selection bias --- and treat them as different problems. They are the same problem. This problem proves it.*
+
+(a) You estimate $y = \beta_0 + \beta_1 x + u$ by OLS when the true model is $y = \beta_0 + \beta_1 x + \beta_2 z + v$ with $E[v \mid x, z] = 0$. Show that
+$$
+\hat{\beta}_1 \xrightarrow{p} \beta_1 + \delta_{xz}\beta_2, \qquad \delta_{xz} = \frac{\mathrm{cov}(x,z)}{\mathrm{var}(x)}.
+$$
+Then sign the bias in $\hat\beta_1$ for **two** of the following, justifying the two sign assumptions each one requires:
+
+  i. $y$ = firm value, $x$ = governance index, omitted $z$ = CEO talent.
+  ii. $y$ = firm value, $x$ = leverage, omitted $z$ = investment opportunities.
+  iii. $y$ = loan default, $x$ = relationship lending, omitted $z$ = borrower quality observed by the bank but not the econometrician.
+
+(b) Now regress the observed outcome on a treatment dummy, $Y_i = \alpha + \delta D_i + u_i$. Using the switching equation $Y_i = D_i Y_i^1 + (1-D_i)Y_i^0$ and writing $\delta = E[\delta_i]$, show that
+$$
+u_i = \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}} \;+\; \underbrace{D_i\left(\delta_i - \delta\right)}_{\text{gain}},
+$$
+and hence that $\mathrm{cov}(D, u) \neq 0$ precisely when there is selection on levels or selection on gains.
+
+(c) **Prove the lemma.** For binary $D$ with $\pi = P(D{=}1)$ and any random variable $W$,
+$$
+\mathrm{cov}(D, W) \;=\; \pi(1-\pi)\Big(E[W \mid D{=}1] - E[W \mid D{=}0]\Big).
+$$
+*Hint: $E[DW] = \pi\,E[W \mid D{=}1]$ because $D$ is binary; then use the law of total expectation for $E[W]$.*
+
+(d) **Put it together.** Apply the lemma to each piece of $u_i$ from (b), use $\mathrm{var}(D) = \pi(1-\pi)$ and the identity $ATT - ATE = (1-\pi)(ATT-ATU)$, and show that
+$$
+\hat\delta \;\xrightarrow{p}\; ATE \;+\; \Big(E[Y^0|D{=}1]-E[Y^0|D{=}0]\Big) \;+\; (1-\pi)(ATT-ATU).
+$$
+Compare with your answer to Problem 1(c). In one sentence, what have you shown about the relationship between the regression route and the potential-outcomes route?
+

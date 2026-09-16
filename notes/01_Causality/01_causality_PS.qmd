@@ -19,11 +19,11 @@ format:
         \usepackage{booktabs}
 ---
 
-*Four problems. Plan on about three hours. Problem 4(c) asks you to run a short calculation in R (or Stata); attach your code and output. Nothing else requires software.*
+*Four problems. Plan on about three hours. Problems 3(c) and 4(a)--(c) ask you to compute in R (or Stata); attach your code and output. Nothing else requires software.*
 
 *Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
-*Further practice --- including the material cut from this set --- is in the companion file `01_causality_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
+*Further practice --- including the regression-bridge material cut from this set --- is in the companion file `01_causality_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
 
 ## Problem 1 (Assignment mechanisms and the SDO decomposition)
 
@@ -80,39 +80,7 @@ $$
 
 (d) Explain why SUTVA is logically **prior** to the independence assumption --- that is, why a SUTVA violation is a more fundamental problem than selection bias.
 
-## Problem 3 (The regression bridge)
-
-*What this is for: economists speak two dialects --- omitted variable bias and selection bias --- and treat them as different problems. They are the same problem. This problem proves it.*
-
-(a) You estimate $y = \beta_0 + \beta_1 x + u$ by OLS when the true model is $y = \beta_0 + \beta_1 x + \beta_2 z + v$ with $E[v \mid x, z] = 0$. Show that
-$$
-\hat{\beta}_1 \xrightarrow{p} \beta_1 + \delta_{xz}\beta_2, \qquad \delta_{xz} = \frac{\mathrm{cov}(x,z)}{\mathrm{var}(x)}.
-$$
-Then sign the bias in $\hat\beta_1$ for **two** of the following, justifying the two sign assumptions each one requires:
-
-  i. $y$ = firm value, $x$ = governance index, omitted $z$ = CEO talent.
-  ii. $y$ = firm value, $x$ = leverage, omitted $z$ = investment opportunities.
-  iii. $y$ = loan default, $x$ = relationship lending, omitted $z$ = borrower quality observed by the bank but not the econometrician.
-
-(b) Now regress the observed outcome on a treatment dummy, $Y_i = \alpha + \delta D_i + u_i$. Using the switching equation $Y_i = D_i Y_i^1 + (1-D_i)Y_i^0$ and writing $\delta = E[\delta_i]$, show that
-$$
-u_i = \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}} \;+\; \underbrace{D_i\left(\delta_i - \delta\right)}_{\text{gain}},
-$$
-and hence that $\mathrm{cov}(D, u) \neq 0$ precisely when there is selection on levels or selection on gains.
-
-(c) **Prove the lemma.** For binary $D$ with $\pi = P(D{=}1)$ and any random variable $W$,
-$$
-\mathrm{cov}(D, W) \;=\; \pi(1-\pi)\Big(E[W \mid D{=}1] - E[W \mid D{=}0]\Big).
-$$
-*Hint: $E[DW] = \pi\,E[W \mid D{=}1]$ because $D$ is binary; then use the law of total expectation for $E[W]$.*
-
-(d) **Put it together.** Apply the lemma to each piece of $u_i$ from (b), use $\mathrm{var}(D) = \pi(1-\pi)$ and the identity $ATT - ATE = (1-\pi)(ATT-ATU)$, and show that
-$$
-\hat\delta \;\xrightarrow{p}\; ATE \;+\; \Big(E[Y^0|D{=}1]-E[Y^0|D{=}0]\Big) \;+\; (1-\pi)(ATT-ATU).
-$$
-Compare with your answer to Problem 1(c). In one sentence, what have you shown about the relationship between the regression route and the potential-outcomes route?
-
-## Problem 4 (Randomization inference)
+## Problem 3 (Randomization inference: the exact case)
 
 *What this is for: finance is full of settings with one treated state, one regulatory event, or five treated firms. Asymptotic standard errors are meaningless there. This is the alternative, and it is exact.*
 
@@ -146,4 +114,40 @@ sdo_all <- apply(perms, 2, function(tr) mean(y[tr]) - mean(y[-tr]))
 mean(abs(sdo_all) >= abs(sdo_obs))    # exact two-sided p-value
 ```
 
-(d) The realized assignment was the most extreme of all possible assignments, yet the $p$-value does not fall below 0.05. Explain what this implies about the power of very small experiments, state the smallest attainable two-sided $p$-value with six units and three treated, and name one method later in the course that relies on exactly this logic.
+(d) A colleague suggests: *"Rather than all this permuting, just bootstrap the $SDO$ --- resample the six firms with replacement a few thousand times and read off the interval."* Explain what the bootstrap resamples and what randomization inference permutes, state which source of uncertainty each one describes, and say which is the right object here given how these firms were selected into treatment.
+
+(e) The code uses `combn(6, 3)`, which presumes the experiment fixed **exactly three** treated firms. Suppose instead the researcher had assigned each firm independently by a fair coin flip. How many assignments are in the reference set now? Explain why `combn(6, 3)` would then be the wrong denominator, and state in one sentence what this says about the relationship between the permutation scheme and the physical randomization.
+
+(f) The realized assignment was the most extreme of all possible assignments, yet the $p$-value does not fall below 0.05. Explain what this implies about the power of very small experiments, state the smallest attainable two-sided $p$-value with six units and three treated, and name one method later in the course that relies on exactly this logic.
+
+## Problem 4 (Choosing a test statistic, and when exact enumeration fails)
+
+*What this is for: the sharp null tells you what to hold fixed, but it does not tell you what to measure. The test statistic is a separate choice, and it decides what you are able to detect.*
+
+(a) Return to the six firms of Problem 3. Compute the **normalised rank** statistic, where $\tilde R_i = \sum_j I(Y_j \leq Y_i) - (N+1)/2$ and the statistic is the difference in mean $\tilde R$ between treated and control. Compute also the **Kolmogorov--Smirnov** statistic, $T_{KS} = \max_y |\hat F_T(y) - \hat F_C(y)|$. Obtain the exact two-sided $p$-value for each. You should find that $SDO$, the rank statistic, and $T_{KS}$ all deliver the **same** $p$-value. Explain why --- what feature of this particular dataset forces the three to agree, and what is actually binding on the $p$-value here?
+
+(b) A fourth candidate is the log difference,
+$$
+T_{\log} = \frac{1}{N_T}\sum_i D_i \ln Y_i - \frac{1}{N_C}\sum_i (1-D_i)\ln Y_i .
+$$
+Suppose the treatment scales every firm's outcome by a common factor, $Y_i^1 = c\,Y_i^0$. Show that the per-unit effect in **levels** depends on $Y_i^0$ but the per-unit effect in **logs** does not, and explain in one sentence why this makes $T_{\log}$ the better-powered statistic against multiplicative alternatives. Then state why $T_{\log}$ cannot be used at all on the data in part (c).
+
+(c) **Computational.** A regulator randomises a disclosure requirement across 60 listed firms, 30 treated. The outcome is the firm's abnormal return (%) over the following quarter. Generate the data exactly as below.
+
+```r
+set.seed(3)
+control <- round(rnorm(30, 0, 1), 2)
+treated <- round(rnorm(30, 0, 4), 2)
+y <- c(control, treated)
+d <- c(rep(0, 30), rep(1, 30))
+```
+
+  i. Verify that $\binom{60}{30} \approx 1.2 \times 10^{17}$, and explain in one sentence why this rules out the approach you used in Problem 3(c) and what you must do instead.
+
+  ii. Compute the **approximate** two-sided $p$-value for the $SDO$ using 10,000 random reassignments that keep 30 firms treated. Report it.
+
+  iii. Compute the approximate $p$-value for $T_{KS}$ on the same 10,000 draws. Report it.
+
+  iv. The two $p$-values are very different. Report the treated and control **standard deviations**, and explain what the disclosure requirement did to the distribution of abnormal returns that a difference in means was structurally unable to see. State the economic interpretation: what has the regulator changed, if not the average?
+
+(d) Having found nothing with the $SDO$ in (c.ii), a researcher tries $T_{KS}$, finds (c.iii), and reports only the second. Explain precisely what is wrong with this, and state the practice that would have made the $T_{KS}$ result credible. In doing so, be careful to distinguish the **validity** of a randomization test from its **power** --- say which of the two the choice of test statistic affects, and which it does not.

@@ -871,7 +871,7 @@ h_{MSE} \;\propto\; \underbrace{V^{\frac{1}{2p+3}}}_{\text{noise}}\;
   \textbf{Noise \(V\): positive exponent.} Noisier data \(\Rightarrow\)
   a \textbf{wider} window, to average the noise away. If \(V \to 0\),
   then \(h \to 0\) --- use only points at the
-  cutoff.\footnote{The Remix* states the $n$ and noise directions the other way round. }
+  cutoff.\footnote{*The Remix* states the $n$ and noise directions the other way round. }
 \item
   \textbf{Curvature \(B\): negative.} More curvature \(\Rightarrow\) a
   \textbf{narrower} window. If \(B \to 0\) (a truly linear CEF),
@@ -886,12 +886,6 @@ h_{MSE} \;\propto\; \underbrace{V^{\frac{1}{2p+3}}}_{\text{noise}}\;
   Calonico, Cattaneo and Titiunik (2014) is the standard. Bandwidths may
   differ by side.
 \end{itemize}
-
-\footnotesize
-\vspace{-0.2em}
-
-\emph{The Remix} states the \(n\) and noise directions the other way
-round.
 \end{frame}
 
 \begin{frame}{Why the obvious confidence interval is wrong}
@@ -951,31 +945,191 @@ Robust bias-corrected, $CI_{rbc}$ & $\hat\tau - \hat B$ & $\sqrt{\hat V_{bc}}$ &
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Two more things about standard errors}
-\protect\phantomsection\label{two-more-things-about-standard-errors}
+\begin{frame}{Do not take my word for it: a coverage experiment}
+\protect\phantomsection\label{do-not-take-my-word-for-it-a-coverage-experiment}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-8-1.pdf}}
+
+\vspace{-0.4em}
+\footnotesize
+
+\(2{,}000\) simulated samples per bandwidth, \(n = 2{,}000\), known
+\(\tau = 0.20\), a curved \(E[Y|X]\) on both sides. For each sample we
+build all three intervals and ask a single question: \textbf{does it
+contain the true \(\tau\)?} A 95\% interval should say yes 95\% of the
+time.
+\end{frame}
+
+\begin{frame}{Read that figure slowly}
+\protect\phantomsection\label{read-that-figure-slowly}
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Do not cluster on the running variable.} Lee (2008) and Lee
-  and Card (2008) recommended it and the practice spread through most
-  subsequent RD studies. \textbf{Kolesár and Rothe (2018)} show it
-  performs badly, with inflated Type I error. Use
-  heteroskedasticity-robust errors, or ``honest'' intervals
-  (\texttt{RDHonest}).
+  \textbf{Conventional (red).} Fine when \(h\) is small, because then
+  bias is genuinely negligible. It then falls off a cliff: \(74\%\) at
+  \(h=0.25\), \(48\%\) at \(h=0.30\), and \textbf{\(0\%\) at
+  \(h=0.50\)}. A ``95\% interval'' that never covers the truth. Nothing
+  warns you --- the output looks completely normal.
+\item
+  \textbf{Bias-corrected (blue).} Flat at about \(81\%\)
+  \emph{everywhere}. Recentring fixed the location but the interval is
+  still too short, because \(\hat B\) is itself noisy and this interval
+  pretends it is not.
+\item
+  \textbf{Robust bias-corrected (green).} Flat at roughly \(95\%\)
+  across an eightfold range of bandwidths. That flatness \emph{is} the
+  property you are buying.
+\item
+  The lesson is not ``conventional intervals are a bit optimistic.'' It
+  is that their failure is \textbf{invisible and unbounded}, and it
+  grows precisely as you widen the window to buy precision.
+\end{itemize}
+
+\footnotesize
+
+\emph{Teaching note: run it live with two bandwidths --- \(h = 0.10\)
+and \(h = 0.40\) --- and let the class predict before you reveal.}
+\end{frame}
+
+\begin{frame}{A short detour: what clustering a standard error does}
+\protect\phantomsection\label{a-short-detour-what-clustering-a-standard-error-does}
+\begin{itemize}
+\tightlist
+\item
+  OLS standard errors assume the errors \(\varepsilon_i\) are
+  \textbf{independent across observations}. Each observation is a fresh
+  piece of information.
+\item
+  Suppose instead the data arrive in \textbf{groups}, and everyone in a
+  group shares a common shock: students in a classroom share a teacher,
+  firms in an industry share a shock. Then residuals inside a group move
+  together.
+\item
+  Independent draws are being double-counted. Your \textbf{effective}
+  sample size is closer to the \emph{number of groups} than to the
+  number of observations, and conventional standard errors are too
+  small.
+\item
+  A \textbf{cluster-robust} standard error allows arbitrary correlation
+  \emph{within} each group while assuming independence \emph{across}
+  groups. It normally makes standard errors \textbf{larger}.
+\item
+  The fine print, which is the whole story today: the formula's
+  justification is asymptotic \textbf{in the number of clusters \(G\)}.
+  With few clusters it is unreliable, and there is no warning message.
+\end{itemize}
+
+\footnotesize
+
+\emph{We return to clustering properly in the panel-data lecture. Today
+you need only the idea: a cluster is a set of observations that share
+something, and the fix needs many such sets.}
+\end{frame}
+
+\begin{frame}{Why RD researchers clustered on the running variable}
+\protect\phantomsection\label{why-rd-researchers-clustered-on-the-running-variable}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{The problem it was meant to solve.} Most running variables are
+  not continuous but \textbf{multi-valued}: BAC to \(0.001\), test
+  scores in whole points, age in months. Many observations share each
+  value --- call these \textbf{mass points}.
+\item
+  With mass points you cannot literally take a limit at \(c_0\). You fit
+  a polynomial across the mass points instead, and that polynomial will
+  not pass exactly through \(E[Y \mid X = x]\) at every one of them. The
+  gap is \textbf{specification error}.
+\item
+  \textbf{Lee and Card's (2008) insight:} every observation sitting at
+  the same mass point shares \emph{exactly the same} specification
+  error. That is precisely the structure of a group shock.
+\item
+  So they proposed treating \textbf{each distinct value of the running
+  variable as one cluster.} That is the answer to ``clustering at what
+  level?'' --- not individuals, not counties, not years. One cluster per
+  unique value of \(X\).
+
+  \begin{itemize}
+  \tightlist
+  \item
+    In Hansen's data: one cluster per BAC reading. In a test-score RD:
+    one cluster per integer score.
+  \end{itemize}
+\item
+  The logic is genuinely clever, the recommendation spread through most
+  subsequent RD papers, and it is now understood to be \textbf{wrong}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why it fails --- and it fails in a surprising direction}
+\protect\phantomsection\label{why-it-fails-and-it-fails-in-a-surprising-direction}
+\begin{center}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Bandwidth $h$ & $N$ & Clusters $G$ & Robust SE & Clustered SE & Ratio \\
+\midrule
+$0.050$ (Hansen's) & $90{,}074$ & $101$ & $0.00450$ & $0.00333$ & $0.74$ \\
+$0.020$            & $38{,}349$ & $41$  & $0.00657$ & $0.00421$ & $0.64$ \\
+$0.010$            & $20{,}154$ & $21$  & $0.00911$ & $0.00476$ & $\mathbf{0.52}$ \\
+$0.005$            & $10{,}567$ & $11$  & $0.01303$ & $0.00740$ & $0.57$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+
+\begin{itemize}
+\tightlist
+\item
+  Hansen's recidivism regression, clustered on the distinct BAC
+  readings. \textbf{Clustering makes the standard error \emph{smaller}
+  --- by up to half.} Every instinct you just built says it should get
+  bigger.
+\item
+  Smaller standard errors mean larger \(t\)-statistics and \textbf{more
+  rejections of a true null}. That is Kolesár and Rothe's inflated Type
+  I error, in one column.
+\item
+  Two things are going wrong. First, look at \(G\): shrinking the
+  bandwidth to reduce bias destroys clusters. At \(h = 0.005\) there are
+  \(20{,}000\) observations but \textbf{\(11\) clusters}. The formula's
+  asymptotics are nowhere in sight.
+\item
+  Second, and deeper: specification error is a \textbf{fixed function of
+  \(x\)}, not a random draw. It does not average out over repeated
+  samples, because it is the same every time. Clustering prices a
+  randomness that is not there.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{What to do instead}
+\protect\phantomsection\label{what-to-do-instead}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Use heteroskedasticity-robust standard errors} --- what
+  \texttt{rdrobust} reports by default. They do not pretend to solve the
+  approximation problem, which is the honest position.
+\item
+  \textbf{Or use honest confidence intervals} (\texttt{RDHonest},
+  Armstrong--Kolesár). You state a bound on the curvature of \(E[Y|X]\)
+  and the interval is guaranteed to cover at the stated rate given that
+  bound. The assumption is explicit rather than buried.
 \item
   \textbf{Sparse data near the cutoff} is the recurring practical
-  problem. When observations are thin, or the running variable is coarse
-  with large gaps between values, robust intervals may fail to centre
-  properly --- more often than practitioners realise.
+  problem. When observations are thin, or the running variable is
+  coarse, even robust intervals may fail to centre properly.
 \item
-  \textbf{Randomization inference} (Cattaneo, Frandsen and Titiunik)
-  offers an alternative: assume that within a \textbf{small window}
-  around the cutoff, treatment is effectively randomly assigned, then
-  analyse that window as an experiment.
+  \textbf{Randomization inference} (Cattaneo, Jansson and Ma;
+  \texttt{rdlocrand}): assume that within a \textbf{small window} around
+  the cutoff treatment is effectively randomly assigned, then analyse
+  that window as an experiment. Weaker assumptions than local
+  polynomials, and better behaved when data are sparse.
 \item
-  It gives exact or approximate \(p\)-values under weaker assumptions
-  than local polynomials, and does better when data are sparse. It also
-  matches the experimental analogy RD keeps invoking.
+  \textbf{Reading an older RD paper} that clusters on the running
+  variable? That is not fraud --- it was the recommended practice. Ask
+  whether the result survives robust standard errors.
 \end{itemize}
 \end{frame}
 
@@ -1013,11 +1167,9 @@ Continuity is the whole design. It breaks when:
 \item
   Condition 4 is different, and often overlooked. Turning 18 brings
   adult criminal penalties --- and also voting rights, high-school
-  graduation, and much else. The cutoff is real but not clean, and the
-  confound is not a variable you forgot to control for.
+  graduation, and much else. The cutoff is real but not clean.
 \item
-  Condition 5 is mechanical rather than strategic, and gets its own
-  treatment below.
+  Condition 5 is gets its own treatment below.
 \end{itemize}
 \end{frame}
 
@@ -1026,33 +1178,27 @@ Continuity is the whole design. It breaks when:
 \begin{itemize}
 \tightlist
 \item
-  Two rooms of patients waiting for a life-saving treatment. Room A will
-  receive it; room B knowingly receives nothing. What do you do if you
-  are in room B?
+  Two rooms of patients. Room A gets the life-saving treatment; room B
+  gets nothing. If you are in room B, you walk across the hall ---
+  unless crossing is impossible.
 \item
-  You stand up, open the door, and walk across the hall. The only thing
-  that would keep you in room B is if crossing were impossible.
+  If everyone crosses, A is crowded and B is empty. That imbalance is
+  the \textbf{observable footprint} of sorting: motives are invisible,
+  but headcounts are not.
 \item
-  And if everyone crosses, room A ends up crowded and room B nearly
-  empty. That imbalance is the \textbf{observable footprint} of sorting:
-  you cannot see motives, but you can count how many ended up on each
-  side.
+  Formally: with a desirable treatment assigned by \(X \geq c_0\),
+  agents who \emph{can} choose \(X\) just above \(c_0\). If that ability
+  correlates with potential outcomes, the comparison at the cutoff is
+  contaminated.
 \item
-  Formally: with a desirable treatment and rule \(X \geq c_0\), agents
-  choose \(X\) just above \(c_0\) whenever they are able. If their
-  \emph{ability} to do so is related to their potential outcomes, the
-  comparison at the cutoff is contaminated.
-\item
-  Behavioural theory makes a \textbf{testable prediction} --- a
+  Behavioural theory yields a \textbf{testable prediction}: a
   discontinuity in the \emph{density} of the running variable.
-  Statistics built on optimising behaviour can take you further than
-  statistics alone.
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{The McCrary density test}
 \protect\phantomsection\label{the-mccrary-density-test}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-8-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-9-1.pdf}}
 
 \vspace{-0.4em}
 
@@ -1073,6 +1219,88 @@ Continuity is the whole design. It breaks when:
 \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]{Running the test: \texttt{rddensity} on real
+data}
+\protect\phantomsection\label{running-the-test-rddensity-on-real-data}
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{library}\NormalTok{(rddensity)}
+\NormalTok{dwi }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"data/hansen\_dwi.csv"}\NormalTok{)}
+\NormalTok{bac }\OtherTok{\textless{}{-}}\NormalTok{ dwi}\SpecialCharTok{$}\NormalTok{bac1[dwi}\SpecialCharTok{$}\NormalTok{bac1 }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{]}
+
+\NormalTok{out }\OtherTok{\textless{}{-}} \FunctionTok{rddensity}\NormalTok{(bac, }\AttributeTok{c =} \FloatTok{0.08}\NormalTok{)     }\CommentTok{\# X and the cutoff. That is the whole call.}
+\FunctionTok{summary}\NormalTok{(out)                        }\CommentTok{\# T = {-}0.14, p = 0.89}
+
+\FunctionTok{rdplotdensity}\NormalTok{(out, bac)             }\CommentTok{\# the picture that belongs in the paper}
+\end{Highlighting}
+\end{Shaded}
+
+\vspace{-0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  The call takes the \textbf{running variable only} --- no outcome, no
+  covariates. You are testing the distribution of \(X\), nothing else.
+\item
+  What to read in the output: the \textbf{robust bias-corrected} \(T\)
+  statistic and its \(p\)-value. Same three-interval logic as before;
+  \texttt{rddensity} is running a local polynomial too.
+\item
+  On Hansen's stops: \(T = -0.14\), \(p = 0.89\). \textbf{Fail to
+  reject.} The sign is negative --- marginally \emph{fewer} stops just
+  above \(0.08\) --- the opposite of what sorting would produce.
+\item
+  Always run \texttt{rdplotdensity} as well. The test is one number;
+  manipulation is a shape.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Making the test fail, on purpose}
+\protect\phantomsection\label{making-the-test-fail-on-purpose}
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# sabotage: a fraction of drivers just below 0.08 talk their way out of a reading}
+\NormalTok{zone }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(bac }\SpecialCharTok{\textgreater{}=} \FloatTok{0.078} \SpecialCharTok{\&}\NormalTok{ bac }\SpecialCharTok{\textless{}} \FloatTok{0.080}\NormalTok{)           }\CommentTok{\# 2,786 stops}
+\NormalTok{drop }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(zone, }\FunctionTok{floor}\NormalTok{(}\FloatTok{0.20} \SpecialCharTok{*} \FunctionTok{length}\NormalTok{(zone)))}
+\FunctionTok{rddensity}\NormalTok{(bac[}\SpecialCharTok{{-}}\NormalTok{drop], }\AttributeTok{c =} \FloatTok{0.08}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}
+\small
+\begin{tabular}{lrrrl}
+\toprule
+Data & Stops deleted & $T$ & $p$ & Verdict \\
+\midrule
+Hansen's actual stops   & ---     & $-0.14$ & $0.89$    & no evidence \\
+Delete 10\% just below  & $278$   & $2.25$  & $0.025$   & rejects, barely \\
+Delete 20\% just below  & $557$   & $4.69$  & $<0.0001$ & rejects decisively \\
+Delete 40\% just below  & $1{,}114$ & $9.35$ & $<0.0001$ & overwhelming \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Worth ten minutes of class.} A test students only ever see
+  \emph{pass} teaches nothing about what it detects. Break the data
+  yourself and it becomes legible.
+\item
+  Read the table as a \textbf{power curve}: with \(213{,}000\) stops,
+  deleting \(10\%\) of a narrow strip sits at the edge of detection and
+  \(20\%\) is caught easily. At a tenth the sample, none of it would be.
+\item
+  \textbf{The real lesson.} ``The density test passed'' means little
+  without knowing what it \emph{could} have detected --- Almond et
+  al.~passed it too. Set a placebo cutoff at \(0.10\) as a second
+  exercise.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Covariate balance and placebo cutoffs}
 \protect\phantomsection\label{covariate-balance-and-placebo-cutoffs}
 \begin{itemize}
@@ -1080,10 +1308,7 @@ Continuity is the whole design. It breaks when:
 \item
   \textbf{Covariate balance.} Pre-treatment characteristics cannot be
   caused by treatment, so they must not jump at \(c_0\). Run the same RD
-  with each covariate as the outcome and find nothing. Lee, Moretti and
-  Butler (2004) is the template: real income, share with a high-school
-  degree, share Black, share eligible to vote --- all smooth through the
-  \(50\%\) Democratic vote share.
+  with each covariate as the outcome and find nothing.
 \item
   A jump in a covariate is serious. It means something \emph{other than}
   treatment changes at the cutoff --- and if an observed characteristic
@@ -1100,8 +1325,8 @@ Continuity is the whole design. It breaks when:
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Nonrandom heaping}
-\protect\phantomsection\label{nonrandom-heaping}
+\begin{frame}{Nonrandom heaping: a design that passed its tests}
+\protect\phantomsection\label{nonrandom-heaping-a-design-that-passed-its-tests}
 \begin{itemize}
 \tightlist
 \item
@@ -1110,24 +1335,84 @@ Continuity is the whole design. It breaks when:
   expected outcome, which is selection bias by construction. The Perfect
   Doctor problem again.
 \item
-  Their insight: babies below \(1{,}500\)g are classified ``very low
-  birth weight'' and receive heightened attention. Using hospital
-  records linked to mortality, they found one-year mortality about
-  \textbf{one percentage point lower} just below the threshold, against
-  a mean of \(5.5\%\). Large, and apparently far exceeding the cost.
+  Their insight: babies below \(1{,}500\)g are classified \textbf{``very
+  low birth weight''} and receive heightened attention. Birth weight is
+  the running variable, \(1{,}500\)g the cutoff, and the rule is written
+  down.
 \item
-  They ran the McCrary test at \(1{,}500\)g and \textbf{found nothing}.
-  Satisfied, they proceeded.
+  Using hospital records linked to mortality, they found one-year
+  mortality about \textbf{one percentage point lower} just below the
+  threshold, against a mean of \(5.5\%\). A large effect, and one that
+  appeared to far exceed the cost of the care.
 \item
-  \textbf{Barreca, Guldi, Lindo and Waddell} then looked at the
-  \emph{shape} of the whole distribution rather than at one
-  discontinuity, and found \textbf{heaping}: excess mass at every round
-  \(100\)g mark, from hospitals rounding to the nearest integer --- or,
-  more troublingly, from staff rounding \emph{to} \(1{,}500\)g to
-  trigger specialised care.
+  They ran the \textbf{McCrary test at \(1{,}500\)g and found nothing.}
+  Density continuous, no evidence of manipulation. Satisfied, they
+  proceeded.
 \item
-  Nature does not produce piles of babies every hundred grams. Heaping
-  is either rounding or manipulation.
+  Everything about this is the textbook procedure, done competently.
+  Hold that thought.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Then look at the whole distribution}
+\protect\phantomsection\label{then-look-at-the-whole-distribution}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-10-1.pdf}}
+
+\vspace{-0.4em}
+\footnotesize
+
+\textbf{Barreca, Guldi, Lindo and Waddell} looked at the \emph{shape} of
+the whole distribution rather than at one point in it, and found
+\textbf{heaping}: excess mass at every round \(100\)g mark, and at
+whole-ounce values, from hospitals rounding. Nature does not produce
+piles of babies every hundred grams. Heaping is either rounding or
+manipulation. \emph{(Stylised reproduction.)}
+\end{frame}
+
+\begin{frame}{Why heaping fakes an effect at \emph{every} cutoff}
+\protect\phantomsection\label{why-heaping-fakes-an-effect-at-every-cutoff}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-11-1.pdf}}
+
+\vspace{-0.4em}
+\footnotesize
+
+The window is narrow enough that \textbf{one} heap falls inside it, and
+it sits on the \(\geq c_0\) side --- the control side. That single pile
+of frail babies lifts the right-hand limit, so being \emph{below} the
+cutoff looks protective. The right panel runs the identical exercise at
+\(1{,}600\)g, where \textbf{nothing happens to anyone}.
+\end{frame}
+
+\begin{frame}{Unpacking that figure --- the composition effect}
+\protect\phantomsection\label{unpacking-that-figure-the-composition-effect}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Step 1. Heaped babies are different babies.} Rounding is not
+  random --- it happens in rushed deliveries and less-equipped
+  hospitals. Barreca et al.~show heaped births have less-educated
+  mothers, less prenatal care, and \textbf{higher mortality} than their
+  unheaped neighbours.
+\item
+  \textbf{Step 2. Which side of the rule does the heap fall on?} VLBW
+  means \(< 1{,}500\)g, so a baby recorded at \emph{exactly}
+  \(1{,}500\)g is \textbf{not} treated. The whole heap sits in the
+  \textbf{control} group, at the boundary.
+\item
+  \textbf{Step 3. That drags the control limit up.} The right-hand limit
+  is computed from data beginning with a pile of unusually frail babies,
+  so it is biased upward. Subtracting an inflated control mean makes
+  being \emph{below} the cutoff look protective.
+\item
+  \textbf{Step 4. Step 3 never used the number \(1{,}500\).} It needs
+  only ``\emph{a heap sits at the cutoff}.'' So the same apparent
+  benefit appears at \textbf{any} \(100\)g mark from \(1{,}000\) to
+  \(3{,}000\)g --- the right panel above.
+\item
+  \textbf{Step 5. Conclude.} Nothing changes at \(1{,}600\)g, and no
+  effect can be present at twenty placebo cutoffs. What jumps is not the
+  care these babies receive but \textbf{who is recorded there}:
+  composition, not treatment.
 \end{itemize}
 \end{frame}
 
@@ -1136,24 +1421,26 @@ Continuity is the whole design. It breaks when:
 \begin{itemize}
 \tightlist
 \item
-  The babies heaped exactly at \(1{,}500\)g had \textbf{unusually high
-  mortality} --- outliers relative to units on \emph{both} sides.
+  The McCrary test asks exactly one question --- \emph{is the density
+  continuous at \(c_0\)?} --- and at \(1{,}500\)g the honest answer was
+  \textbf{yes}. Heaping does not make the density jump; it makes it
+  \textbf{spiky}, and a spike sitting \emph{on} the cutoff is not a step
+  \emph{across} it.
 \item
-  The consequence, in Barreca et al.'s words: the heaping alone makes it
-  look ``good'' to be \textbf{strictly below any} \(100\)g cutoff
-  between \(1{,}000\) and \(3{,}000\)g. That is not a treatment effect;
-  it is a composition effect.
+  The problem lived in a different feature of the same distribution. The
+  test was not wrong. It was answering a different question from the one
+  that mattered.
 \item
-  The McCrary test asks one question --- \emph{is the density
-  continuous?} --- and the answer was yes. The problem lived in a
-  different feature of the same distribution.
+  \textbf{The general lesson.} A test on one feature cannot clear a
+  problem living in another. In the matching lecture, means passed while
+  variances failed. Here, the density passed while the composition
+  failed.
 \item
-  \textbf{The lesson is the one from Lecture 3.} A test on one feature
-  cannot clear a problem living in another. There, means passed while
-  variances failed. Here, the density was continuous while the
-  composition was not. \hfill \emph{(added)}
+  \textbf{Plot the raw distribution.} Every time. A histogram would have
+  shown this in five seconds; the test statistic never would.
 \item
-  Plot the raw distribution. Do not rely on a test statistic alone.
+  Barreca et al.'s remedy --- drop the suspect observations and
+  re-estimate --- is the \textbf{donut hole}, next.
 \end{itemize}
 \end{frame}
 
@@ -1560,7 +1847,7 @@ Licence suspension  & 90 days & 365 days & 2 years & 900 days \\
 
 \begin{frame}[fragile]{Step 1: is the running variable manipulated?}
 \protect\phantomsection\label{step-1-is-the-running-variable-manipulated}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-9-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-12-1.pdf}}
 
 \vspace{-0.3em}
 \footnotesize
@@ -1609,7 +1896,7 @@ $N$ & $89{,}967$ & $89{,}967$ & $89{,}967$ & $89{,}967$ \\
 
 \begin{frame}{Step 2, in pictures}
 \protect\phantomsection\label{step-2-in-pictures}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-10-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-13-1.pdf}}
 
 \vspace{-0.3em}
 \footnotesize
@@ -1622,7 +1909,7 @@ picture is than the coefficients were.
 
 \begin{frame}{Step 3: look at the outcome}
 \protect\phantomsection\label{step-3-look-at-the-outcome}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-11-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-14-1.pdf}}
 
 \vspace{-0.3em}
 \footnotesize
@@ -1931,7 +2218,7 @@ Cu\~nat et al.\ (2012)    & shareholder vote share & $50\%$ & fuzzy \\
 
 \begin{frame}{Show that the answer does not depend on the bandwidth}
 \protect\phantomsection\label{show-that-the-answer-does-not-depend-on-the-bandwidth}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-12-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-15-1.pdf}}
 
 \vspace{-0.3em}
 \footnotesize
@@ -2114,6 +2401,10 @@ you something --- and it is not good news. \hfill \emph{(added)}
   Angrist, J. and V. Lavy (1999). Using Maimonides' Rule to Estimate the
   Effect of Class Size. \emph{QJE} 114, 533--575.
 \item
+  Armstrong, T. and M. Kolesár (2020). Simple and Honest Confidence
+  Intervals in Nonparametric Regression. \emph{Quantitative Economics}
+  11, 1--39.
+\item
   Angrist, J. and M. Rokkanen (2015). Wanna Get Away? RD Estimation Away
   from the Cutoff. \emph{JASA} 110, 1331--1344.
 \item
@@ -2210,6 +2501,12 @@ you something --- and it is not good news. \hfill \emph{(added)}
 \item
   Kolesár, M. and C. Rothe (2018). Inference in RD Designs with a
   Discrete Running Variable. \emph{AER} 108, 2277--2304.
+\item
+  Lee, D. (2008). Randomized Experiments from Non-random Selection in
+  U.S. House Elections. \emph{Journal of Econometrics} 142, 675--697.
+\item
+  Lee, D. and D. Card (2008). Regression Discontinuity Inference with
+  Specification Error. \emph{Journal of Econometrics} 142, 655--674.
 \item
   Lee, D. and J. McCrary (2017). The Deterrence Effect of Prison.
   \emph{Advances in Econometrics} 38, 73--146.

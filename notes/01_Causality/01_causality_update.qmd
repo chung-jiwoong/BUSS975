@@ -43,8 +43,7 @@ execute:
 3. Selection bias: the Perfect Regulator
 4. Randomization and independence
 5. SUTVA
-6. The regression bridge
-7. Randomization inference
+6. Randomization inference
 
 # 1. What Causality Is --- and Isn't
 
@@ -71,6 +70,7 @@ execute:
 
 - All three are legitimate. But they require different tools, and confusing them is the original sin of empirical work.
 
+<!--
 ## Fallacy 1: prediction is not causation
 
 - Momentum: past returns *predict* future returns.
@@ -80,6 +80,7 @@ execute:
 - **Causal inference asks a different question**: what would happen if we *changed* something?
   - Prediction asks what $Y$ **is**, among the units where $X = x$.
   - Causation asks what $Y$ **would be**, if we set $X = x$.
+-->
 <!-- - These are two different mathematical objects --- not two emphases on the same one.-->
 
 <!--
@@ -112,6 +113,7 @@ $$
 - Ask of any empirical result: *is this a filter, or an intervention?*
 -->
 
+<!--
 ## Fallacy 2: temporal ordering is not causation
 
 - *Post hoc ergo propter hoc*: "after this, therefore because of this."
@@ -130,10 +132,11 @@ $$
   - Firms hedge **because** they are exposed: hedging may show zero correlation with distress even if it strongly prevents distress.
   - The Fed adjusts rates to offset shocks: policy can look uncorrelated with output.
 - **Lesson**: when treatment is chosen optimally, causal effects can be *invisible* in correlations.
+-->
 
 ## The common thread: the assignment mechanism
 
-- In all three fallacies, what breaks the link between correlation and causation is **how treatment got assigned**:
+- What breaks the link between correlation and causation is **how treatment got assigned**:
   - Who chose to be treated? Why? Based on what?
 - The central message of this lecture (and this course):
 
@@ -404,6 +407,7 @@ $$
 - No control variables needed. No model needed. The balance is created by the *mechanism*, not by the econometrician.
 - Practice: in any experiment (or natural experiment), the first table is a **balance table** --- compare pre-treatment covariates across groups. Balance on observables is the testable *symptom* of a sound mechanism.
 
+<!--
 ## Case: eBay and the value of paid search
 
 - **The setting.** In paid search advertising, a firm bids so that its ad appears when a user searches a keyword. eBay spent heavily on this.
@@ -452,13 +456,16 @@ $$
 - **Bertrand et al. (2010, *QJE*)** --- direct-mail loan offers in South Africa, randomizing price *and* content. A **photo of an attractive woman** raised demand as much as a **25% rate cut**.
 - **Duflo and Saez (2003, *QJE*)** --- \$20 to attend a benefits fair raised enrollment, and raised it too for **untreated colleagues in treated departments**.
 - That last one is a clean randomization that still violates SUTVA (Part 5).
-
+-->
 
 ## Where finance experiments live
 
-- Notice what these studies have in common: the researcher controls **an offer**.
-  - A mailer, a price quote, an insurance policy, an invitation.
-- That is why field experiments cluster in **household finance, credit, and insurance** --- markets with many small units and a lender or insurer willing to randomize.
+- Finance does have real randomized experiments. Four representative ones:
+  - **Blake, Nosko and Tadelis (2015)** switched eBay's paid search off in random markets. Brand-keyword ads had **no measurable benefit** --- traffic substituted to the free organic link --- and average returns were negative. Attribution had been measuring selection, not causation.
+  - **Karlan and Zinman (2009)** mailed 58,000 South African loan offers, randomizing the *offer* rate, the *contract* rate and a repayment incentive. The offer rate identifies **adverse selection**; the contract rate at a fixed offer rate identifies **moral hazard**.
+  - **Cole, Giné and Vickery (2017)** randomized rainfall insurance; insured farmers shifted into higher-return, rainfall-sensitive crops.
+  - **Duflo and Saez (2003)** paid \$20 to attend a benefits fair. Enrollment rose for treated employees *and* untreated colleagues --- a clean randomization that violates SUTVA (Part 5).
+- **What they share:** the researcher controls **an offer** --- a mailer, a price quote, a policy, an invitation. That is why field experiments cluster in **household finance, credit and insurance**.
 
 
 ## Why finance rarely gets to randomize
@@ -534,185 +541,27 @@ Estimand -> Parameter: Identification
 \emph{``the effect of a \$1bn injection'' is not ``the effect of being bailed out.''}
 \end{center}
 
-# 6. The Regression Bridge
+# 6. Randomization Inference
 
-## Same problem, older dialect
+## Why bother?
 
-- You already know a language for causality --- the regression language:
-$$
-y = \beta_0 + \beta_1 x + u
-$$
-- Causal interpretation of $\beta_1$ requires **conditional mean independence**:
-$$
-E[u \mid x] = E[u] = 0
-$$
-- The potential outcomes framework and the CMI framework describe the **same problem** in two dialects. Let's build the dictionary.
+- **Randomization-based inference**: the uncertainty in an estimate comes from the **random assignment of treatment**, not from hypothetical sampling out of a larger population.
+- The two approaches answer different questions:
+  - A conventional standard error asks *"what if I had drawn a different sample?"*
+  - Randomization inference asks *"what if the treated had been differently?"*
+- In an experiment, only the second thing actually happened. The sample is whoever was there; the **assignment** is what was random.
+- That shift buys you *exact* $p$-values --- the probability that chance alone could have produced what you saw.
+- The idea is old: **R. A. Fisher**, early twentieth century.
 
-## The dictionary
+## Three situations where it earns its keep
 
-| Potential outcomes dialect | Regression dialect |
-|:---------------------------------------------|:--------------------------------|
-| $(Y^1, Y^0) \indep D$ | $E[u \mid x] = E[u]$ (CMI) |
-| Selection bias | $\mathrm{cov}(x, u) \neq 0$ (OVB, simultaneity) |
-| Heterogeneous $\delta_i$ | Random coefficients $b_i$ |
-| ATE | Average partial effect (APE) |
-| SDO | OLS coefficient of $Y$ on $D$ |
+1. **You have the population, not a sample.** With comprehensive or administrative data, a standard error answering "what if I drew another sample?" is not valuable. The real uncertainty is that we never see the counterfactual (Abadie, Diamond and Hainmueller 2010; Abadie et al. 2020).
+2. **Few treated units.** Conventional inference leans on large-sample approximations. With a handful of treated units a single observation can swing the estimate, and conventional tests **over-reject** (Young, 2019).
+3. **Transparency.** Placebo-based inference is easy to explain and hard to fudge.
 
-- The PO dialect is sharper about *estimands* (ATE vs. ATT) and *assignment*.
-- The regression dialect is sharper about *direction of bias* --- and it is the language referees speak. You need both.
+\vspace{0.4em}
 
-## Omitted variable bias
-
-- You estimate $y = \beta_0 + \beta_1 x + u$, but the true model is
-$$
-y = \beta_0 + \beta_1 x + \beta_2 z + v
-$$
-- Then
-$$
-\hat{\beta}_1 \xrightarrow{p} \beta_1 + \underbrace{\frac{\mathrm{cov}(x, z)}{\mathrm{var}(x)}}_{\delta_{xz}} \beta_2
-$$
-- The bias is the *effect of the omitted variable* ($\beta_2$) times *its regression on the included one* ($\delta_{xz}$).
-- Consistent only if $\mathrm{cov}(x,z) = 0$ or $\beta_2 = 0$: the omitted variable must matter **and** be correlated with $x$.
-
-## Signing the bias
-
-$$
-\text{bias} = \delta_{xz} \, \beta_2
-$$
-
-| | $\mathrm{cov}(x,z) > 0$ | $\mathrm{cov}(x,z) < 0$ |
-|:---------------|:-----------:|:-----------:|
-| $\beta_2 > 0$ | $+$ | $-$ |
-| $\beta_2 < 0$ | $-$ | $+$ |
-
-- Classic example: $\ln(wage)$ on education, omitting ability.
-  - Ability raises wages ($\beta_2 > 0$) and correlates positively with education $\Rightarrow$ upward bias.
-- Finance example: firm value on governance, omitting CEO talent.
-  - Talented CEOs may sort into well-governed firms and raise value $\Rightarrow$ governance coefficient too big.
-- With **multiple** omitted variables (or multiple included regressors), signs interact and the algebra stops being your friend. Sign one bias at a time, or don't sign at all.
-
-<!--
-
-## From switching equation to regression
-
-- Start from the switching equation and factor out $Y_i^0$:
-$$
-Y_i \;=\; D_i Y_i^1 + (1-D_i) Y_i^0
-    \;=\; Y_i^0 + D_i \underbrace{\left(Y_i^1 - Y_i^0\right)}_{\delta_i}
-    \;=\; Y_i^0 + D_i \delta_i
-$$
-- Now split each random quantity into its mean plus a deviation, writing $\delta = E[\delta_i] = ATE$:
-$$
-Y_i^0 = E[Y^0] + \left(Y_i^0 - E[Y^0]\right), \qquad \delta_i = \delta + (\delta_i - \delta)
-$$
-- Substitute both into $Y_i = Y_i^0 + D_i\delta_i$ and collect terms:
-$$
-Y_i \;=\; E[Y^0] \;+\; \delta D_i \;+\; \left(Y_i^0 - E[Y^0]\right) + D_i(\delta_i - \delta)
-$$
-- This **is** a regression of $Y$ on a constant and $D$ --- exactly, with no approximation and no assumptions. We only rewrote the switching equation.
-
--->
-
-## The omitted variable is $Y^0$
-
-- The switching equation factors as $Y_i = Y_i^0 + D_i\delta_i$. Split each term into its mean plus a deviation, writing $\delta = E[\delta_i] = ATE$:
-$$
-Y_i \;=\; \underbrace{E[Y^0]}_{\beta_0}
-      \;+\; \underbrace{\delta}_{\beta_1} D_i
-      \;+\; \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}}
-      \;+\; \underbrace{D_i(\delta_i - \delta)}_{\text{gain}}
-$$
-- That **is** a regression of $Y$ on a constant and $D$. The last two terms are the error $u_i$.
-- So the "omitted variable" is the baseline potential outcome $Y_i^0$, together with the individual gain $\delta_i$.
-- OVB --- in causal settings, it *is* selection bias, written in the older dialect.
-<!-- - Careful: $Y_i^0$ is **observed** for the untreated. It is counterfactual only for the treated --- missing exactly where we would need it. And no better data collection can fix that. -->
-
-
-## Two ways treatment can be selected
-
-- $D$ can be correlated with **either** piece of the error:
-$$
-u_i = \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}} \;+\; \underbrace{D_i(\delta_i - \delta)}_{\text{gain}}
-$$
-- **Selection on levels** --- treatment goes to units with unusual $Y_i^0$: how they would have done *anyway*, untreated.
-  - Bailing out the weakest banks. Training the least employable workers.
-- **Selection on gains** --- treatment goes to units with unusual $\delta_i$: how much they would *benefit*.
-  - The Perfect Regulator. Any optimizing agent allocating a scarce treatment.
-- The two are distinct, and **either one alone** breaks the naive comparison.
-- Note our own running example sorts on **gains**, not levels. Defining selection bias as "$\mathrm{cov}(D,Y^0) \neq 0$" would misclassify it.
-
-## Both biases, from one lemma
-
-\small
-- **Lemma.** For *binary* $D$ with $\pi = P(D{=}1)$, and any random variable $W$:
-$$
-\mathrm{cov}(D, W) = \pi(1-\pi)\Big(E[W \mid D{=}1] - E[W \mid D{=}0]\Big)
-$$
-  - *Proof.* $E[DW] = \pi E[W|D{=}1]$ since $D$ is binary, and $E[W] = \pi E[W|D{=}1] + (1-\pi)E[W|D{=}0]$. Substitute into $\mathrm{cov}(D,W) = E[DW] - E[D]E[W]$ and collect. $\blacksquare$
-- **Take $W = Y^0$:**
-$$
-\mathrm{cov}(D, Y^0) = \pi(1-\pi)\Big(E[Y^0|D{=}1] - E[Y^0|D{=}0]\Big)
-$$
-- **Take $W = D_i(\delta_i - \delta)$.** It is $0$ whenever $D=0$, so $E[W|D{=}0] = 0$, while $E[W|D{=}1] = ATT - ATE$:
-$$
-\mathrm{cov}\big(D,\, D_i(\delta_i-\delta)\big) = \pi(1-\pi)\big(ATT - ATE\big)
-$$
-- Since $\mathrm{var}(D) = \pi(1-\pi)$, dividing each by $\mathrm{var}(D)$ **cancels that factor** --- leaving the selection bias term and $ATT - ATE$.
-\normalsize
-
-## The two dialects give the same equation
-
-- Since $\hat\beta_1 \xrightarrow{p} \delta + \mathrm{cov}(D,u)/\mathrm{var}(D)$, and using $ATT - ATE = (1-\pi)(ATT-ATU)$ from earlier:
-$$
-\hat\beta_1 \;\xrightarrow{p}\;
-\underbrace{ATE}_{\delta}
-\;+\; \underbrace{\Big(E[Y^0|D{=}1]-E[Y^0|D{=}0]\Big)}_{\text{selection bias}}
-\;+\; \underbrace{(1-\pi)(ATT-ATU)}_{\text{heterogeneity bias}}
-$$
-- The right-hand side is exactly the $SDO$ decomposition we proved in Part 3.
-- The regression route and the potential-outcomes route are not analogies. **They are the same three terms.**
-<!-- - So $\hat\beta_1$ is inconsistent for the $ATE$ --- but perfectly *consistent* for the $SDO$. Once again: OLS delivers the estimand you asked for, not the one you wanted. -->
-
-
-## Simultaneity: when $y$ fires back
-
-- Suppose the regressor responds to the outcome:
-$$
-y = \beta_0 + \beta_1 x + u, \qquad x = \alpha_0 + \alpha_1 y + \varepsilon
-$$
-- Solve for $x$:
-$$
-x = \frac{\alpha_0 + \alpha_1 \beta_0}{1 - \alpha_1 \beta_1} + \frac{\alpha_1 u + \varepsilon}{1 - \alpha_1 \beta_1}
-$$
-- $x$ is mechanically correlated with $u$: CMI fails, OLS is biased --- **reverse causality**.
-- Finance examples: leverage and performance; board independence and performance; analyst coverage and returns. In equilibrium, almost every firm characteristic responds to almost every outcome.
-- Note: lagging $x$ does **not** fix this if $x$ is persistent and anticipates $y$. It hides the problem; it does not solve it.
-
-## Random coefficients: the formal bridge
-
-- Let every firm have its own line:
-$$
-y_i = a_i + b_i x_i, \qquad a_i = \alpha + c_i, \quad b_i = \beta + d_i
-$$
-- With binary $x$, this **is** the potential outcomes model: $b_i = \delta_i$, $a_i = Y_i^0$.
-- Rewrite: $y_i = \alpha + \beta x_i + \underbrace{(c_i + d_i x_i)}_{u_i}$
-- OLS identifies the **average partial effect** $\beta = E[b_i]$ (the ATE!) only if
-$$
-E[c_i \mid x_i] = 0 \;\;(\text{no selection on levels}), \qquad E[d_i \mid x_i] = 0 \;\;(\text{no selection on gains})
-$$
-- These are precisely "selection bias $=0$" and "ATT $=$ ATU." The two dialects have converged.
-
-## Bad controls: a preview
-
-- Adding controls is not free. If a control $x_2$ is itself **affected by the treatment**:
-$$
-y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + u, \qquad x_2 = \gamma_0 + \gamma_1 x_1 + \varepsilon
-$$
-- Then conditioning on $x_2$ blocks part of the effect you want --- and can *introduce* selection bias where none existed.
-- Rule of thumb: controls must be **pre-treatment** (determined before $D$).
-- Why conditioning on a post-treatment variable creates bias is subtle --- it is the centerpiece of the next lecture (DAGs and colliders).
-
-# 7. Randomization Inference
+<!-- - The first two are the common cases in finance. You often have *every* firm in Compustat rather than a sample of them, and the treated group is often a handful of firms, one state, or a single regulatory event. -->
 
 ## Two null hypotheses
 
@@ -720,22 +569,95 @@ $$
   - Inference relies on asymptotics: large $n$, estimated standard errors.
 - Fisher's **sharp null**: the effect is zero *for every unit*,
 $$
-H_0: \delta_i = 0 \;\; \text{for all } i
+H_0: \delta_i = Y_i^1 - Y_i^0 = 0 \quad \text{for all } i
 $$
-- Under the sharp null, both potential outcomes are known for every unit: $Y_i^1 = Y_i^0 = Y_i$ (the observed value).
-- That makes *exact* inference possible --- no asymptotics, no standard errors, any sample size.
+- The sharp null is **stronger**.
+- Its payoff is that it is **nonparametric** --- no Gaussian assumption, no large-sample approximation, no estimated standard error. It works at $n = 8$.
 
-## The permutation logic
+## The sharp null fills in the missing half
 
-1. Under the sharp null, the observed outcomes would have been the same under **any** treatment assignment.
-2. So: re-randomize $D$ on paper, in every way the actual randomization could have come out.
-3. Recompute the test statistic (e.g., the SDO) for each hypothetical assignment.
-4. The exact p-value is the share of assignments giving a statistic at least as extreme as the observed one.
-- The randomness comes from the **assignment mechanism itself** --- the same mechanism that justified the causal comparison justifies the inference.
+- The fundamental problem of causal inference is that we never see both potential outcomes. Under the sharp null, **we do**.
+- If $\delta_i = Y_i^1 - Y_i^0 = 0$, then $Y_i^1 = Y_i^0$, and both equal the value we observed. 
+
+\begin{center}
+\small
+\begin{tabular}{c|cc|cc||cc}
+\toprule
+ & \multicolumn{4}{c||}{What we observe} & \multicolumn{2}{c}{Under $H_0: \delta_i = 0$} \\
+Bank & $D$ & $Y$ & $Y^0$ & $Y^1$ & $Y^0$ & $Y^1$ \\
+\midrule
+1 & 0 & 2 & 2 & ? & 2 & 2 \\
+2 & 1 & 6 & ? & 6 & 6 & 6 \\
+3 & 1 & 7 & ? & 7 & 7 & 7 \\
+$\vdots$ & & & & & & \\
+10 & 0 & 8 & 8 & ? & 8 & 8 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+
+
+## It is not the bootstrap
+
+- The two get confused because both produce a distribution by resampling. 
+- **Bootstrap.** Resample *observations*, with replacement, from your sample. The resulting uncertainty is about **which units ended up in your sample** --- sampling uncertainty.
+- **Randomization inference.** Hold the units fixed and reshuffle **who was treated**. The uncertainty is about **which units got the treatment** --- assignment uncertainty.
+- Different questions, different null, different interpretation. 
+
+## Six steps
+
+Following Cunningham (*The Remix*, §4.7):
+
+1. Choose the **sharp null**.
+2. Construct a **test statistic** $t(D, Y)$.
+3. Pick a **different** treatment assignment $\tilde D$.
+4. Compute the test statistic for that pretend assignment.
+5. **Cycle** over step 3 for all possible assignments.
+6. Divide the **rank** of the true statistic by the number of trials --- the exact $p$-value.
+
+<!-- \vspace{0.4em}
+
+- Steps 3--5 are one loop. Step 6 is one division. The conceptual work is all in steps 1 and 2. -->
+
+## Step 2: what makes a good test statistic
+
+- A test statistic $t(D, Y)$ is just a **scalar** built from the assignment and the outcomes.
+- The requirement: it should take **extreme values when the sharp null is false**, and extreme values should be **rare when it is true**.
+- The obvious choice is the one we already know --- the simple difference in outcomes,
+$$
+t(D, Y) = \bar{Y}_{\text{treated}} - \bar{Y}_{\text{control}} = SDO
+$$
+- For the ten banks, the lottery gave injections to banks $2, 3, 5, 8, 9$:
+$$
+SDO = \frac{6+7+6+7+7}{5} - \frac{2+2+6+7+8}{5} = 6.6 - 5.0 = 1.6
+$$
+
+## Steps 3--5: the permutation loop
+
+- Under the sharp null the outcomes $Y$ **do not change** --- only the labels move.
+- Suppose banks $1, 3, 5, 8, 9$ had been drawn instead:
+$$
+\tilde t = \frac{2+7+6+7+7}{5} - \frac{6+2+6+7+8}{5} = 5.8 - 5.8 = 0.0
+$$
+- Or banks $1, 2, 4, 6, 7$:
+$$
+\tilde t = \frac{2+6+2+6+7}{5} - \frac{7+6+7+7+8}{5} = 4.6 - 7.0 = -2.4
+$$
+- Store each one and move on. With five treated out of ten there are $\binom{10}{5} = 252$ such assignments.
+- Each $\tilde t$ is a number the world *could have produced* if the treatment did nothing. Together they are the **reference distribution**.
+
+## Step 6: the exact $p$-value
+
+$$
+\Pr\big(|t(\tilde D, Y)| \geq |t(D, Y)| \;\big|\; \delta_i = 0 \;\, \forall i\big) = \frac{\sum_{\tilde D \in \Omega} I\big(|t(\tilde D, Y)| \geq |t(D, Y)|\big)}{K}
+$$
+
+- **what share of the pretend worlds look at least as extreme as the real one?**
+- $\Omega$ is the set of assignments the randomization could have produced and $K = |\Omega|$. Here $K = 252$.
+- "$\delta = 0$" would name the Neyman null (*The Remix*)
+- **"Exact"** is meant literally. This is not an approximation to a limiting distribution --- it is a finite count.
 
 ## Randomization inference on ten banks
-
-- Suppose the ten banks were randomized: five drawn by lot got injections. Observed SDO $= 1.6$.
 
 ```{r}
 #| echo: true
@@ -749,7 +671,8 @@ p_exact <- mean(abs(sdo_all) >= abs(sdo_obs))
 round(c(SDO = sdo_obs, exact_p = p_exact), 3)
 ```
 
-- With $n = 10$, a difference of 1.6pp is *not* statistically distinguishable from luck-of-the-draw --- and we know this **exactly**, not asymptotically.
+- $p = 100/252 = 0.397$. With $n = 10$, a difference of 1.6pp is **not** distinguishable from luck of the draw --- and we know this *exactly*, not asymptotically.
+
 
 <!--
 
@@ -784,17 +707,171 @@ round(c(SDO = sdo_obs, exact_p = p_exact), 3)
   - it takes only **15 distinct values**, because ten small integers produce many ties. Discreteness is intrinsic to exact tests;
   - the smallest attainable two-sided $p$ is $2/252 \approx 0.008$. Ten units *can* reach significance --- this draw simply is not close.
 
+-->
+
 ## The assumption hiding in `combn(10, 5)`
 
 - The reference set must match the **actual randomization design**.
 - `combn(10, 5)` presumes a completely randomized experiment with a **fixed** five treated --- exactly five drawn by lot.
-- Had each bank instead been **independently coin-flipped**, the correct reference set would be all $2^{10} = 1024$ assignments, including those with 3 or 7 treated --- and the $p$-value would differ.
+- Had each bank instead been **independently coin-flipped**, the correct reference set would be all $2^{10} = 1024$ assignments, and the $p$-value would differ.
 - Get this wrong and the $p$-value is not "approximately right." It answers a different question.
 
 \begin{center}
 \emph{The permutation scheme must mirror the physical randomization.}
 \end{center}
 
+## Revisiting step 2: the menu of test statistics
+
+- $SDO$ is the default, and a good one **when effects are additive and outliers few**. 
+- **Log difference** --- for skewed outcomes and multiplicative effects:
+$$
+T_{\log} = \frac{1}{N_T}\sum_i D_i \ln Y_i - \frac{1}{N_C}\sum_i (1 - D_i)\ln Y_i
+$$
+  <!-- - A **multiplicative** effect scales every unit by the same factor, $Y_i^1 = c\,Y_i^0$. In levels it is $(c-1)Y_i^0$ --- *different for every unit*. In logs it is $\ln c$ --- **the same for everyone**: an additive effect, which is what a difference in means detects best. -->
+- **Quantiles** --- robust to outliers in either tail:
+$$
+T_{\text{median}} = \big|\,\text{median}(Y_T) - \text{median}(Y_C)\,\big|
+$$
+- **Normalised ranks** --- discard magnitudes, keep the ordering. Good with small samples or heavy tails.
+- **Kolmogorov--Smirnov** --- looks at the whole distribution, not a single summary.
+- **None of these changes the null or the validity of the test**. The choice changes only **power**. So choose **before** you look.
+
+<!-- 
+## Normalised ranks, worked
+
+- Rank every outcome, counting units with values at or below it and **averaging over ties**. Then centre the ranks:
+$$
+\tilde R_i = \sum_{j=1}^{N} I(Y_j \leq Y_i) \;-\; \frac{N+1}{2}
+$$
+- Subtracting $(N+1)/2$ makes the ranks average to zero, so the test statistic is again a difference in means --- now of ranks.
+
+\begin{center}
+\small
+\begin{tabular}{lcccccccc}
+\toprule
+Bank & 1 & 2 & 3 & 4 & 5 & 6 & 7 & 8 \\
+\midrule
+$Y$            & 2 & 6 & 7 & 2 & 6 & 6 & 7 & 7 \\
+Rank           & 1.5 & 4 & 7.5 & 1.5 & 4 & 4 & 7.5 & 7.5 \\
+$\tilde R_i$   & $-4$ & $-1.5$ & $2$ & $-4$ & $-1.5$ & $-1.5$ & $2$ & $2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\footnotesize
+Banks 1 and 4 tie at $Y = 2$ and occupy positions 1 and 2, so both get $(1+2)/2 = 1.5$. Banks 2, 5 and 6 tie at $6$ across positions 3--5, giving $4$. With $N = 10$, $\tilde R_i = \text{Rank}_i - 5.5$. *(First eight banks shown.)*
+
+
+## The same data, four test statistics
+
+\begin{center}
+\small
+\begin{tabular}{lrrr}
+\toprule
+Test statistic & Observed & Exact $p$ & Distinct values \\
+\midrule
+Difference in means ($SDO$) & $1.600$ & $0.397$ & 15 \\
+Log difference              & $0.444$ & $0.365$ & 22 \\
+Normalised rank difference  & $1.200$ & $0.730$ & 16 \\
+Kolmogorov--Smirnov         & $0.400$ & $0.524$ & \phantom{0}4 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- All four fail to reject, which is the honest answer at $n = 10$. But notice the $p$-values are **not the same** --- they range from $0.37$ to $0.73$.
+- The **rank** statistic is least sensitive here precisely because it discards magnitudes, and the magnitudes are where the signal is.
+- The rightmost column matters. With ten small integers a statistic can take only a handful of distinct values, which coarsens the $p$-value. **Discreteness is intrinsic to exact tests** --- it is the price of not assuming a distribution.
+
+
+## When the means miss it: Kolmogorov--Smirnov
+
+- Every statistic so far compares a **single summary** of two groups. A treatment can leave the mean alone and still change the distribution --- most obviously by changing its **spread**.
+- Define the empirical CDFs and take the largest vertical gap between them:
+$$
+\hat F_C(y) = \frac{1}{N_C}\sum_{i: D_i = 0} I(Y_i \leq y), \qquad
+\hat F_T(y) = \frac{1}{N_T}\sum_{i: D_i = 1} I(Y_i \leq y)
+$$
+$$
+T_{KS} = \max_y \big|\hat F_T(y) - \hat F_C(y)\big|
+$$
+<!-- - Two identical distributions have overlapping CDFs. A CDF is a function and a test statistic must be a scalar, so we reduce it to **one number: the maximum vertical distance**. 
+- The $p$-value is computed exactly as before --- permute, recompute $T_{KS}$, count.
+
+## Kolmogorov--Smirnov, in a picture
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.9
+ctl <- c(0.22,-0.87,-2.39,-1.79,0.37,-1.54,1.28,-0.31,-0.74,1.72,
+         0.38,-0.17,-0.62,-1.10,0.30,0.15,2.30,0.19,-0.50,-0.09)
+trt <- c(-5.13,-2.19,-2.43,-3.83,0.50,-3.25,4.32,1.63,5.18,-0.43,
+         7.11,4.87,-3.10,-5.81,3.76,6.31,2.58,0.07,5.76,3.50)
+RED <- "#B2182B"; BLU <- "#2166AC"
+par(mfrow = c(1, 2), mar = c(4, 4.2, 2.0, 1), cex = 0.8)
+
+# left: the two eCDFs
+grid <- seq(-7, 8, 0.01)
+Ft <- sapply(grid, function(v) mean(trt <= v))
+Fc <- sapply(grid, function(v) mean(ctl <= v))
+plot(grid, Fc, type = "l", lwd = 2.4, col = BLU, ylim = c(0, 1),
+     xlab = "outcome", ylab = "empirical CDF", main = "The two distributions")
+lines(grid, Ft, lwd = 2.4, col = RED)
+i <- which.max(abs(Ft - Fc))
+arrows(grid[i], Fc[i], grid[i], Ft[i], code = 3, length = 0.05, lwd = 2)
+text(grid[i] - 0.4, (Fc[i] + Ft[i])/2, expression(T[KS] == 0.45), adj = 1, cex = 0.8)
+legend("topleft", c("treated", "control"), col = c(RED, BLU), lwd = 2.4, bty = "n", cex = 0.7)
+
+# right: the two reference distributions
+set.seed(975)
+y <- c(ctl, trt); d <- c(rep(0, 20), rep(1, 20))
+ks_stat <- function(a, b) { g <- sort(unique(c(a, b)))
+  max(abs(sapply(g, function(v) mean(a <= v)) - sapply(g, function(v) mean(b <= v)))) }
+res <- replicate(2000, { p <- sample(d)
+  c(ks_stat(y[p == 1], y[p == 0]), abs(mean(y[p == 1]) - mean(y[p == 0]))) })
+hist(res[1, ], breaks = 20, col = "grey85", border = "white", freq = FALSE,
+     xlab = expression(T[KS]), main = expression(paste("Reference distribution of ", T[KS])), ylab = "density")
+abline(v = ks_stat(trt, ctl), col = RED, lwd = 2.6)
+text(ks_stat(trt, ctl) + 0.02, par("usr")[4]*0.75, "observed", col = RED, adj = 0, cex = 0.72)
+```
+
+\vspace{-0.4em}
+\footnotesize
+Same forty observations, two test statistics. Means: $-0.16$ versus $0.97$, and the difference-in-means test returns $p = 0.24$ --- **nothing**. But the treated variance is **13 times** the control variance, and $T_{KS} = 0.45$ gives $p = 0.035$. The treatment did not move the average outcome; it moved the *risk*.
+-->
+
+
+## Revisiting step 5: when "all assignments" is impossible
+
+- Ten banks give $252$ assignments. In *The Remix*, Thornton's (2008) HIV-testing experiment had $2{,}901$ participants, $2{,}222$ of them incentivised. The number of assignments is
+$$
+\binom{2901}{2222} \approx 6.15 \times 10^{680}
+$$
+<!-- - For scale: roughly $10^{80}$ atoms in the observable universe. Enumeration is not slow, it is **impossible**. -->
+- So we **sample** the reference distribution: draw a random assignment, recompute the statistic, repeat $1{,}000$ to $10{,}000$ times.
+- The $p$-value is then **approximate** rather than exact --- but the error is sampling error you control with more draws, not an asymptotic assumption you must defend.
+- This is what you will actually do. Any dataset of a reasonable size makes full enumeration hopeless.
+
+<!-- 
+## Thornton's experiment under the sharp null
+
+\begin{center}
+\small
+\begin{tabular}{rrrr}
+\toprule
+ATE & Rank & $p$ & Trials \\
+\midrule
+$0.45$ & 1 & $0.010$ & $100$ \\
+$0.45$ & 1 & $0.002$ & $500$ \\
+$0.45$ & 1 & $0.001$ & $1{,}000$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Thornton paid people small amounts to learn their HIV test results. Under the sharp null --- *payments did nothing for anyone, ever* --- her effect ranks **first** against every pretend assignment, at every number of trials.
+- Notice what the $p$-value is doing. With the true effect always ranked first, $p$ is simply $1/\text{trials}$. **More draws buy a smaller number, not more evidence.**
+- The exercise did not overturn anything here, and that is the point: her original estimate was $0.45$ with a standard error of $0.02$. When a result is that precise, a different inferential philosophy will not rescue or destroy it.
+- Randomization inference earns its keep in the *other* case --- few treated units, or a result that leans on asymptotics it has not earned.
 -->
 
 ## Where you will see this again
@@ -803,7 +880,7 @@ round(c(SDO = sdo_obs, exact_p = p_exact), 3)
   - **Synthetic control**: placebo tests permute the treatment across donor units --- that *is* randomization inference.
   - **Small-N settings**: one treated state, one regulatory event, a handful of treated firms --- common in finance, hopeless for asymptotics.
   - Cluster-robust inference with few clusters: permutation tests as the honest fallback.
-- The deeper point: *inference should mirror the assignment mechanism.* Where the mechanism is uncertain, so is the p-value.
+- The deeper point: *inference should mirror the assignment mechanism.* Where the mechanism is uncertain, so is the $p$-value.
 
 # Wrapping Up
 
@@ -822,21 +899,24 @@ $$
 
 - **Randomization** kills both bias terms by making $(Y^1, Y^0) \indep D$. Balance tables are its testable symptom.
 - **SUTVA** fails easily in finance: competition, peer effects, and heterogeneous doses. Ask what happens to the market, not just the treated.
-- The **regression dialect** translates one-for-one: CMI $\Leftrightarrow$ independence; OVB $\Leftrightarrow$ selection bias; random coefficients $\Leftrightarrow$ heterogeneous $\delta_i$.
-- **Randomization inference** gives exact p-values from the assignment mechanism --- remember it when you meet synthetic control.
+- **Randomization inference** turns the assignment mechanism into a test. Under **Fisher's sharp null** every counterfactual is filled in, so the $p$-value is an exact count over the assignments the lottery could have produced --- no asymptotics, at any sample size.
+- The **test statistic is a choice**: means, logs, quantiles, ranks, or the whole distribution (Kolmogorov--Smirnov). Make it before you look, and remember that a treatment can move the *spread* without moving the mean.
 - Next lecture: DAGs --- a graphical language for deciding *what to control for, and what not to*.
 
 ## References
 
 \footnotesize
 
-- Cunningham, S. *Causal Inference: The Remix*, Ch. 4. 
+- Cunningham, S. *Causal Inference: The Remix*, Ch. 4.
 - Holland, P. (1986). Statistics and Causal Inference. *JASA* 81, 945--960.
+- Abadie, A., A. Diamond and J. Hainmueller (2010). Synthetic Control Methods for Comparative Case Studies. *JASA* 105, 493--505.
+- Abadie, A., S. Athey, G. Imbens and J. Wooldridge (2020). Sampling-Based versus Design-Based Uncertainty in Regression Analysis. *Econometrica* 88, 265--296.
+- Fisher, R. A. (1935). *The Design of Experiments*. Oliver and Boyd.
+- Thornton, R. (2008). The Demand for, and Impact of, Learning HIV Status. *AER* 98, 1829--1863.
+- Young, A. (2019). Channeling Fisher: Randomization Tests and the Statistical Insignificance of Seemingly Significant Experimental Results. *QJE* 134, 557--598.
 - Blake, T., C. Nosko, and S. Tadelis (2015). Consumer Heterogeneity and Paid Search Effectiveness: A Large-Scale Field Experiment. *Econometrica* 83, 155--174.
 - Karlan, D. and J. Zinman (2009). Observing Unobservables: Identifying Information Asymmetries with a Consumer Credit Field Experiment. *Econometrica* 77, 1993--2008.
-- Bertrand, M., D. Karlan, S. Mullainathan, E. Shafir, and J. Zinman (2010). What's Advertising Content Worth? *Quarterly Journal of Economics* 125, 263--306.
 - Cole, S., X. Giné, and J. Vickery (2017). How Does Risk Management Influence Production Decisions? *Review of Financial Studies* 30, 1935--1970.
 - Duflo, E. and E. Saez (2003). The Role of Information and Social Interactions in Retirement Plan Decisions. *Quarterly Journal of Economics* 118, 815--842.
 - Leary, M. and M. Roberts (2014). Do Peer Firms Affect Corporate Financial Policy? *Journal of Finance* 69, 139--178.
-- Angrist, J. and J.-S. Pischke (2009). *Mostly Harmless Econometrics*. Princeton UP.
 

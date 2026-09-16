@@ -609,12 +609,94 @@ Robust bias-corrected, $CI_{rbc}$ & $\hat\tau - \hat B$ & $\sqrt{\hat V_{bc}}$ &
 - **Robust** bias correction folds the variability of $\hat B$ into the variance term. Intervals get somewhat wider for the same bandwidth --- that is the honest price of the correction.
 - This is what `rdrobust` reports by default. Report the robust row, and say that you did.
 
-## Two more things about standard errors
+## Do not take my word for it: a coverage experiment
 
-- **Do not cluster on the running variable.** Lee (2008) and Lee and Card (2008) recommended it and the practice spread through most subsequent RD studies. **Kolesár and Rothe (2018)** show it performs badly, with inflated Type I error. Use heteroskedasticity-robust errors, or "honest" intervals (`RDHonest`).
-- **Sparse data near the cutoff** is the recurring practical problem. When observations are thin, or the running variable is coarse with large gaps between values, robust intervals may fail to centre properly --- more often than practitioners realise.
-- **Randomization inference** (Cattaneo, Frandsen and Titiunik) offers an alternative: assume that within a **small window** around the cutoff, treatment is effectively randomly assigned, then analyse that window as an experiment.
-- It gives exact or approximate $p$-values under weaker assumptions than local polynomials, and does better when data are sparse. It also matches the experimental analogy RD keeps invoking.
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.7
+RED <- "#B2182B"; BLU <- "#2166AC"; GRN <- "#1B7837"
+hs   <- c(0.06,0.08,0.10,0.13,0.16,0.20,0.25,0.30,0.40,0.50)
+conv <- c(93.8,93.2,92.3,93.7,92.3,89.2,73.7,48.0, 1.7, 0.0)
+bc   <- c(81.3,76.8,80.2,80.8,82.3,80.3,84.3,80.2,83.2,81.8)
+rbc  <- c(92.8,90.7,92.5,93.3,95.3,94.8,96.8,95.0,96.2,94.8)
+par(mar = c(4, 4.2, 1.2, 1), cex = 0.8)
+plot(hs, conv, type = "n", ylim = c(0, 100), xlab = "bandwidth  h",
+     ylab = "coverage of a nominal 95% CI (%)")
+abline(h = 95, lty = 2, col = "grey45"); abline(v = 0.19, lty = 3, col = "grey65")
+text(0.197, 10, "MSE-optimal h", adj = 0, cex = 0.65, col = "grey40", srt = 90)
+lines(hs, conv, col = RED, lwd = 2.4); points(hs, conv, pch = 16, col = RED, cex = 0.7)
+lines(hs, bc,  col = BLU, lwd = 2.4, lty = 5); points(hs, bc, pch = 17, col = BLU, cex = 0.7)
+lines(hs, rbc, col = GRN, lwd = 2.4); points(hs, rbc, pch = 15, col = GRN, cex = 0.7)
+text(0.505,  5, "Conventional", col = RED, adj = 1, cex = 0.75)
+text(0.505, 74, "Bias-corrected", col = BLU, adj = 1, cex = 0.75)
+text(0.505, 99, "Robust bias-corrected", col = GRN, adj = 1, cex = 0.75)
+```
+
+\vspace{-0.4em}
+\footnotesize
+$2{,}000$ simulated samples per bandwidth, $n = 2{,}000$, known $\tau = 0.20$, a curved $E[Y|X]$ on both sides. For each sample we build all three intervals and ask a single question: **does it contain the true $\tau$?** A 95\% interval should say yes 95\% of the time.
+
+## Read that figure slowly
+
+- **Conventional (red).** Fine when $h$ is small, because then bias is genuinely negligible. It then falls off a cliff: $74\%$ at $h=0.25$, $48\%$ at $h=0.30$, and **$0\%$ at $h=0.50$**. A "95\% interval" that never covers the truth. Nothing warns you --- the output looks completely normal.
+- **Bias-corrected (blue).** Flat at about $81\%$ *everywhere*. Recentring fixed the location but the interval is still too short, because $\hat B$ is itself noisy and this interval pretends it is not.
+- **Robust bias-corrected (green).** Flat at roughly $95\%$ across an eightfold range of bandwidths. That flatness *is* the property you are buying.
+- The lesson is not "conventional intervals are a bit optimistic." It is that their failure is **invisible and unbounded**, and it grows precisely as you widen the window to buy precision.
+
+\footnotesize
+*Teaching note: run it live with two bandwidths --- $h = 0.10$ and $h = 0.40$ --- and let the class predict before you reveal.*
+
+## A short detour: what clustering a standard error does
+
+- OLS standard errors assume the errors $\varepsilon_i$ are **independent across observations**. Each observation is a fresh piece of information.
+- Suppose instead the data arrive in **groups**, and everyone in a group shares a common shock: students in a classroom share a teacher, firms in an industry share a shock. Then residuals inside a group move together.
+- Independent draws are being double-counted. Your **effective** sample size is closer to the *number of groups* than to the number of observations, and conventional standard errors are too small.
+- A **cluster-robust** standard error allows arbitrary correlation *within* each group while assuming independence *across* groups. It normally makes standard errors **larger**.
+- The fine print, which is the whole story today: the formula's justification is asymptotic **in the number of clusters $G$**. With few clusters it is unreliable, and there is no warning message.
+
+\footnotesize
+*We return to clustering properly in the panel-data lecture. Today you need only the idea: a cluster is a set of observations that share something, and the fix needs many such sets.*
+
+## Why RD researchers clustered on the running variable
+
+- **The problem it was meant to solve.** Most running variables are not continuous but **multi-valued**: BAC to $0.001$, test scores in whole points, age in months. Many observations share each value --- call these **mass points**.
+- With mass points you cannot literally take a limit at $c_0$. You fit a polynomial across the mass points instead, and that polynomial will not pass exactly through $E[Y \mid X = x]$ at every one of them. The gap is **specification error**.
+- **Lee and Card's (2008) insight:** every observation sitting at the same mass point shares *exactly the same* specification error. That is precisely the structure of a group shock.
+- So they proposed treating **each distinct value of the running variable as one cluster.** That is the answer to "clustering at what level?" --- not individuals, not counties, not years. One cluster per unique value of $X$.
+  - In Hansen's data: one cluster per BAC reading. In a test-score RD: one cluster per integer score.
+- The logic is genuinely clever, the recommendation spread through most subsequent RD papers, and it is now understood to be **wrong**.
+
+## Why it fails --- and it fails in a surprising direction
+
+\begin{center}
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Bandwidth $h$ & $N$ & Clusters $G$ & Robust SE & Clustered SE & Ratio \\
+\midrule
+$0.050$ (Hansen's) & $90{,}074$ & $101$ & $0.00450$ & $0.00333$ & $0.74$ \\
+$0.020$            & $38{,}349$ & $41$  & $0.00657$ & $0.00421$ & $0.64$ \\
+$0.010$            & $20{,}154$ & $21$  & $0.00911$ & $0.00476$ & $\mathbf{0.52}$ \\
+$0.005$            & $10{,}567$ & $11$  & $0.01303$ & $0.00740$ & $0.57$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+
+- Hansen's recidivism regression, clustered on the distinct BAC readings. **Clustering makes the standard error *smaller* --- by up to half.** Every instinct you just built says it should get bigger.
+- Smaller standard errors mean larger $t$-statistics and **more rejections of a true null**. That is Kolesár and Rothe's inflated Type I error, in one column.
+- Two things are going wrong. First, look at $G$: shrinking the bandwidth to reduce bias destroys clusters. At $h = 0.005$ there are $20{,}000$ observations but **$11$ clusters**. The formula's asymptotics are nowhere in sight.
+- Second, and deeper: specification error is a **fixed function of $x$**, not a random draw. It does not average out over repeated samples, because it is the same every time. Clustering prices a randomness that is not there.
+
+## What to do instead
+
+- **Use heteroskedasticity-robust standard errors** --- what `rdrobust` reports by default. They do not pretend to solve the approximation problem, which is the honest position.
+- **Or use honest confidence intervals** (`RDHonest`, Armstrong--Kolesár). You state a bound on the curvature of $E[Y|X]$ and the interval is guaranteed to cover at the stated rate given that bound. The assumption is explicit rather than buried.
+- **Sparse data near the cutoff** is the recurring practical problem. When observations are thin, or the running variable is coarse, even robust intervals may fail to centre properly.
+- **Randomization inference** (Cattaneo, Jansson and Ma; `rdlocrand`): assume that within a **small window** around the cutoff treatment is effectively randomly assigned, then analyse that window as an experiment. Weaker assumptions than local polynomials, and better behaved when data are sparse.
+- **Reading an older RD paper** that clusters on the running variable? That is not fraud --- it was the recommended practice. Ask whether the result survives robust standard errors.
 
 # 6.4 Challenges to Identification
 
@@ -631,16 +713,16 @@ Continuity is the whole design. It breaks when:
 \vspace{0.3em}
 
 - Conditions 1--3 together are the recipe for **sorting**: retaking an exam, reporting income just below a threshold, delaying a birth. All three are needed --- an agent with an incentive *and* an opportunity.
-- Condition 4 is different, and often overlooked. Turning 18 brings adult criminal penalties --- and also voting rights, high-school graduation, and much else. The cutoff is real but not clean, and the confound is not a variable you forgot to control for.
-- Condition 5 is mechanical rather than strategic, and gets its own treatment below.
+- Condition 4 is different, and often overlooked. Turning 18 brings adult criminal penalties --- and also voting rights, high-school graduation, and much else. The cutoff is real but not clean.
+- Condition 5 is gets its own treatment below.
 
 ## Sorting, and the two rooms
 
-- Two rooms of patients waiting for a life-saving treatment. Room A will receive it; room B knowingly receives nothing. What do you do if you are in room B?
-- You stand up, open the door, and walk across the hall. The only thing that would keep you in room B is if crossing were impossible.
-- And if everyone crosses, room A ends up crowded and room B nearly empty. That imbalance is the **observable footprint** of sorting: you cannot see motives, but you can count how many ended up on each side.
-- Formally: with a desirable treatment and rule $X \geq c_0$, agents choose $X$ just above $c_0$ whenever they are able. If their *ability* to do so is related to their potential outcomes, the comparison at the cutoff is contaminated.
-- Behavioural theory makes a **testable prediction** --- a discontinuity in the *density* of the running variable. Statistics built on optimising behaviour can take you further than statistics alone.
+- Two rooms of patients. Room A gets the life-saving treatment; room B gets nothing. If you are in room B, you walk across the hall --- unless crossing is impossible.
+- If everyone crosses, A is crowded and B is empty. That imbalance is the **observable footprint** of sorting: motives are invisible, but headcounts are not.
+- Formally: with a desirable treatment assigned by $X \geq c_0$, agents who *can* choose $X$ just above $c_0$. If that ability correlates with potential outcomes, the comparison at the cutoff is contaminated.
+- Behavioural theory yields a **testable prediction**: a discontinuity in the *density* of the running variable. 
+
 
 ## The McCrary density test
 
@@ -675,28 +757,161 @@ text(0.07, 1.42, "room B emptied into room A", adj = 0, cex = 0.68, col = "grey3
 - Mechanically: partition the running variable into bins, count observations per bin, treat the counts as an outcome, fit a local linear regression on each side, and test whether the limits agree.
 - Use `rddensity` (Cattaneo, Jansson and Ma) --- local polynomials with less bias at the border than the original. **It needs a lot of data at $c_0$** to separate a real jump from noise.
 
+## Running the test: `rddensity` on real data
+
+```r
+library(rddensity)
+dwi <- read.csv("data/hansen_dwi.csv")
+bac <- dwi$bac1[dwi$bac1 > 0]
+
+out <- rddensity(bac, c = 0.08)     # X and the cutoff. That is the whole call.
+summary(out)                        # T = -0.14, p = 0.89
+
+rdplotdensity(out, bac)             # the picture that belongs in the paper
+```
+
+\vspace{-0.3em}
+
+- The call takes the **running variable only** --- no outcome, no covariates. You are testing the distribution of $X$, nothing else.
+- What to read in the output: the **robust bias-corrected** $T$ statistic and its $p$-value. Same three-interval logic as before; `rddensity` is running a local polynomial too.
+- On Hansen's stops: $T = -0.14$, $p = 0.89$. **Fail to reject.** The sign is negative --- marginally *fewer* stops just above $0.08$ --- the opposite of what sorting would produce.
+- Always run `rdplotdensity` as well. The test is one number; manipulation is a shape.
+
+## Making the test fail, on purpose
+
+```r
+# sabotage: a fraction of drivers just below 0.08 talk their way out of a reading
+zone <- which(bac >= 0.078 & bac < 0.080)           # 2,786 stops
+drop <- sample(zone, floor(0.20 * length(zone)))
+rddensity(bac[-drop], c = 0.08)
+```
+
+\begin{center}
+\small
+\begin{tabular}{lrrrl}
+\toprule
+Data & Stops deleted & $T$ & $p$ & Verdict \\
+\midrule
+Hansen's actual stops   & ---     & $-0.14$ & $0.89$    & no evidence \\
+Delete 10\% just below  & $278$   & $2.25$  & $0.025$   & rejects, barely \\
+Delete 20\% just below  & $557$   & $4.69$  & $<0.0001$ & rejects decisively \\
+Delete 40\% just below  & $1{,}114$ & $9.35$ & $<0.0001$ & overwhelming \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+
+- **Worth ten minutes of class.** A test students only ever see *pass* teaches nothing about what it detects. Break the data yourself and it becomes legible.
+- Read the table as a **power curve**: with $213{,}000$ stops, deleting $10\%$ of a narrow strip sits at the edge of detection and $20\%$ is caught easily. At a tenth the sample, none of it would be.
+- **The real lesson.** "The density test passed" means little without knowing what it *could* have detected --- Almond et al. passed it too. Set a placebo cutoff at $0.10$ as a second exercise.
+
 ## Covariate balance and placebo cutoffs
 
-- **Covariate balance.** Pre-treatment characteristics cannot be caused by treatment, so they must not jump at $c_0$. Run the same RD with each covariate as the outcome and find nothing. Lee, Moretti and Butler (2004) is the template: real income, share with a high-school degree, share Black, share eligible to vote --- all smooth through the $50\%$ Democratic vote share.
+- **Covariate balance.** Pre-treatment characteristics cannot be caused by treatment, so they must not jump at $c_0$. Run the same RD with each covariate as the outcome and find nothing. 
 - A jump in a covariate is serious. It means something *other than* treatment changes at the cutoff --- and if an observed characteristic jumps, unobserved ones probably do too.
 - **Placebo cutoffs.** Imbens and Lemieux (2008): take one side of the discontinuity, use the median of the running variable there as a fake cutoff $c_0'$, and test for a jump in the outcome. You do not want to find anything.
 - The identifying assumptions cannot be tested directly. What these do is supply **indirect evidence** that may be persuasive --- placebo logic, looking where there should be no effect.
 
-## Nonrandom heaping
+## Nonrandom heaping: a design that passed its tests
 
 - **Almond, Doyle, Kowalski and Williams (2010)** wanted the returns to medical care --- hard, because doctors assign care by expected outcome, which is selection bias by construction. The Perfect Doctor problem again.
-- Their insight: babies below $1{,}500$g are classified "very low birth weight" and receive heightened attention. Using hospital records linked to mortality, they found one-year mortality about **one percentage point lower** just below the threshold, against a mean of $5.5\%$. Large, and apparently far exceeding the cost.
-- They ran the McCrary test at $1{,}500$g and **found nothing**. Satisfied, they proceeded.
-- **Barreca, Guldi, Lindo and Waddell** then looked at the *shape* of the whole distribution rather than at one discontinuity, and found **heaping**: excess mass at every round $100$g mark, from hospitals rounding to the nearest integer --- or, more troublingly, from staff rounding *to* $1{,}500$g to trigger specialised care.
-- Nature does not produce piles of babies every hundred grams. Heaping is either rounding or manipulation.
+- Their insight: babies below $1{,}500$g are classified **"very low birth weight"** and receive heightened attention. Birth weight is the running variable, $1{,}500$g the cutoff, and the rule is written down.
+- Using hospital records linked to mortality, they found one-year mortality about **one percentage point lower** just below the threshold, against a mean of $5.5\%$. A large effect, and one that appeared to far exceed the cost of the care.
+- They ran the **McCrary test at $1{,}500$g and found nothing.** Density continuous, no evidence of manipulation. Satisfied, they proceeded.
+- Everything about this is the textbook procedure, done competently. Hold that thought.
+
+## Then look at the whole distribution
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.75
+set.seed(975)
+RED <- "#B2182B"; BLU <- "#2166AC"
+n  <- 900000
+bw <- c(rnorm(n*0.88, 3350, 470), rnorm(n*0.12, 2250, 640))
+bw <- bw[bw > 700 & bw < 4600]
+u  <- runif(length(bw)); oz <- 28.349523
+bw[u < 0.18] <- round(bw[u < 0.18]/100)*100              # recorded to the nearest 100 g
+kk <- u >= 0.18 & u < 0.32
+bw[kk] <- round(bw[kk]/oz)*oz                            # recorded in whole ounces
+gg <- round(bw)
+par(mfrow = c(1, 2), mar = c(4, 4.2, 2.0, 1), cex = 0.8)
+drawpanel <- function(lo, hi, main, labx, laby) {
+  tb <- table(gg[gg >= lo & gg <= hi])
+  xs <- as.numeric(names(tb)); ys <- as.integer(tb)
+  plot(xs, ys, type = "n", xlab = "birth weight (grams)", ylab = "number of births",
+       main = main, xlim = c(lo, hi))
+  abline(v = 1500, col = BLU, lwd = 2.2, lty = 2)
+  points(xs, ys, type = "h", col = "grey62", lwd = 1)
+  points(xs[xs %% 100 == 0], ys[xs %% 100 == 0], type = "h", col = RED, lwd = 1.8)
+  text(labx, max(ys)*laby, "VLBW cutoff", col = BLU, adj = 0, cex = 0.7)
+}
+drawpanel(1000, 3000, "The whole distribution", 1540, 0.55)
+legend("topleft", legend = c("multiples of 100g", "all other weights"),
+       col = c(RED, "grey62"), lwd = c(1.8, 1), bty = "n", cex = 0.66)
+drawpanel(1350, 1650, "Zoomed on the cutoff", 1508, 0.86)
+```
+
+\vspace{-0.4em}
+\footnotesize
+**Barreca, Guldi, Lindo and Waddell** looked at the *shape* of the whole distribution rather than at one point in it, and found **heaping**: excess mass at every round $100$g mark, and at whole-ounce values, from hospitals rounding. Nature does not produce piles of babies every hundred grams. Heaping is either rounding or manipulation. *(Stylised reproduction.)*
+
+## Why heaping fakes an effect at *every* cutoff
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 3.1
+set.seed(975)
+RED <- "#B2182B"; BLU <- "#2166AC"
+mort <- function(x) 0.085 - 0.000035*(x - 1300)
+panel <- function(c0, main, h = 80) {
+  xs <- seq(c0-h, c0+h, 5)
+  is_heap <- xs %% 100 == 0                       # exactly one heap inside the window
+  y <- mort(xs) + ifelse(is_heap, 0.020, 0) + rnorm(length(xs), 0, 0.0016)
+  plot(xs, y, type = "n", xlab = "birth weight (grams)", ylab = "one-year mortality",
+       main = main, ylim = c(0.068, 0.108), xlim = c(c0-h, c0+h))
+  abline(v = c0, lty = 2, col = "grey35")
+  points(xs[!is_heap], y[!is_heap], pch = 16, cex = 0.8, col = adjustcolor("grey30", 0.75))
+  L <- xs < c0; R <- xs >= c0
+  ml <- lm(y[L] ~ xs[L]); mr <- lm(y[R] ~ xs[R])
+  xl <- seq(c0-h, c0, 1); xr <- seq(c0, c0+h, 1)
+  lines(xl, coef(ml)[1] + coef(ml)[2]*xl, col = BLU, lwd = 2.6)
+  lines(xr, coef(mr)[1] + coef(mr)[2]*xr, col = RED, lwd = 2.6)
+  points(xs[is_heap], y[is_heap], pch = 17, cex = 1.5, col = RED)
+  a <- coef(ml)[1] + coef(ml)[2]*c0; b <- coef(mr)[1] + coef(mr)[2]*c0
+  arrows(c0, a, c0, b, code = 3, length = 0.045, lwd = 2)
+  text(c0 - 9, (a+b)/2 + 0.013, sprintf("%.1f pp \"benefit\"", 100*(b-a)), adj = 1, cex = 0.7)
+  text(c0 + 4, y[is_heap] + 0.004, sprintf("heap at %d", c0), col = RED, adj = 0, cex = 0.68)
+}
+par(mfrow = c(1, 2), mar = c(4, 4.4, 2.0, 1), cex = 0.8)
+panel(1500, "Cutoff 1,500g  (the real rule)")
+legend("bottomleft", legend = c("heaped birth weights", "all other weights"),
+       pch = c(17, 16), col = c(RED, "grey30"), bty = "n", cex = 0.66)
+panel(1600, "Cutoff 1,600g  (a pure placebo)")
+```
+
+\vspace{-0.4em}
+\footnotesize
+The window is narrow enough that **one** heap falls inside it, and it sits on the $\geq c_0$ side --- the control side. That single pile of frail babies lifts the right-hand limit, so being *below* the cutoff looks protective. The right panel runs the identical exercise at $1{,}600$g, where **nothing happens to anyone**.
+
+## Unpacking that figure --- the composition effect
+
+- **Step 1. Heaped babies are different babies.** Rounding is not random --- it happens in rushed deliveries and less-equipped hospitals. Barreca et al. show heaped births have less-educated mothers, less prenatal care, and **higher mortality** than their unheaped neighbours.
+- **Step 2. Which side of the rule does the heap fall on?** VLBW means $< 1{,}500$g, so a baby recorded at *exactly* $1{,}500$g is **not** treated. The whole heap sits in the **control** group, at the boundary.
+- **Step 3. That drags the control limit up.** The right-hand limit is computed from data beginning with a pile of unusually frail babies, so it is biased upward. Subtracting an inflated control mean makes being *below* the cutoff look protective.
+- **Step 4. Step 3 never used the number $1{,}500$.** It needs only "*a heap sits at the cutoff*." So the same apparent benefit appears at **any** $100$g mark from $1{,}000$ to $3{,}000$g --- the right panel above.
+- **Step 5. Conclude.** Nothing changes at $1{,}600$g, and no effect can be present at twenty placebo cutoffs. What jumps is not the care these babies receive but **who is recorded there**: composition, not treatment.
 
 ## What passing the density test does *not* prove
 
-- The babies heaped exactly at $1{,}500$g had **unusually high mortality** --- outliers relative to units on *both* sides.
-- The consequence, in Barreca et al.'s words: the heaping alone makes it look "good" to be **strictly below any** $100$g cutoff between $1{,}000$ and $3{,}000$g. That is not a treatment effect; it is a composition effect.
-- The McCrary test asks one question --- *is the density continuous?* --- and the answer was yes. The problem lived in a different feature of the same distribution.
-- **The lesson is the one from Lecture 3.** A test on one feature cannot clear a problem living in another. There, means passed while variances failed. Here, the density was continuous while the composition was not. \hfill \emph{(added)}
-- Plot the raw distribution. Do not rely on a test statistic alone.
+- The McCrary test asks exactly one question --- *is the density continuous at $c_0$?* --- and at $1{,}500$g the honest answer was **yes**. Heaping does not make the density jump; it makes it **spiky**, and a spike sitting *on* the cutoff is not a step *across* it.
+- The problem lived in a different feature of the same distribution. The test was not wrong. It was answering a different question from the one that mattered.
+- **The general lesson.** A test on one feature cannot clear a problem living in another. In the matching lecture, means passed while variances failed. Here, the density passed while the composition failed.
+- **Plot the raw distribution.** Every time. A histogram would have shown this in five seconds; the test statistic never would.
+- Barreca et al.'s remedy --- drop the suspect observations and re-estimate --- is the **donut hole**, next.
 
 ## The donut-hole RD
 
@@ -1193,6 +1408,7 @@ Hansen's data, local linear with a triangular kernel, robust bias-corrected inte
 - Almeida, H., V. Fos and M. Kronlund (2016). The Real Effects of Share Repurchases. *Journal of Financial Economics* 119, 168--185.
 - Almond, D., J. Doyle, A. Kowalski and H. Williams (2010). Estimating Marginal Returns to Medical Care. *QJE* 125, 591--634.
 - Angrist, J. and V. Lavy (1999). Using Maimonides' Rule to Estimate the Effect of Class Size. *QJE* 114, 533--575.
+- Armstrong, T. and M. Kolesár (2020). Simple and Honest Confidence Intervals in Nonparametric Regression. *Quantitative Economics* 11, 1--39.
 - Angrist, J. and M. Rokkanen (2015). Wanna Get Away? RD Estimation Away from the Cutoff. *JASA* 110, 1331--1344.
 - Barreca, A., M. Guldi, J. Lindo and G. Waddell (2011). Saving Babies? *QJE* 126, 2117--2123.
 - Becker, G. (1968). Crime and Punishment: An Economic Approach. *JPE* 76, 169--217.
@@ -1226,6 +1442,8 @@ Hansen's data, local linear with a triangular kernel, robust bias-corrected inte
 - Imbens, G. and T. Lemieux (2008). Regression Discontinuity Designs: A Guide to Practice. *Journal of Econometrics* 142, 615--635.
 - Keys, B., T. Mukherjee, A. Seru and V. Vig (2010). Did Securitization Lead to Lax Screening? *QJE* 125, 307--362.
 - Kolesár, M. and C. Rothe (2018). Inference in RD Designs with a Discrete Running Variable. *AER* 108, 2277--2304.
+- Lee, D. (2008). Randomized Experiments from Non-random Selection in U.S. House Elections. *Journal of Econometrics* 142, 675--697.
+- Lee, D. and D. Card (2008). Regression Discontinuity Inference with Specification Error. *Journal of Econometrics* 142, 655--674.
 - Lee, D. and J. McCrary (2017). The Deterrence Effect of Prison. *Advances in Econometrics* 38, 73--146.
 - Lee, D. and T. Lemieux (2010). Regression Discontinuity Designs in Economics. *JEL* 48, 281--355.
 - Lee, D., E. Moretti and M. Butler (2004). Do Voters Affect or Elect Policies? *QJE* 119, 807--859.

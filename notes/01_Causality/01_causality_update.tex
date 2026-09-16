@@ -252,8 +252,6 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \item
   SUTVA
 \item
-  The regression bridge
-\item
   Randomization inference
 \end{enumerate}
 \end{frame}
@@ -331,109 +329,13 @@ Isn't}\label{what-causality-is-and-isnt}
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Fallacy 1: prediction is not causation}
-\protect\phantomsection\label{fallacy-1-prediction-is-not-causation}
-\begin{itemize}
-\tightlist
-\item
-  Momentum: past returns \emph{predict} future returns.
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Does buying past winners \emph{cause} them to keep winning? No ---
-    the predictive relationship says nothing about intervention.
-  \end{itemize}
-\item
-  A model can predict superbly while being causally empty.
-
-  \begin{itemize}
-  \tightlist
-  \item
-    This is the promise (and the limit) of much of machine learning.
-  \end{itemize}
-\item
-  \textbf{Causal inference asks a different question}: what would happen
-  if we \emph{changed} something?
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Prediction asks what \(Y\) \textbf{is}, among the units where
-    \(X = x\).
-  \item
-    Causation asks what \(Y\) \textbf{would be}, if we set \(X = x\).
-  \end{itemize}
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Fallacy 2: temporal ordering is not causation}
-\protect\phantomsection\label{fallacy-2-temporal-ordering-is-not-causation}
-\begin{itemize}
-\tightlist
-\item
-  \emph{Post hoc ergo propter hoc}: ``after this, therefore because of
-  this.''
-\item
-  The rooster crows, then the sun rises.
-\item
-  Finance version: a struggling firm fires its CEO, then performance
-  recovers.
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Did the new CEO cause the recovery?
-  \item
-    Or is this \textbf{mean reversion} --- firms replace CEOs at the
-    trough?
-  \end{itemize}
-\item
-  Timing evidence is useful (we will use it in event studies and DiD),
-  but timing alone proves nothing.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Fallacy 3: no correlation does not mean no causation}
-\protect\phantomsection\label{fallacy-3-no-correlation-does-not-mean-no-causation}
-\begin{itemize}
-\tightlist
-\item
-  A sailor moves the rudder constantly, yet the boat sails straight.
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Correlation between rudder and course: \(\approx 0\). Causal effect:
-    enormous.
-  \item
-    Why? The rudder \emph{responds optimally} to the wind.
-  \end{itemize}
-\item
-  Finance is full of optimizing agents doing exactly this:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Firms hedge \textbf{because} they are exposed: hedging may show zero
-    correlation with distress even if it strongly prevents distress.
-  \item
-    The Fed adjusts rates to offset shocks: policy can look uncorrelated
-    with output.
-  \end{itemize}
-\item
-  \textbf{Lesson}: when treatment is chosen optimally, causal effects
-  can be \emph{invisible} in correlations.
-\end{itemize}
-\end{frame}
-
 \begin{frame}{The common thread: the assignment mechanism}
 \protect\phantomsection\label{the-common-thread-the-assignment-mechanism}
 \begin{itemize}
 \tightlist
 \item
-  In all three fallacies, what breaks the link between correlation and
-  causation is \textbf{how treatment got assigned}:
+  What breaks the link between correlation and causation is \textbf{how
+  treatment got assigned}:
 
   \begin{itemize}
   \tightlist
@@ -966,188 +868,42 @@ Independence}\label{randomization-and-independence}
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Case: eBay and the value of paid search}
-\protect\phantomsection\label{case-ebay-and-the-value-of-paid-search}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{The setting.} In paid search advertising, a firm bids so that
-  its ad appears when a user searches a keyword. eBay spent heavily on
-  this.
-\item
-  Two kinds of keyword:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    \textbf{Brand} keywords contain the firm's own name --- ``eBay
-    typewriter.''
-  \item
-    \textbf{Non-brand} keywords do not --- ``used typewriter.''
-  \end{itemize}
-\item
-  \textbf{How the industry measured returns.} \emph{Attribution}: if a
-  user clicks the ad and then buys, credit the sale to the ad. By this
-  arithmetic, paid search looked extraordinarily profitable.
-\item
-  \textbf{The problem.} Somebody typing ``eBay typewriter'' was already
-  going to eBay. Take the ad away and they click the organic eBay link
-  one line below.
-\item
-  Attribution \textbf{conditions on clicking}. It never intervenes. It
-  is an SDO, not an \(ATE\).
-\end{itemize}
-\end{frame}
-
-\begin{frame}{eBay: what the experiments found}
-\protect\phantomsection\label{ebay-what-the-experiments-found}
-\begin{itemize}
-\tightlist
-\item
-  Blake, Nosko, and Tadelis (2015, \emph{Econometrica}) ran large-scale
-  field experiments at eBay, switching paid search off in randomly
-  selected markets.
-\item
-  \textbf{Brand keywords}: \textbf{no measurable short-run benefit.}
-  Traffic substituted almost entirely to the free organic link. eBay was
-  paying for clicks it would have received anyway.
-\item
-  \textbf{Non-brand keywords}: ads \emph{did} work --- but only for
-  \textbf{new and infrequent} users.
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Frequent users were unaffected, yet accounted for most of the
-    advertising spend.
-  \item
-    Net of costs, \textbf{average returns were negative}.
-  \end{itemize}
-\item
-  Experimental returns were ``a fraction of conventional
-  non-experimental estimates.''
-\item
-  \textbf{Two lessons.} Attribution measures selection, not causation.
-  And the average effect concealed enormous heterogeneity --- precisely
-  the variation in \(\delta_i\) we defined earlier.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{A genuine finance RCT: Karlan and Zinman (2009)}
-\protect\phantomsection\label{a-genuine-finance-rct-karlan-and-zinman-2009}
-\begin{itemize}
-\tightlist
-\item
-  \emph{``Observing Unobservables: Identifying Information Asymmetries
-  with a Consumer Credit Field Experiment,''} \textbf{Econometrica} 77.
-\item
-  \textbf{Setting.} A major South African consumer lender mailed loan
-  offers to \textbf{58,000} former clients.
-\item
-  \textbf{Three independent randomizations:}
-
-  \begin{enumerate}
-  \tightlist
-  \item
-    The \textbf{offer rate} printed on the direct-mail solicitation.
-  \item
-    A \textbf{contract rate}, revealed only \emph{after} the client
-    accepted the offer --- sometimes a surprise discount.
-  \item
-    A \textbf{dynamic repayment incentive}, also a surprise:
-    preferential pricing on future loans for borrowers who stayed in
-    good standing.
-  \end{enumerate}
-\item
-  The surprises carry the design. Anything revealed \emph{after}
-  acceptance cannot have influenced \textbf{who} accepted.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Karlan and Zinman: separating two unobservables}
-\protect\phantomsection\label{karlan-and-zinman-separating-two-unobservables}
-\begin{itemize}
-\tightlist
-\item
-  Credit markets have two classic private-information problems, and
-  observational data cannot tell them apart:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    \textbf{Adverse selection} (hidden \emph{type}): high rates attract
-    intrinsically worse borrowers.
-  \item
-    \textbf{Moral hazard} (hidden \emph{action}): high rates weaken the
-    incentive to repay.
-  \end{itemize}
-\item
-  Both predict the same correlation --- higher rate, more default. No
-  amount of loan data separates them.
-\item
-  The experiment does:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Vary the \textbf{offer} rate \(\Rightarrow\) changes \emph{who
-    selects in} \(\Rightarrow\) identifies \textbf{selection}.
-  \item
-    Hold the offer rate fixed and vary the \textbf{contract} rate
-    \(\Rightarrow\) same borrowers, different incentives \(\Rightarrow\)
-    identifies \textbf{moral hazard}.
-  \end{itemize}
-\item
-  \textbf{Findings}: strong evidence of moral hazard, weaker evidence of
-  hidden information; roughly \textbf{13--21\%} of default attributable
-  to moral hazard.
-\item
-  Randomization used not to estimate one number, but to
-  \textbf{decompose a mechanism}.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Other field experiments in finance}
-\protect\phantomsection\label{other-field-experiments-in-finance}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Cole, Giné, and Vickery (2017, \emph{RFS})} --- rainfall
-  insurance in India. Randomly insured farmers shifted into
-  \textbf{higher-return, rainfall-sensitive cash crops}, \emph{before}
-  rainfall was realized.
-\item
-  \textbf{Bertrand et al.~(2010, \emph{QJE})} --- direct-mail loan
-  offers in South Africa, randomizing price \emph{and} content. A
-  \textbf{photo of an attractive woman} raised demand as much as a
-  \textbf{25\% rate cut}.
-\item
-  \textbf{Duflo and Saez (2003, \emph{QJE})} --- \$20 to attend a
-  benefits fair raised enrollment, and raised it too for
-  \textbf{untreated colleagues in treated departments}.
-\item
-  That last one is a clean randomization that still violates SUTVA (Part
-  5).
-\end{itemize}
-\end{frame}
-
 \begin{frame}{Where finance experiments live}
 \protect\phantomsection\label{where-finance-experiments-live}
 \begin{itemize}
 \tightlist
 \item
-  Notice what these studies have in common: the researcher controls
-  \textbf{an offer}.
+  Finance does have real randomized experiments. Four representative
+  ones:
 
   \begin{itemize}
   \tightlist
   \item
-    A mailer, a price quote, an insurance policy, an invitation.
+    \textbf{Blake, Nosko and Tadelis (2015)} switched eBay's paid search
+    off in random markets. Brand-keyword ads had \textbf{no measurable
+    benefit} --- traffic substituted to the free organic link --- and
+    average returns were negative. Attribution had been measuring
+    selection, not causation.
+  \item
+    \textbf{Karlan and Zinman (2009)} mailed 58,000 South African loan
+    offers, randomizing the \emph{offer} rate, the \emph{contract} rate
+    and a repayment incentive. The offer rate identifies \textbf{adverse
+    selection}; the contract rate at a fixed offer rate identifies
+    \textbf{moral hazard}.
+  \item
+    \textbf{Cole, Giné and Vickery (2017)} randomized rainfall
+    insurance; insured farmers shifted into higher-return,
+    rainfall-sensitive crops.
+  \item
+    \textbf{Duflo and Saez (2003)} paid \$20 to attend a benefits fair.
+    Enrollment rose for treated employees \emph{and} untreated
+    colleagues --- a clean randomization that violates SUTVA (Part 5).
   \end{itemize}
 \item
-  That is why field experiments cluster in \textbf{household finance,
-  credit, and insurance} --- markets with many small units and a lender
-  or insurer willing to randomize.
+  \textbf{What they share:} the researcher controls \textbf{an offer}
+  --- a mailer, a price quote, a policy, an invitation. That is why
+  field experiments cluster in \textbf{household finance, credit and
+  insurance}.
 \end{itemize}
 \end{frame}
 
@@ -1339,325 +1095,61 @@ Independence}\label{randomization-and-independence}
 \end{center}
 \end{frame}
 
-\section{6. The Regression Bridge}\label{the-regression-bridge}
+\section{6. Randomization Inference}\label{randomization-inference}
 
-\begin{frame}{Same problem, older dialect}
-\protect\phantomsection\label{same-problem-older-dialect}
+\begin{frame}{Why bother?}
+\protect\phantomsection\label{why-bother}
 \begin{itemize}
 \tightlist
 \item
-  You already know a language for causality --- the regression language:
-  \[
-  y = \beta_0 + \beta_1 x + u
-  \]
+  \textbf{Randomization-based inference}: the uncertainty in an estimate
+  comes from the \textbf{random assignment of treatment}, not from
+  hypothetical sampling out of a larger population.
 \item
-  Causal interpretation of \(\beta_1\) requires \textbf{conditional mean
-  independence}: \[
-  E[u \mid x] = E[u] = 0
-  \]
-\item
-  The potential outcomes framework and the CMI framework describe the
-  \textbf{same problem} in two dialects. Let's build the dictionary.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{The dictionary}
-\protect\phantomsection\label{the-dictionary}
-{\def\LTcaptype{none} % do not increment counter
-\begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.5823}}
-  >{\raggedright\arraybackslash}p{(\linewidth - 2\tabcolsep) * \real{0.4177}}@{}}
-\toprule\noalign{}
-\begin{minipage}[b]{\linewidth}\raggedright
-Potential outcomes dialect
-\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
-Regression dialect
-\end{minipage} \\
-\midrule\noalign{}
-\endhead
-\((Y^1, Y^0) \indep D\) & \(E[u \mid x] = E[u]\) (CMI) \\
-Selection bias & \(\mathrm{cov}(x, u) \neq 0\) (OVB, simultaneity) \\
-Heterogeneous \(\delta_i\) & Random coefficients \(b_i\) \\
-ATE & Average partial effect (APE) \\
-SDO & OLS coefficient of \(Y\) on \(D\) \\
-\bottomrule\noalign{}
-\end{longtable}
-}
-
-\begin{itemize}
-\tightlist
-\item
-  The PO dialect is sharper about \emph{estimands} (ATE vs.~ATT) and
-  \emph{assignment}.
-\item
-  The regression dialect is sharper about \emph{direction of bias} ---
-  and it is the language referees speak. You need both.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Omitted variable bias}
-\protect\phantomsection\label{omitted-variable-bias}
-\begin{itemize}
-\tightlist
-\item
-  You estimate \(y = \beta_0 + \beta_1 x + u\), but the true model is \[
-  y = \beta_0 + \beta_1 x + \beta_2 z + v
-  \]
-\item
-  Then \[
-  \hat{\beta}_1 \xrightarrow{p} \beta_1 + \underbrace{\frac{\mathrm{cov}(x, z)}{\mathrm{var}(x)}}_{\delta_{xz}} \beta_2
-  \]
-\item
-  The bias is the \emph{effect of the omitted variable} (\(\beta_2\))
-  times \emph{its regression on the included one} (\(\delta_{xz}\)).
-\item
-  Consistent only if \(\mathrm{cov}(x,z) = 0\) or \(\beta_2 = 0\): the
-  omitted variable must matter \textbf{and} be correlated with \(x\).
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Signing the bias}
-\protect\phantomsection\label{signing-the-bias}
-\[
-\text{bias} = \delta_{xz} \, \beta_2
-\]
-
-{\def\LTcaptype{none} % do not increment counter
-\begin{longtable}[]{@{}lcc@{}}
-\toprule\noalign{}
-& \(\mathrm{cov}(x,z) > 0\) & \(\mathrm{cov}(x,z) < 0\) \\
-\midrule\noalign{}
-\endhead
-\(\beta_2 > 0\) & \(+\) & \(-\) \\
-\(\beta_2 < 0\) & \(-\) & \(+\) \\
-\bottomrule\noalign{}
-\end{longtable}
-}
-
-\begin{itemize}
-\tightlist
-\item
-  Classic example: \(\ln(wage)\) on education, omitting ability.
+  The two approaches answer different questions:
 
   \begin{itemize}
   \tightlist
   \item
-    Ability raises wages (\(\beta_2 > 0\)) and correlates positively
-    with education \(\Rightarrow\) upward bias.
-  \end{itemize}
-\item
-  Finance example: firm value on governance, omitting CEO talent.
-
-  \begin{itemize}
-  \tightlist
+    A conventional standard error asks \emph{``what if I had drawn a
+    different sample?''}
   \item
-    Talented CEOs may sort into well-governed firms and raise value
-    \(\Rightarrow\) governance coefficient too big.
+    Randomization inference asks \emph{``what if the treated had been
+    differently?''}
   \end{itemize}
 \item
-  With \textbf{multiple} omitted variables (or multiple included
-  regressors), signs interact and the algebra stops being your friend.
-  Sign one bias at a time, or don't sign at all.
+  In an experiment, only the second thing actually happened. The sample
+  is whoever was there; the \textbf{assignment} is what was random.
+\item
+  That shift buys you \emph{exact} \(p\)-values --- the probability that
+  chance alone could have produced what you saw.
+\item
+  The idea is old: \textbf{R. A. Fisher}, early twentieth century.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{The omitted variable is \(Y^0\)}
-\protect\phantomsection\label{the-omitted-variable-is-y0}
-\begin{itemize}
+\begin{frame}{Three situations where it earns its keep}
+\protect\phantomsection\label{three-situations-where-it-earns-its-keep}
+\begin{enumerate}
 \tightlist
 \item
-  The switching equation factors as \(Y_i = Y_i^0 + D_i\delta_i\). Split
-  each term into its mean plus a deviation, writing
-  \(\delta = E[\delta_i] = ATE\): \[
-  Y_i \;=\; \underbrace{E[Y^0]}_{\beta_0}
-      \;+\; \underbrace{\delta}_{\beta_1} D_i
-      \;+\; \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}}
-      \;+\; \underbrace{D_i(\delta_i - \delta)}_{\text{gain}}
-  \]
+  \textbf{You have the population, not a sample.} With comprehensive or
+  administrative data, a standard error answering ``what if I drew
+  another sample?'' is not valuable. The real uncertainty is that we
+  never see the counterfactual (Abadie, Diamond and Hainmueller 2010;
+  Abadie et al.~2020).
 \item
-  That \textbf{is} a regression of \(Y\) on a constant and \(D\). The
-  last two terms are the error \(u_i\).
+  \textbf{Few treated units.} Conventional inference leans on
+  large-sample approximations. With a handful of treated units a single
+  observation can swing the estimate, and conventional tests
+  \textbf{over-reject} (Young, 2019).
 \item
-  So the ``omitted variable'' is the baseline potential outcome
-  \(Y_i^0\), together with the individual gain \(\delta_i\).
-\item
-  OVB --- in causal settings, it \emph{is} selection bias, written in
-  the older dialect.
-\end{itemize}
+  \textbf{Transparency.} Placebo-based inference is easy to explain and
+  hard to fudge.
+\end{enumerate}
+
+\vspace{0.4em}
 \end{frame}
-
-\begin{frame}{Two ways treatment can be selected}
-\protect\phantomsection\label{two-ways-treatment-can-be-selected}
-\begin{itemize}
-\tightlist
-\item
-  \(D\) can be correlated with \textbf{either} piece of the error: \[
-  u_i = \underbrace{\left(Y_i^0 - E[Y^0]\right)}_{\text{baseline}} \;+\; \underbrace{D_i(\delta_i - \delta)}_{\text{gain}}
-  \]
-\item
-  \textbf{Selection on levels} --- treatment goes to units with unusual
-  \(Y_i^0\): how they would have done \emph{anyway}, untreated.
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Bailing out the weakest banks. Training the least employable
-    workers.
-  \end{itemize}
-\item
-  \textbf{Selection on gains} --- treatment goes to units with unusual
-  \(\delta_i\): how much they would \emph{benefit}.
-
-  \begin{itemize}
-  \tightlist
-  \item
-    The Perfect Regulator. Any optimizing agent allocating a scarce
-    treatment.
-  \end{itemize}
-\item
-  The two are distinct, and \textbf{either one alone} breaks the naive
-  comparison.
-\item
-  Note our own running example sorts on \textbf{gains}, not levels.
-  Defining selection bias as ``\(\mathrm{cov}(D,Y^0) \neq 0\)'' would
-  misclassify it.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Both biases, from one lemma}
-\protect\phantomsection\label{both-biases-from-one-lemma}
-\small
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Lemma.} For \emph{binary} \(D\) with \(\pi = P(D{=}1)\), and
-  any random variable \(W\): \[
-  \mathrm{cov}(D, W) = \pi(1-\pi)\Big(E[W \mid D{=}1] - E[W \mid D{=}0]\Big)
-  \]
-
-  \begin{itemize}
-  \tightlist
-  \item
-    \emph{Proof.} \(E[DW] = \pi E[W|D{=}1]\) since \(D\) is binary, and
-    \(E[W] = \pi E[W|D{=}1] + (1-\pi)E[W|D{=}0]\). Substitute into
-    \(\mathrm{cov}(D,W) = E[DW] - E[D]E[W]\) and collect.
-    \(\blacksquare\)
-  \end{itemize}
-\item
-  \textbf{Take \(W = Y^0\):} \[
-  \mathrm{cov}(D, Y^0) = \pi(1-\pi)\Big(E[Y^0|D{=}1] - E[Y^0|D{=}0]\Big)
-  \]
-\item
-  \textbf{Take \(W = D_i(\delta_i - \delta)\).} It is \(0\) whenever
-  \(D=0\), so \(E[W|D{=}0] = 0\), while \(E[W|D{=}1] = ATT - ATE\): \[
-  \mathrm{cov}\big(D,\, D_i(\delta_i-\delta)\big) = \pi(1-\pi)\big(ATT - ATE\big)
-  \]
-\item
-  Since \(\mathrm{var}(D) = \pi(1-\pi)\), dividing each by
-  \(\mathrm{var}(D)\) \textbf{cancels that factor} --- leaving the
-  selection bias term and \(ATT - ATE\). \normalsize
-\end{itemize}
-\end{frame}
-
-\begin{frame}{The two dialects give the same equation}
-\protect\phantomsection\label{the-two-dialects-give-the-same-equation}
-\begin{itemize}
-\tightlist
-\item
-  Since
-  \(\hat\beta_1 \xrightarrow{p} \delta + \mathrm{cov}(D,u)/\mathrm{var}(D)\),
-  and using \(ATT - ATE = (1-\pi)(ATT-ATU)\) from earlier: \[
-  \hat\beta_1 \;\xrightarrow{p}\;
-  \underbrace{ATE}_{\delta}
-  \;+\; \underbrace{\Big(E[Y^0|D{=}1]-E[Y^0|D{=}0]\Big)}_{\text{selection bias}}
-  \;+\; \underbrace{(1-\pi)(ATT-ATU)}_{\text{heterogeneity bias}}
-  \]
-\item
-  The right-hand side is exactly the \(SDO\) decomposition we proved in
-  Part 3.
-\item
-  The regression route and the potential-outcomes route are not
-  analogies. \textbf{They are the same three terms.}
-\item
-  So \(\hat\beta_1\) is inconsistent for the \(ATE\) --- but perfectly
-  \emph{consistent} for the \(SDO\). Once again: OLS delivers the
-  estimand you asked for, not the one you wanted.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Simultaneity: when \(y\) fires back}
-\protect\phantomsection\label{simultaneity-when-y-fires-back}
-\begin{itemize}
-\tightlist
-\item
-  Suppose the regressor responds to the outcome: \[
-  y = \beta_0 + \beta_1 x + u, \qquad x = \alpha_0 + \alpha_1 y + \varepsilon
-  \]
-\item
-  Solve for \(x\): \[
-  x = \frac{\alpha_0 + \alpha_1 \beta_0}{1 - \alpha_1 \beta_1} + \frac{\alpha_1 u + \varepsilon}{1 - \alpha_1 \beta_1}
-  \]
-\item
-  \(x\) is mechanically correlated with \(u\): CMI fails, OLS is biased
-  --- \textbf{reverse causality}.
-\item
-  Finance examples: leverage and performance; board independence and
-  performance; analyst coverage and returns. In equilibrium, almost
-  every firm characteristic responds to almost every outcome.
-\item
-  Note: lagging \(x\) does \textbf{not} fix this if \(x\) is persistent
-  and anticipates \(y\). It hides the problem; it does not solve it.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Random coefficients: the formal bridge}
-\protect\phantomsection\label{random-coefficients-the-formal-bridge}
-\begin{itemize}
-\tightlist
-\item
-  Let every firm have its own line: \[
-  y_i = a_i + b_i x_i, \qquad a_i = \alpha + c_i, \quad b_i = \beta + d_i
-  \]
-\item
-  With binary \(x\), this \textbf{is} the potential outcomes model:
-  \(b_i = \delta_i\), \(a_i = Y_i^0\).
-\item
-  Rewrite:
-  \(y_i = \alpha + \beta x_i + \underbrace{(c_i + d_i x_i)}_{u_i}\)
-\item
-  OLS identifies the \textbf{average partial effect} \(\beta = E[b_i]\)
-  (the ATE!) only if \[
-  E[c_i \mid x_i] = 0 \;\;(\text{no selection on levels}), \qquad E[d_i \mid x_i] = 0 \;\;(\text{no selection on gains})
-  \]
-\item
-  These are precisely ``selection bias \(=0\)'' and ``ATT \(=\) ATU.''
-  The two dialects have converged.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Bad controls: a preview}
-\protect\phantomsection\label{bad-controls-a-preview}
-\begin{itemize}
-\tightlist
-\item
-  Adding controls is not free. If a control \(x_2\) is itself
-  \textbf{affected by the treatment}: \[
-  y = \beta_0 + \beta_1 x_1 + \beta_2 x_2 + u, \qquad x_2 = \gamma_0 + \gamma_1 x_1 + \varepsilon
-  \]
-\item
-  Then conditioning on \(x_2\) blocks part of the effect you want ---
-  and can \emph{introduce} selection bias where none existed.
-\item
-  Rule of thumb: controls must be \textbf{pre-treatment} (determined
-  before \(D\)).
-\item
-  Why conditioning on a post-treatment variable creates bias is subtle
-  --- it is the centerpiece of the next lecture (DAGs and colliders).
-\end{itemize}
-\end{frame}
-
-\section{7. Randomization Inference}\label{randomization-inference}
 
 \begin{frame}{Two null hypotheses}
 \protect\phantomsection\label{two-null-hypotheses}
@@ -1676,53 +1168,161 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
 \item
   Fisher's \textbf{sharp null}: the effect is zero \emph{for every
   unit}, \[
-  H_0: \delta_i = 0 \;\; \text{for all } i
+  H_0: \delta_i = Y_i^1 - Y_i^0 = 0 \quad \text{for all } i
   \]
 \item
-  Under the sharp null, both potential outcomes are known for every
-  unit: \(Y_i^1 = Y_i^0 = Y_i\) (the observed value).
+  The sharp null is \textbf{stronger}.
 \item
-  That makes \emph{exact} inference possible --- no asymptotics, no
-  standard errors, any sample size.
+  Its payoff is that it is \textbf{nonparametric} --- no Gaussian
+  assumption, no large-sample approximation, no estimated standard
+  error. It works at \(n = 8\).
 \end{itemize}
 \end{frame}
 
-\begin{frame}{The permutation logic}
-\protect\phantomsection\label{the-permutation-logic}
+\begin{frame}{The sharp null fills in the missing half}
+\protect\phantomsection\label{the-sharp-null-fills-in-the-missing-half}
+\begin{itemize}
+\tightlist
+\item
+  The fundamental problem of causal inference is that we never see both
+  potential outcomes. Under the sharp null, \textbf{we do}.
+\item
+  If \(\delta_i = Y_i^1 - Y_i^0 = 0\), then \(Y_i^1 = Y_i^0\), and both
+  equal the value we observed.
+\end{itemize}
+
+\begin{center}
+\small
+\begin{tabular}{c|cc|cc||cc}
+\toprule
+ & \multicolumn{4}{c||}{What we observe} & \multicolumn{2}{c}{Under $H_0: \delta_i = 0$} \\
+Bank & $D$ & $Y$ & $Y^0$ & $Y^1$ & $Y^0$ & $Y^1$ \\
+\midrule
+1 & 0 & 2 & 2 & ? & 2 & 2 \\
+2 & 1 & 6 & ? & 6 & 6 & 6 \\
+3 & 1 & 7 & ? & 7 & 7 & 7 \\
+$\vdots$ & & & & & & \\
+10 & 0 & 8 & 8 & ? & 8 & 8 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{It is not the bootstrap}
+\protect\phantomsection\label{it-is-not-the-bootstrap}
+\begin{itemize}
+\tightlist
+\item
+  The two get confused because both produce a distribution by
+  resampling.
+\item
+  \textbf{Bootstrap.} Resample \emph{observations}, with replacement,
+  from your sample. The resulting uncertainty is about \textbf{which
+  units ended up in your sample} --- sampling uncertainty.
+\item
+  \textbf{Randomization inference.} Hold the units fixed and reshuffle
+  \textbf{who was treated}. The uncertainty is about \textbf{which units
+  got the treatment} --- assignment uncertainty.
+\item
+  Different questions, different null, different interpretation.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Six steps}
+\protect\phantomsection\label{six-steps}
+Following Cunningham (\emph{The Remix}, §4.7):
+
 \begin{enumerate}
 \tightlist
 \item
-  Under the sharp null, the observed outcomes would have been the same
-  under \textbf{any} treatment assignment.
+  Choose the \textbf{sharp null}.
 \item
-  So: re-randomize \(D\) on paper, in every way the actual randomization
-  could have come out.
+  Construct a \textbf{test statistic} \(t(D, Y)\).
 \item
-  Recompute the test statistic (e.g., the SDO) for each hypothetical
-  assignment.
+  Pick a \textbf{different} treatment assignment \(\tilde D\).
 \item
-  The exact p-value is the share of assignments giving a statistic at
-  least as extreme as the observed one.
+  Compute the test statistic for that pretend assignment.
+\item
+  \textbf{Cycle} over step 3 for all possible assignments.
+\item
+  Divide the \textbf{rank} of the true statistic by the number of trials
+  --- the exact \(p\)-value.
 \end{enumerate}
+\end{frame}
+
+\begin{frame}{Step 2: what makes a good test statistic}
+\protect\phantomsection\label{step-2-what-makes-a-good-test-statistic}
+\begin{itemize}
+\tightlist
+\item
+  A test statistic \(t(D, Y)\) is just a \textbf{scalar} built from the
+  assignment and the outcomes.
+\item
+  The requirement: it should take \textbf{extreme values when the sharp
+  null is false}, and extreme values should be \textbf{rare when it is
+  true}.
+\item
+  The obvious choice is the one we already know --- the simple
+  difference in outcomes, \[
+  t(D, Y) = \bar{Y}_{\text{treated}} - \bar{Y}_{\text{control}} = SDO
+  \]
+\item
+  For the ten banks, the lottery gave injections to banks
+  \(2, 3, 5, 8, 9\): \[
+  SDO = \frac{6+7+6+7+7}{5} - \frac{2+2+6+7+8}{5} = 6.6 - 5.0 = 1.6
+  \]
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Steps 3--5: the permutation loop}
+\protect\phantomsection\label{steps-35-the-permutation-loop}
+\begin{itemize}
+\tightlist
+\item
+  Under the sharp null the outcomes \(Y\) \textbf{do not change} ---
+  only the labels move.
+\item
+  Suppose banks \(1, 3, 5, 8, 9\) had been drawn instead: \[
+  \tilde t = \frac{2+7+6+7+7}{5} - \frac{6+2+6+7+8}{5} = 5.8 - 5.8 = 0.0
+  \]
+\item
+  Or banks \(1, 2, 4, 6, 7\): \[
+  \tilde t = \frac{2+6+2+6+7}{5} - \frac{7+6+7+7+8}{5} = 4.6 - 7.0 = -2.4
+  \]
+\item
+  Store each one and move on. With five treated out of ten there are
+  \(\binom{10}{5} = 252\) such assignments.
+\item
+  Each \(\tilde t\) is a number the world \emph{could have produced} if
+  the treatment did nothing. Together they are the \textbf{reference
+  distribution}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Step 6: the exact \(p\)-value}
+\protect\phantomsection\label{step-6-the-exact-p-value}
+\[
+\Pr\big(|t(\tilde D, Y)| \geq |t(D, Y)| \;\big|\; \delta_i = 0 \;\, \forall i\big) = \frac{\sum_{\tilde D \in \Omega} I\big(|t(\tilde D, Y)| \geq |t(D, Y)|\big)}{K}
+\]
 
 \begin{itemize}
 \tightlist
 \item
-  The randomness comes from the \textbf{assignment mechanism itself} ---
-  the same mechanism that justified the causal comparison justifies the
-  inference.
+  \textbf{what share of the pretend worlds look at least as extreme as
+  the real one?}
+\item
+  \(\Omega\) is the set of assignments the randomization could have
+  produced and \(K = |\Omega|\). Here \(K = 252\).
+\item
+  ``\(\delta = 0\)'' would name the Neyman null (\emph{The Remix})
+\item
+  \textbf{``Exact''} is meant literally. This is not an approximation to
+  a limiting distribution --- it is a finite count.
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Randomization inference on ten banks}
 \protect\phantomsection\label{randomization-inference-on-ten-banks}
-\begin{itemize}
-\tightlist
-\item
-  Suppose the ten banks were randomized: five drawn by lot got
-  injections. Observed SDO \(= 1.6\).
-\end{itemize}
-
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{y }\OtherTok{\textless{}{-}} \FunctionTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{, }\DecValTok{6}\NormalTok{, }\DecValTok{7}\NormalTok{, }\DecValTok{2}\NormalTok{, }\DecValTok{6}\NormalTok{, }\DecValTok{6}\NormalTok{, }\DecValTok{7}\NormalTok{, }\DecValTok{7}\NormalTok{, }\DecValTok{7}\NormalTok{, }\DecValTok{8}\NormalTok{)     }\CommentTok{\# observed lending growth}
@@ -1744,9 +1344,85 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
 \begin{itemize}
 \tightlist
 \item
-  With \(n = 10\), a difference of 1.6pp is \emph{not} statistically
-  distinguishable from luck-of-the-draw --- and we know this
-  \textbf{exactly}, not asymptotically.
+  \(p = 100/252 = 0.397\). With \(n = 10\), a difference of 1.6pp is
+  \textbf{not} distinguishable from luck of the draw --- and we know
+  this \emph{exactly}, not asymptotically.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The assumption hiding in \texttt{combn(10,\ 5)}}
+\protect\phantomsection\label{the-assumption-hiding-in-combn10-5}
+\begin{itemize}
+\tightlist
+\item
+  The reference set must match the \textbf{actual randomization design}.
+\item
+  \texttt{combn(10,\ 5)} presumes a completely randomized experiment
+  with a \textbf{fixed} five treated --- exactly five drawn by lot.
+\item
+  Had each bank instead been \textbf{independently coin-flipped}, the
+  correct reference set would be all \(2^{10} = 1024\) assignments, and
+  the \(p\)-value would differ.
+\item
+  Get this wrong and the \(p\)-value is not ``approximately right.'' It
+  answers a different question.
+\end{itemize}
+
+\begin{center}
+\emph{The permutation scheme must mirror the physical randomization.}
+\end{center}
+\end{frame}
+
+\begin{frame}{Revisiting step 2: the menu of test statistics}
+\protect\phantomsection\label{revisiting-step-2-the-menu-of-test-statistics}
+\begin{itemize}
+\tightlist
+\item
+  \(SDO\) is the default, and a good one \textbf{when effects are
+  additive and outliers few}.
+\item
+  \textbf{Log difference} --- for skewed outcomes and multiplicative
+  effects: \[
+  T_{\log} = \frac{1}{N_T}\sum_i D_i \ln Y_i - \frac{1}{N_C}\sum_i (1 - D_i)\ln Y_i
+  \]
+\item
+  \textbf{Quantiles} --- robust to outliers in either tail: \[
+  T_{\text{median}} = \big|\,\text{median}(Y_T) - \text{median}(Y_C)\,\big|
+  \]
+\item
+  \textbf{Normalised ranks} --- discard magnitudes, keep the ordering.
+  Good with small samples or heavy tails.
+\item
+  \textbf{Kolmogorov--Smirnov} --- looks at the whole distribution, not
+  a single summary.
+\item
+  \textbf{None of these changes the null or the validity of the test}.
+  The choice changes only \textbf{power}. So choose \textbf{before} you
+  look.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Revisiting step 5: when ``all assignments'' is impossible}
+\protect\phantomsection\label{revisiting-step-5-when-all-assignments-is-impossible}
+\begin{itemize}
+\tightlist
+\item
+  Ten banks give \(252\) assignments. In \emph{The Remix}, Thornton's
+  (2008) HIV-testing experiment had \(2{,}901\) participants,
+  \(2{,}222\) of them incentivised. The number of assignments is \[
+  \binom{2901}{2222} \approx 6.15 \times 10^{680}
+  \]
+\item
+  So we \textbf{sample} the reference distribution: draw a random
+  assignment, recompute the statistic, repeat \(1{,}000\) to
+  \(10{,}000\) times.
+\item
+  The \(p\)-value is then \textbf{approximate} rather than exact --- but
+  the error is sampling error you control with more draws, not an
+  asymptotic assumption you must defend.
+\item
+  This is what you will actually do. Any dataset of a reasonable size
+  makes full enumeration hopeless.
 \end{itemize}
 \end{frame}
 
@@ -1772,7 +1448,7 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
   \end{itemize}
 \item
   The deeper point: \emph{inference should mirror the assignment
-  mechanism.} Where the mechanism is uncertain, so is the p-value.
+  mechanism.} Where the mechanism is uncertain, so is the \(p\)-value.
 \end{itemize}
 \end{frame}
 
@@ -1812,13 +1488,16 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
   heterogeneous doses. Ask what happens to the market, not just the
   treated.
 \item
-  The \textbf{regression dialect} translates one-for-one: CMI
-  \(\Leftrightarrow\) independence; OVB \(\Leftrightarrow\) selection
-  bias; random coefficients \(\Leftrightarrow\) heterogeneous
-  \(\delta_i\).
+  \textbf{Randomization inference} turns the assignment mechanism into a
+  test. Under \textbf{Fisher's sharp null} every counterfactual is
+  filled in, so the \(p\)-value is an exact count over the assignments
+  the lottery could have produced --- no asymptotics, at any sample
+  size.
 \item
-  \textbf{Randomization inference} gives exact p-values from the
-  assignment mechanism --- remember it when you meet synthetic control.
+  The \textbf{test statistic is a choice}: means, logs, quantiles,
+  ranks, or the whole distribution (Kolmogorov--Smirnov). Make it before
+  you look, and remember that a treatment can move the \emph{spread}
+  without moving the mean.
 \item
   Next lecture: DAGs --- a graphical language for deciding \emph{what to
   control for, and what not to}.
@@ -1837,6 +1516,23 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
   Holland, P. (1986). Statistics and Causal Inference. \emph{JASA} 81,
   945--960.
 \item
+  Abadie, A., A. Diamond and J. Hainmueller (2010). Synthetic Control
+  Methods for Comparative Case Studies. \emph{JASA} 105, 493--505.
+\item
+  Abadie, A., S. Athey, G. Imbens and J. Wooldridge (2020).
+  Sampling-Based versus Design-Based Uncertainty in Regression Analysis.
+  \emph{Econometrica} 88, 265--296.
+\item
+  Fisher, R. A. (1935). \emph{The Design of Experiments}. Oliver and
+  Boyd.
+\item
+  Thornton, R. (2008). The Demand for, and Impact of, Learning HIV
+  Status. \emph{AER} 98, 1829--1863.
+\item
+  Young, A. (2019). Channeling Fisher: Randomization Tests and the
+  Statistical Insignificance of Seemingly Significant Experimental
+  Results. \emph{QJE} 134, 557--598.
+\item
   Blake, T., C. Nosko, and S. Tadelis (2015). Consumer Heterogeneity and
   Paid Search Effectiveness: A Large-Scale Field Experiment.
   \emph{Econometrica} 83, 155--174.
@@ -1844,10 +1540,6 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
   Karlan, D. and J. Zinman (2009). Observing Unobservables: Identifying
   Information Asymmetries with a Consumer Credit Field Experiment.
   \emph{Econometrica} 77, 1993--2008.
-\item
-  Bertrand, M., D. Karlan, S. Mullainathan, E. Shafir, and J. Zinman
-  (2010). What's Advertising Content Worth? \emph{Quarterly Journal of
-  Economics} 125, 263--306.
 \item
   Cole, S., X. Giné, and J. Vickery (2017). How Does Risk Management
   Influence Production Decisions? \emph{Review of Financial Studies} 30,
@@ -1859,9 +1551,6 @@ SDO & OLS coefficient of \(Y\) on \(D\) \\
 \item
   Leary, M. and M. Roberts (2014). Do Peer Firms Affect Corporate
   Financial Policy? \emph{Journal of Finance} 69, 139--178.
-\item
-  Angrist, J. and J.-S. Pischke (2009). \emph{Mostly Harmless
-  Econometrics}. Princeton UP.
 \end{itemize}
 \end{frame}
 
