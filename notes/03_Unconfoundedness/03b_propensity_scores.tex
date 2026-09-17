@@ -223,6 +223,25 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 
 \section{1. Propensity Scores}\label{propensity-scores}
 
+\begin{frame}{Where Lecture 3a left us}
+\protect\phantomsection\label{where-lecture-3a-left-us}
+\begin{itemize}
+\tightlist
+\item
+  Unconfoundedness says: \textbf{compare treated and controls with the
+  same \(X\).}
+\item
+  \textbf{Subclassification} and \textbf{matching} suffer from the curse
+  of dimensionality.
+\item
+  Must we match on all of \(X\)? The assumption is stated conditional on
+  \(X\), so it seems so.
+\item
+  \textbf{Rosenbaum and Rubin (1983): no.} One scalar computed from
+  \(X\) does the whole job.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Defining the propensity score}
 \protect\phantomsection\label{defining-the-propensity-score}
 \begin{itemize}
@@ -234,34 +253,91 @@ Research}{BUSS975: Causal Inference in Financial Research}}
   \tightlist
   \item
     ``the conditional probability of assignment to a particular
-    treatment given a vector of observed covariates''
+    treatment given a vector of observed covariates'' (Rosenbaum and
+    Rubin 1983)
   \end{itemize}
 \item
-  \textbf{Balancing property} (Rosenbaum--Rubin 1983):
-  \(X \perp D \mid \Pr(D = 1 \mid X)\)
+  Three things it is:
 
   \begin{itemize}
   \tightlist
   \item
-    \(E[X \mid D=1, \Pr(D=1 \mid X)] = E[X \mid D=0, \Pr(D=1 \mid X)]\)
+    A \textbf{probability}, so it lives in \([0,1]\).
   \item
-    Covariate distributions match between treated and control
-    conditional on the propensity score.
+    A \textbf{conditional} probability --- read it as: \emph{of the
+    units that look like this on \(X\), what fraction are treated?}
+  \item
+    A description of the \textbf{assignment mechanism}, not of the
+    outcome.
   \end{itemize}
 \item
-  \textbf{Propensity score theorem} (Rosenbaum--Rubin 1983): if
-  \((Y^1,Y^0) \indep D \mid X\), then \[
-  (Y^1, Y^0) \;\indep\; D \;\mid\; e(X)
-  \]
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Conditioning on a \textbf{single number} does what conditioning on
-    all of \(X\) does. Ten covariates collapse to one scalar: the curse
-    of dimensionality defeated, for \emph{conditioning}.
-  \end{itemize}
+  Two results follow: the \textbf{balancing property} (conditional on
+  \(e(X)\), treated and control look alike on \(X\)) and the
+  \textbf{propensity score theorem} (conditioning on \(e(X)\) does what
+  conditioning on all of \(X\) does).
 \end{itemize}
+\end{frame}
+
+\begin{frame}{The balancing property}
+\protect\phantomsection\label{the-balancing-property}
+\begin{center}
+\fbox{\;\textbf{Claim.}\quad $D \indep X \mid e(X)$\;}
+\end{center}
+
+\scriptsize
+
+\(D\) is binary, so its distribution is summarised by its mean; the
+claim is equivalent to
+\(E\big[D \mid X, e(X)\big] \;=\; E\big[D \mid e(X)\big]\). We show
+\textbf{both sides equal \(e(X)\)}, and hence each other.
+
+\textbf{Left side.} \(e(X)\) is a function of \(X\), so conditioning on
+it adds nothing to \(X\): \[
+E\big[D \mid X, e(X)\big] \;=\; E\big[D \mid X\big] \;=\; e(X)
+\qquad \text{(definition of } e(X) \text{)} .
+\] \textbf{Right side.} Apply the \textbf{law of iterated expectations},
+\(E[A \mid C] = E_B\big[E[A \mid B, C] \mid C\big]\), with \(A = D\),
+\(B = X\), \(C = e(X)\): \[
+E\big[D \mid e(X)\big]
+\;=\; E_{X}\Big[\;\underbrace{E\big[D \mid X, e(X)\big]}_{=\;e(X)\ \text{by the left side}} \;\Big|\; e(X)\Big]
+\;=\; E_{X}\big[e(X) \mid e(X)\big] \;=\; e(X). \;\blacksquare
+\]
+
+\normalsize
+
+The mean version, \(E[X \mid D{=}1, e(X)] = E[X \mid D{=}0, e(X)]\), is
+what a balance table tests.
+\end{frame}
+
+\begin{frame}{The propensity score theorem}
+\protect\phantomsection\label{the-propensity-score-theorem}
+\begin{center}
+\fbox{\;\textbf{Claim.}\quad If $(Y^1, Y^0) \indep D \mid X$, then $(Y^1, Y^0) \indep D \mid e(X)$\;}
+\end{center}
+
+\scriptsize
+
+In mean form,
+\(\underbrace{E\big[D \mid Y^1,Y^0, X\big] = E\big[D \mid X\big]}_{\text{assumed}} \quad \Longrightarrow \quad \underbrace{E\big[D \mid Y^1,Y^0, e(X)\big] = E\big[D \mid e(X)\big]}_{\text{to show}}\).
+
+The right-hand side is \(e(X)\) by the previous slide, so only the
+left-hand side is left to prove: \[
+\begin{aligned}
+E\big[D \mid Y^1,Y^0, e(X)\big]
+&= E_{X}\Big[\, E\big[D \mid Y^1,Y^0, X, e(X)\big] \;\Big|\; Y^1,Y^0, e(X)\Big]
+&& \text{law of iterated exp.} \\[1pt]
+&= E_{X}\Big[\, E\big[D \mid Y^1,Y^0, X\big] \;\Big|\; Y^1,Y^0, e(X)\Big]
+&& \text{$e(X)$ is a function of $X$} \\[1pt]
+&= E_{X}\Big[\, \underbrace{E\big[D \mid X\big]}_{=\;e(X)} \;\Big|\; Y^1,Y^0, e(X)\Big] \;=\; e(X). \;\blacksquare
+&& \textbf{unconfoundedness}
+\end{aligned}
+\]
+
+/normalsize
+
+The \(ATE\) is identified by comparing treated and control units at the
+same \textbf{score} rather than the same \(X\):
+\(ATE \;=\; E\Big[\, E\big[Y \mid D{=}1, e(X)\big] - E\big[Y \mid D{=}0, e(X)\big] \,\Big]\)
 \end{frame}
 
 \begin{frame}{Estimating the score}
@@ -271,7 +347,8 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \item
   You know the \textbf{true} score only if you ran the experiment.
   Otherwise estimate it: \(\Pr(D_i {=} 1 \mid X_i) = F(\beta X_i)\), by
-  \textbf{logit or probit}.
+  \textbf{logit or probit} --- not OLS, which extrapolates linearly and
+  will hand you ``probabilities'' outside \([0,1]\).
 \item
   Judge the specification by \textbf{balance achieved}, not by fit. A
   score with a high pseudo-\(R^2\) but poor balance is a bad score; the
@@ -288,8 +365,8 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Checking balance: two numbers, not a \(t\)-test}
-\protect\phantomsection\label{checking-balance-two-numbers-not-a-t-test}
+\begin{frame}{Checking balance: not a \(t\)-test}
+\protect\phantomsection\label{checking-balance-not-a-t-test}
 The balancing property is checkable. Report it covariate by covariate,
 before and after.
 
@@ -340,8 +417,9 @@ Selection here is linear in \texttt{Size}, \texttt{Leverage},
 \item
   \textbf{Left panel, the success.} Four covariates start badly
   imbalanced --- \texttt{Size} at \(0.65\), \texttt{Leverage} and
-  \texttt{ROA} near \(0.49\). After weighting all are under \(0.02\).
-  This is the plot referees want, and where most papers stop.
+  \texttt{ROA} near \(0.49\). Compared \emph{within deciles of the
+  score} all fall under \(0.03\). This is the plot referees want, and
+  where most papers stop.
 \item
   \textbf{Left panel, the trap.} \texttt{Volatility} looks
   \emph{perfect} from the start: \(\text{SMD} = -0.010\), and a
@@ -352,9 +430,10 @@ Selection here is linear in \texttt{Size}, \texttt{Leverage},
   treated firms have more than twice the spread. Extreme volatility
   drives selection in \emph{both} tails.
 \item
-  \textbf{Weighting makes it worse}, \(2.27 \to \mathbf{2.83}\), because
-  the fitted score never contained \(\texttt{vol}^2\). Add that one term
-  and the ratio falls to \(\mathbf{1.03}\).
+  \textbf{Conditioning on the score makes it worse},
+  \(2.27 \to \mathbf{2.80}\), because the fitted score never contained
+  \(\texttt{vol}^2\). Add that one term and the ratio falls to
+  \(\mathbf{1.07}\).
 \item
   Judge the score by \textbf{balance achieved, not by fit} --- and
   balance means the whole distribution. Check squares and interactions,

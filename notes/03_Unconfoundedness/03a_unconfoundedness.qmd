@@ -98,7 +98,7 @@ Unconfoundedness, matching, propensity scores & IV, RDD, DiD \\
 
 ## Treatment assignment mechanisms resolve bias, not models
 
-Recall Lecture 1's decomposition. It is an **identity**:
+Recall Lecture 1's decomposition:
 
 $$
 \underbrace{E[Y|D{=}1] - E[Y|D{=}0]}_{SDO}
@@ -127,9 +127,8 @@ $$
 ## Why this framing matters
 
 - Randomization is an **assignment mechanism**, not a statistical model. A regression is a **statistical model**, not an assignment mechanism.
-- Confusing them is the most common error in empirical finance: treating a long control list as an identification strategy.
 - Unconfoundedness is this lecture's mechanism: treatment assigned **as if at random within strata of $X$**.
-- Everything that follows is a statistical model, credible *only* if you can defend that mechanism.
+- A statistical model, credible *only* if you can defend that mechanism.
 - Defend the mechanism first; choose the estimator second.
 
 ## The bet we are making
@@ -146,9 +145,9 @@ $$
 \end{center}
 
 - Everything rests on one claim: **there is no dashed circle**. No unobserved $U$ pointing at both $D$ and $Y$.
-- That claim is **not testable**. No diagnostic, balance table, or specification test can establish it.
+- That claim is **not testable**. 
 - It is defended with institutional knowledge, not statistics.
-- The literature calls it **unconfoundedness**, **conditional independence (CIA)**, or **selection on observables**. Same thing.
+- The literature calls it **unconfoundedness**, **conditional independence**, or **selection on observables**. Same thing.
 
 # 2. Confounders, Covariates, and Colliders
 
@@ -158,7 +157,7 @@ $$
 - Raw comparison: $62.5\%$ of first-class passengers survived versus $27.1\%$ of everyone else --- a gap of $35.4$ points.
 - But the *"women and children first"* rule was actually enforced, and first-class cabins were closer to the boat deck.
 - **Sex** and **age** drive both who bought first class and who reached a lifeboat. Textbook confounding.
-- The data are real, complete, small enough to compute by hand, and the confounders are undisputed.
+<!-- - The data are real, complete, small enough to compute by hand, and the confounders are undisputed. -->
 
 ## The Titanic DAG
 
@@ -201,7 +200,7 @@ Type & Example & What conditioning does \\
 \textbf{Confounder}       & $W$ sex, $C$ age & \textbf{Required.} Closes a backdoor path. \\
 \textbf{Collider}         & $F$ fame         & \textbf{Forbidden.} Opens a closed path. \\
 \textbf{Neutral / precision} & $S$ swimming  & Optional. No bias either way; shrinks the standard error. \\
-\textbf{Mediator}         & $M$ lifeboat    & \textbf{Forbidden} for the total effect. Blocks the causal path. \\
+\textbf{Mediator}         & $M$ lifeboat    & \textbf{Forbidden} for the total effect. \textbf{Allowed} for the partial effect. \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -209,9 +208,9 @@ Type & Example & What conditioning does \\
 \vspace{0.4em}
 
 - Only one of these four rows is about bias *reduction*. Two are about bias *creation*.
-- $S$ predicts the outcome but not treatment: free precision. The honest case for non-confounder controls.
-- $M$ is subtle. Conditioning on it asks: *did first class help, holding fixed the main way it helped?* Near zero --- and the wrong question.
-- The categories are properties of the **graph**, not the variable. Press coverage *before* boarding would not be a collider.
+- $S$ predicts the outcome but not treatment: free precision. 
+- $M$ is subtle. Conditioning on it asks: *did first class help, holding fixed the main way it helped?* 
+- Press coverage *before* boarding would not be a collider.
 
 ## The same DAG in corporate finance
 
@@ -225,17 +224,17 @@ Titanic & Finance analogue & Rule \\
 $W$, $C$ sex, age  & Firm size, industry, credit rating & Condition on \\
 $F$ fame           & \emph{Subsequent} analyst coverage & Never condition on \\
 $S$ swimming       & Pre-period export-market demand    & Optional, improves precision \\
-$M$ lifeboat       & Amount actually drawn on the line  & Never condition on \\
+$M$ lifeboat       & Amount actually drawn on the line  & Depends \\
 --- & Unobserved managerial quality & The thing that sinks you \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\vspace{0.4em}
+<!-- \vspace{0.4em}
 
 - Analyst coverage is the finance collider: it responds to *both* the financing event and firm performance.
 - The drawn amount is the mediator a referee will *ask* for --- "surely control for how much they borrowed." That removes the channel you are measuring.
-- The last row has no Titanic counterpart, and that is the whole problem. On the Titanic we know the confounders; in finance we rarely do.
+- The last row has no Titanic counterpart, and that is the whole problem. On the Titanic we know the confounders; in finance we rarely do. -->
 
 ## Covariate selection without a DAG
 
@@ -247,8 +246,8 @@ In practice you rarely have expert consensus on the full graph. Three working ru
 
 \vspace{0.3em}
 
-- Rule 2 does most of the work; rule 3 is most often violated in finance.
-- "Pre-treatment" does the heavy lifting in rule 2: a timing argument, and timing is checkable.
+- Rule 3 is most often violated.
+- "Pre-treatment" enforces rule 2—a simple, verifiable timing check.
 
 <!--
 ## Placebo analysis
@@ -365,7 +364,7 @@ $$
   - $ATE$: what if we vaccinate **everyone**?
   - $ATT$: how much did the vaccine help **those who took it**?
   - $ATU$: what would happen if we reached **the currently unvaccinated**?
-- They coincide only under constant effects. With heterogeneity they differ, sometimes a lot.
+- They coincide only under constant effects. With heterogeneity they differ.
 - **The estimand is a choice you make about the policy question.**
 
 ## Which parameter does the question need?
@@ -385,7 +384,7 @@ Would forcing non-adopters to adopt help them? & $ATU$ \\
 \vspace{0.4em}
 
 - The third row is the *expansion* question --- almost never the one your data answers well.
-- Papers routinely estimate the $ATT$ then draw conclusions requiring the $ATE$ or $ATU$. Watch for it in referee reports --- including your own.
+- Papers routinely estimate the $ATT$ then draw conclusions requiring the $ATE$ or $ATU$. 
 
 ## Unconfoundedness is a version of independence
 
@@ -395,14 +394,14 @@ $$
 $$
 - Compare Lecture 1's randomization assumption, $(Y^1,Y^0) \indep D$, with no conditioning.
 - Among units with the *same* $X$, treatment is as good as randomly assigned: **conditional randomization**.
-- The §1 assignment mechanism, stratum by stratum:
+- Stratum by stratum:
 $$
 \begin{aligned}
 E[Y^1 \mid X{=}x] &= E[Y^1 \mid D{=}1, X{=}x] = E[Y^1 \mid D{=}0, X{=}x] \\[0.7em]
 E[Y^0 \mid X{=}x] &= E[Y^0 \mid D{=}1, X{=}x] = E[Y^0 \mid D{=}0, X{=}x]
 \end{aligned}
 $$
-- Strong because it's conditional independence with respect to **both** potential outcomes.
+
 
 ## What the assumption buys: plug-in
 
@@ -417,10 +416,9 @@ $$
 \underbrace{E[Y \mid D{=}0, X{=}x]}_{\text{in your data}}
 $$
 
-- The first equality is the **assumption**. The second is the switching equation --- pure definition.
+- The first equality is the **assumption**. The second is the switching equation.
 - Every method in this lecture is a different way of executing that substitution.
-- Switching estimators cannot rescue a design: all lean on the first equality, none can test it. **Identification** credibility is common to all.
-- They differ downstream --- functional form, extrapolation, which strata get weight. Those are **estimation** differences; Lecture 3b §3 returns to them.
+
 
 ## Unconfoundedness is controversial
 
@@ -453,7 +451,6 @@ Everything ahead assumes unconfoundedness. The methods split on **what they do w
 Rests on       & Common support & Functional form \\
 Fills the gap by & It does not --- it refuses & Projecting the fitted model into it \\
 Methods        & Subclassification, matching, propensity scores & Regression \\
-Covered in     & §4--§8, and Lecture 3b §1 & Lecture 3b §2 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -517,8 +514,10 @@ $$
 0 < \Pr(D=1 \mid X = x) < 1 \quad \text{for all } x
 $$
   At every value of $X$, both treated and untreated units must exist.
-<!-- - Cunningham's jigsaw analogy: **unconfoundedness is the blueprint; common support is whether the pieces are actually in the box.**
-- A perfect blueprint is useless if a piece is missing --- and a complete box is useless if the blueprint is wrong. -->
+
+<!-- 
+- Cunningham's jigsaw analogy: **unconfoundedness is the blueprint; common support is whether the pieces are actually in the box.**
+- A perfect blueprint is useless if a piece is missing --- and a complete box is useless if the blueprint is wrong. --> 
 
 ## The two assumptions differ in kind
 
@@ -536,7 +535,6 @@ Failure $\Rightarrow$ bias & Failure $\Rightarrow$ extrapolation \\
 
 \vspace{0.4em}
 
-- You can have one without the other, and the failures look nothing alike.
 - Common support is the assumption you have **no excuse** for not checking --- and the one most papers skip.
 - This distinction is the key to the NSW debate in Lecture 3b.
 
@@ -582,8 +580,9 @@ $$
 \end{aligned}
 $$
 
+- If there’s no old people in the treatment group, then clearly you cannot calculate $SDO_{o}$
+ and so common support ultimately breaks the whole estimation process down.
 
-- The $ATE$ is a number **no stratum experiences**. It describes a population, not a unit.
 
 
 ## Estimating the ATT under weaker assumptions
@@ -593,8 +592,6 @@ $$
 Y^0 \;\indep\; D \;\mid\; X
 $$
 - Only the **untreated** potential outcome must be independent of treatment.
-- Firms may *anticipate their own gains* $Y^1$ and select on them, but not on how they would have done anyway.
-  - Often defensible: a firm knows its expected benefit from a credit line better than its counterfactual path without one.
 - **Weak common support**: Controls must exist wherever treated units do --- but not conversely.
 $$
   \Pr(D = 0 \mid X) > 0 \quad \text{for all } X \text{ such that }
@@ -602,6 +599,7 @@ $$
 $$
 
 ## Why the asymmetry makes sense
+
 
 $$
 \begin{aligned}
@@ -613,7 +611,7 @@ ATT    &= \underbrace{\sum_x \Big( E[Y \mid D{=}1, X{=}x] - E[Y \mid D{=}0, X{=}
 $$
 
 - Weighting by $\Pr(X \mid D{=}1)$ --- covariates **among the treated** --- makes it the $ATT$: strata with no treated units get zero weight.
-- **Rule**: if you can only defend the weak version, your estimand is the $ATT$. Say so.
+- If you can only defend the weak version, your estimand is the $ATT$. 
 <!-- - This is the single most common honest retreat in observational finance, and it costs you nothing to state clearly.-->
 
 # 4. Subclassification
@@ -648,7 +646,7 @@ SDO = 62.5 - 27.1 = 35.4 \text{ percentage points}
 $$
 - Taken at face value: a first-class ticket nearly *tripled* your survival odds.
 - But first class held a very different mix of people. Sex and age are confounders, and observable.
-- Stratify on $\{$sex, age$\}$: four strata, all occupied.
+- Stratify on $\{$sex, age$\}$: four strata.
 
 ## The four strata
 
@@ -667,36 +665,37 @@ Female child &    45 &   1 & $100.0\%$ & $61.4\%$ & $38.6$ pp \\
 
 \vspace{0.4em}
 
+<!-- 
 - Every within-stratum difference is **smaller than the $35.4$ pp raw gap.** Confounding was inflating the estimate.
 - Composition: $76\%$ of passengers were adult males --- the *smallest* effect --- but only $54\%$ of first class.
 - The last stratum holds **one** first-class female child. Remember her.
+-->
 
 ## Three estimands, three answers
 
-Same four differences. Only the weights change.
-
 \begin{center}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lcccc}
 \toprule
-Weight on & Adult male & Adult female & Male child & Female child \\
+ & Difference in & \multicolumn{3}{c}{Stratification weight $k$} \\
+\cmidrule(lr){3-5}
+Stratum & survival & $ATE$ & $ATT$ & $ATU$ \\
 \midrule
-$ATE$ (population share)  & $0.757$ & $0.193$ & $0.029$ & $0.020$ \\
-$ATT$ (treated share)     & $0.538$ & $0.443$ & $0.015$ & $0.003$ \\
-$ATU$ (control share)     & $0.795$ & $0.150$ & $0.031$ & $0.023$ \\
+Adult male   & $13.7$ pp & $0.757$ & $0.538$ & $0.795$ \\
+Adult female & $34.6$ pp & $0.193$ & $0.443$ & $0.150$ \\
+Male child   & $59.3$ pp & $0.029$ & $0.015$ & $0.031$ \\
+Female child & $38.6$ pp & $0.020$ & $0.003$ & $0.023$ \\
+\midrule
+             & $SDO$     & $\widehat{ATE}$ & $\widehat{ATT}$ & $\widehat{ATU}$ \\
+Estimate     & $35.4$ pp & $19.6$ pp & $23.8$ pp & $18.9$ pp \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\vspace{0.3em}
+\vspace{0.2em}
 
-$$
-\widehat{ATE} = 19.6 \text{ pp}, \qquad
-\widehat{ATT} = 23.8 \text{ pp}, \qquad
-\widehat{ATU} = 18.9 \text{ pp}
-$$
-
-- The raw $35.4$ pp falls to roughly **20 pp** once composition is held fixed. Nearly half the headline gap was confounding.
-- $ATT > ATE$ because first class was disproportionately adult *female* --- the stratum with a large effect.
+- Each estimate is a **weighted average of the same four differences**, read down its column: $0.757(13.7) + 0.193(34.6) + 0.029(59.3) + 0.020(38.6) = 19.6$ pp.
+- The raw $35.4$ pp falls to roughly **20 pp** once composition is held fixed.
+- $ATT > ATE$ because first class was disproportionately adult *female*.
 
 <!--
 ## Subclassification in six lines
@@ -742,12 +741,13 @@ $ATT$ & \textbf{Yes} --- $23.7$ pp from the three occupied strata \\
 - One passenger of 2,201 destroys two of the three parameters. The $ATT$ survives because it never needed that cell.
 - This is common support failing.
 
+
 ## Why it gets worse fast
 
-- One binary covariate: 2 strata. Ten binary covariates: $2^{10} = 1{,}024$. One continuous covariate: infinitely many.
-- Cells multiply exponentially; your sample does not. Empty cells become the norm, not the exception.
-- Non-parametric methods **break down honestly**: they simply cannot compute the estimate.
-- Regression **does not break down**: it extrapolates across empty cells using functional form, and reports a number with a standard error.
+- 1 binary covariate: 2 cells. 10 binary: $2^{10} = 1{,}024$. 1 continuous: infinitely many.
+- Cells grow exponentially; your sample doesn't. Empty cells become the norm.
+- Non-parametric methods **fail**: no estimate.
+- Regression **doesn't fail**: it extrapolates across empty cells via functional form — and reports a number with a standard error.
 
 <!--
 ## Simulating the collapse
@@ -786,7 +786,7 @@ for (k in c(2, 4, 6, 8, 10)) {
 ## Matching as explicit imputation
 
 - Every causal inference is an imputation problem: the counterfactual is missing and must be filled in.
-- Most methods impute **implicitly**, inside a formula. Matching does it **explicitly**, unit by unit --- its main virtue.
+- Most methods impute **implicitly**, inside a formula. Matching does it **explicitly**, unit by unit.
 - Start from the $ATT$. Exactly **one** term is unavailable:
 
 $$
@@ -822,7 +822,8 @@ $$
 \Bigg( Y_i - \underbrace{\frac{1}{M_i}\sum_{j \in \mathcal{J}(i)} Y_j}_{\widehat{Y^0_i}} \Bigg)
 $$
 
-- If two controls sit at the same distance from $i$, use both --- breaking ties arbitrarily injects the analyst's coin flip.
+- If two controls sit at the same distance from $i$, use both.
+
 <!-- - $M_i$ also varies when a caliper binds: a treated unit with no control inside the caliper contributes nothing, and $N_T$ must then count only the units you actually matched.
 - You can *point at the specific firms* doing the work for each observation. No regression output permits that. -->
 
@@ -839,13 +840,13 @@ $$
 $$
 
 - Every unit contributes one *estimated* treatment effect; the $ATE$ averages all $N$ of them.
-- Equivalently $\widehat{ATE} = \frac{N_T}{N}\widehat{ATT} + \frac{N_C}{N}\widehat{ATU}$ --- the weights from §4, Subclassification, back again.
+- Equivalently $\widehat{ATE} = \frac{N_T}{N}\widehat{ATT} + \frac{N_C}{N}\widehat{ATU}$.
 
 
 ## Exact matching and its limit
 
-- With discrete $X$ and full common support, exact matching and subclassification give the **same answer** --- the same estimator, organized differently.
-- The difference is bookkeeping: subclassification aggregates to stratum effects first; matching imputes unit by unit.
+- With discrete $X$ and full common support, exact matching and subclassification give the **same answer**.
+- The difference: subclassification aggregates to stratum effects first; matching imputes unit by unit.
 - Same fatal problem: with a continuous covariate, **exact matches occur with probability zero.**
 - Two responses, and they define the next two sections:
   - Give up on exact equality --- match to the *nearest* unit (§6), then correct that error (§8).
@@ -895,7 +896,7 @@ Scarce \emph{and} poor overlap & $0.07$ & $0.176$ & $\mathbf{1.12}$ & $\mathbf{0
 
 ## Multiple dimensions and the distance metric
 
-With several covariates, "closest" requires a definition --- and the choice changes the answer.
+With several covariates, "closest" requires a definition.
 
 - **Euclidean**: $\sqrt{\sum_k (X_{ik}-X_{jk})^2}$. Scale-dependent: a variable in won swamps one measured as a ratio.
 - **Normalized Euclidean**: divide each covariate by its standard deviation. Fixes scale, ignores correlation.
@@ -917,6 +918,7 @@ With several covariates, "closest" requires a definition --- and the choice chan
 - Use the **Abadie--Imbens variance estimator**, which prices in how many times each control was reused.
 - Check what your software reports *by default*: several packages give the naive standard error unless told otherwise.
 
+
 ## The Abadie--Imbens variance estimator
 
 Let $\hat\tau_i = Y_i - \frac{1}{M}\sum_{m=1}^{M} Y_{j_m(i)}$ be unit $i$'s **own** effect, so $\widehat{ATT} = \frac{1}{N_T}\sum_{i:D_i=1}\hat\tau_i$ is their average. $K_j$ counts how often control $j$ is used.
@@ -933,8 +935,9 @@ $$
 $$
 
 - Term (a) is the **sample variance of the $\hat\tau_i$**. Alone it is the without-replacement formula: with $K_j \in \{0,1\}$, term (b) vanishes.
-- $\hat\sigma^2(X_j) = \mathrm{var}(Y \mid X_j, D{=}0)$, the outcome variance among controls. <!-- Estimate it by matching *controls to controls*: $\tfrac{1}{2}(Y_j - Y_\ell)^2$. -->
+- $\hat\sigma^2(X_j) = \mathrm{var}(Y \mid X_j, D{=}0)$, the conditional outcome variance among controls at $X_j$. <!-- Estimate it by matching *controls to controls*: $\tfrac{1}{2}(Y_j - Y_\ell)^2$. -->
 - Here $M$ is **fixed** --- the clean $K_j(K_j{-}1)$ split needs it. 
+
 <!-- With ties, software reweights matches by $1/M_i$. --> 
 
 <!-- 
@@ -1067,14 +1070,14 @@ Mahalanobis  & $1315.0$ & $325.5$ & $590.1$ & \textbf{3} of 20 \\
 
 - `age` has standard deviation $9.1$, `gpa` only $0.57$, so raw Euclidean distance **matches on age and ignores gpa** --- the scale problem from §6. Every trainee gets a *different* control: $K_j \leq 1$, term (b) is zero, and both standard errors coincide.
 - Mahalanobis makes `gpa` count --- and `gpa` is noise. **Three controls serve all ten trainees**; one is used five times.
-- Term (a) alone still reports $199.8$. The reuse correction triples it.
+<!-- - Term (a) alone still reports $199.8$. The reuse correction triples it. -->
 
 
 # 8. Bias Correction
 
 ## The matching discrepancy is bias, not noise
 
-Matching was only *approximate*: $X_{j(i)} \approx X_i$, never $=$. What does the leftover gap cost?
+Matching was only *approximate*: $X_{j(i)} \approx X_i$. What does the leftover gap cost?
 
 - Abadie--Imbens (2006): More data does not help much.
 
@@ -1108,6 +1111,7 @@ $$
 <!-- - This also finally *defines* $\varepsilon_i$: the deviation of $Y_i$ from its own group's conditional mean. It is the same $\varepsilon$ that $\hat\sigma^2(X_j)$ estimated in §7, Inference with Matching. -->
 - So far, all definition. The **assumption** arrives only when we choose a functional form for $\hat\mu^0$.
 
+
 ## Where the bias hides
 
 Substitute $Y_i = \mu^{D_i}(X_i)+\varepsilon_i$ into $\widehat{ATT}=\frac{1}{N_T}\sum_{D_i=1}(Y_i - Y_{j(i)})$, subtract the true $ATT$, then add and subtract $\frac{1}{N_T}\sum_{D_i=1}\mu^0(X_i)$:
@@ -1120,7 +1124,7 @@ $$
 \end{aligned}
 $$
 
-- Scaled by $\sqrt{N_T}$, rows (1) and (2) converge to mean-zero normals: noise, and they average away.
+- Scaled by $\sqrt{N_T}$, rows (1) and (2) average out.
 - Row (3) does not. Its summands are **signed**: if the nearest control is systematically older or smaller, every term carries the same sign.
 
 ## Two things make the bias big
@@ -1137,7 +1141,7 @@ $$
 
 ## The Abadie--Imbens procedure, in five steps
 
-1. **Match.** Nearest neighbour on your metric; form $\hat\delta_i = Y_i - Y_{j(i)}$ for each treated unit.
+1. **Match.** Nearest neighbour matching; form $\hat\delta_i = Y_i - Y_{j(i)}$ for each treated unit.
 2. **Regress.** OLS on the **matched control units only**: $\;Y_{j} = \alpha + \beta X_{j} + e_j$.
 3. **Predict.** $\hat\mu^0(X_i) = \hat\alpha + \hat\beta X_i$ and $\hat\mu^0(X_{j(i)}) = \hat\alpha + \hat\beta X_{j(i)}$.
 4. **Subtract** the estimated bias:
@@ -1151,6 +1155,7 @@ $$
 - Step 2 never touches a treated outcome: $\hat\mu^0$ is fitted where $Y^0$ is *observed*, then transplanted. Unconfoundedness permits the transplant.
 <!-- - Cunningham's note: Abadie--Imbens's theory uses all controls, but their estimation section --- and every implementation since --- uses the **matched** controls.-->
 
+<!-- 
 ## Only the gap has to be right
 
 - The estimator uses only the **difference** $\hat\mu^0(X_i) - \hat\mu^0(X_{j(i)})$. With one covariate and a linear fit that is simply $\hat\beta\,(X_i - X_{j(i)})$.
@@ -1158,6 +1163,7 @@ $$
 - **This is why bias correction is more credible than regression alone.** Regression extrapolates $\hat\mu^0$ across the whole covariate space; bias correction interpolates across a gap matching already made small.
 - Division of labour: **matching does the heavy lifting on comparability; regression cleans up the remainder.**
 - The worse your matches, the more work the regression does --- and the more the method degenerates into regression.
+-->
 
 ## Ten workers
 
@@ -1211,7 +1217,7 @@ $\widehat{ATT} = \$36.25 \;\longrightarrow\; \widehat{ATT}^{BC} = \$4.17$.
 
 - Exact matches get **zero** correction. Only the two bad matches move.
 - $\hat\beta < 0$: among *these four* controls earnings fall with age. Refit on all six and Fred $(32, \$500)$ flips it to $\hat\beta = +43.7$, giving $\widehat{ATT}^{BC} = \$112.6$.
-- Four points and one outlier. The "small" regression is doing enormous work --- the method's exposure.
+- One outlier. The "small" regression is doing enormous work --- the method's exposure.
 
 <!--
 ## Which regression? Underfit, correct, overfit
@@ -1297,19 +1303,21 @@ Matching::Match(Y, Tr, X, M = 1, estimand = "ATT", Weight = 2,
 ## Summary [Part 1]: the assumption
 
 - **Assignment mechanisms resolve bias, not models.** The SDO decomposition is an identity; only a claim about how treatment was assigned deletes its bias terms.
-- **Covariates come in four kinds**: confounders (include), colliders (never), precision covariates (optional), mediators (never). Pre-treatment timing is your best protection.
+- **Covariates come in four kinds**: confounders (include), colliders (never), precision covariates (optional), mediators (*depends on the estimand*: forbidden for the total effect, required for the partial). Pre-treatment timing is your best protection.
 - **Unconfoundedness**, $(Y^1,Y^0) \indep D \mid X$: randomization *within* strata of $X$. Untestable; defended institutionally, and Imbens's third defence is strongest in finance.
 - **Common support** is a *separate* assumption, and unlike unconfoundedness it is **checkable**. It is asymmetric: the $ATT$ needs only $e(X) < 1$, the $ATE$ both ends.
 - **Subclassification** makes the estimand a choice about weights. On the Titanic: $SDO = 35.4$ pp, but $ATE = 19.6$, $ATT = 23.8$, $ATU = 18.9$.
-- The **curse of dimensionality** is structural, not a small-sample nuisance. One missing passenger killed two of three parameters.
+- The **curse of dimensionality** is structural, not a small-sample nuisance. One passenger of $2{,}201$ killed the $ATE$ and $ATU$; the $ATT$ survived.
 
 ## Summary [Part 2]: matching, and what it costs
 
-- **Matching** is explicit imputation: replace the missing $Y^0_i$ with a comparable control's observed outcome. Exact matching is the honest version, and it fails on continuous $X$.
-- **Nearest-neighbour matching** buys feasibility with a **matching discrepancy** that is *signed*, not noise: treated units with high $X$ are matched downward. It is bias.
-- **The bias shrinks slower than the standard error**: $O_p(N^{-1/k})$ against $O_p(N^{-1/2})$. At $k = 2$ they are the same order; at $k \geq 3$ the bias dominates and the $t$-statistic is invalid.
-- **Two separate repairs.** The *variance* estimator fixes inference: matching with replacement makes comparisons dependent, and $K_j(K_j-1)$ prices that in. *Bias correction* fixes the estimate, using a regression only to price the gap $\hat\mu(X_i) - \hat\mu(X_{j(i)})$ --- far weaker than modelling the level of $Y$.
-- **Scale matters.** Euclidean and Mahalanobis are different estimators, not different implementations: on the training data they return $1607.5$ and $1315.0$.
+- **Matching** is explicit imputation: replace the missing $Y^0_i$ with a comparable control's outcome. Exact matching is the honest version; it fails on continuous $X$.
+- **Nearest-neighbour matching** buys feasibility with a **matching discrepancy** that is *signed*, not noise. 
+<!-- It is bias, and it shrinks *slower* than the standard error --- $O_p(N^{-1/k})$ against $O_p(N^{-1/2})$, so from $k \geq 3$ the $t$-statistic is invalid. --> 
+- **That bias is a product**: how bad the matches are, times how steep $\mu^0$ is. Either factor at zero kills it.
+- **Two separate repairs.** The *variance* estimator fixes inference: reusing controls makes comparisons dependent, and $K_j(K_j-1)$ prices that in. *Bias correction* fixes the estimate, subtracting a modelled $\hat\mu^0(X_i) - \hat\mu^0(X_{j(i)})$.
+- **Scale matters.** Euclidean and Mahalanobis are different estimators, not different implementations: $1607.5$ against $1315.0$, truth $1607.5$.
+- **Report raw and bias-corrected side by side.** A large gap says the matches were poor and the outcome model is load-bearing.
 - Next: the same assumption, executed by collapsing $X$ to **one number**.
 
 ## References

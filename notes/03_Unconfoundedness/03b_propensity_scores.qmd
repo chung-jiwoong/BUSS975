@@ -55,21 +55,82 @@ execute:
 
 # 1. Propensity Scores
 
+## Where Lecture 3a left us
+
+- Unconfoundedness says: **compare treated and controls with the same $X$.** 
+- **Subclassification** and **matching** suffer from the curse of dimensionality.
+- Must we match on all of $X$? The assumption is stated conditional on $X$, so it seems so.
+- **Rosenbaum and Rubin (1983): no.** One scalar computed from $X$ does the whole job.
+
 ## Defining the propensity score
 
 - **Propensity score**: $e(X) = \Pr(D = 1 \mid X)$ 
-  - "the conditional probability of assignment to a particular treatment given a vector of observed covariates"
+  - "the conditional probability of assignment to a particular treatment given a vector of observed covariates" (Rosenbaum and Rubin 1983)
 
-- **Balancing property** (Rosenbaum--Rubin 1983): $X \perp D \mid \Pr(D = 1 \mid X)$
-  - $E[X \mid D=1, \Pr(D=1 \mid X)] = E[X \mid D=0, \Pr(D=1 \mid X)]$
-  - Covariate distributions match between treated and control conditional on the propensity score.
+- Three things it is:
+  - A **probability**, so it lives in $[0,1]$.
+  - A **conditional** probability --- read it as: *of the units that look like this on $X$, what fraction are treated?*
+  - A description of the **assignment mechanism**, not of the outcome.
 
-- **Propensity score theorem** (Rosenbaum--Rubin 1983): if $(Y^1,Y^0) \indep D \mid X$, then
+- Two results follow: the **balancing property** (conditional on $e(X)$, treated and control look alike on $X$) and the **propensity score theorem** (conditioning on $e(X)$ does what conditioning on all of $X$ does).
+
+<!-- - Note which is which: the first needs **no assumption at all**. Only the second needs unconfoundedness. -->
+
+## The balancing property
+
+\begin{center}
+\fbox{\;\textbf{Claim.}\quad $D \indep X \mid e(X)$\;}
+\end{center}
+
+\scriptsize
+$D$ is binary, so its distribution is summarised by its mean; the claim is equivalent to $E\big[D \mid X, e(X)\big] \;=\; E\big[D \mid e(X)\big]$. We show **both sides equal $e(X)$**, and hence each other.
+
+**Left side.** $e(X)$ is a function of $X$, so conditioning on it adds nothing to $X$:
 $$
-(Y^1, Y^0) \;\indep\; D \;\mid\; e(X)
+E\big[D \mid X, e(X)\big] \;=\; E\big[D \mid X\big] \;=\; e(X)
+\qquad \text{(definition of } e(X) \text{)} .
 $$
-  - Conditioning on a **single number** does what conditioning on all of $X$ does. Ten covariates collapse to one scalar: the curse of dimensionality defeated, for *conditioning*.
+**Right side.** Apply the **law of iterated expectations**, $E[A \mid C] = E_B\big[E[A \mid B, C] \mid C\big]$, with $A = D$, $B = X$, $C = e(X)$:
+$$
+E\big[D \mid e(X)\big]
+\;=\; E_{X}\Big[\;\underbrace{E\big[D \mid X, e(X)\big]}_{=\;e(X)\ \text{by the left side}} \;\Big|\; e(X)\Big]
+\;=\; E_{X}\big[e(X) \mid e(X)\big] \;=\; e(X). \;\blacksquare
+$$
 
+\normalsize
+The mean version, $E[X \mid D{=}1, e(X)] = E[X \mid D{=}0, e(X)]$, is what a balance table tests.
+<!-- $E_X[\,\cdot \mid e(X)]$ averages over $X$ within a value of the score.   **No assumption was used** --- this is arithmetic, true whether or not unconfoundedness holds. -->
+
+## The propensity score theorem
+
+\begin{center}
+\fbox{\;\textbf{Claim.}\quad If $(Y^1, Y^0) \indep D \mid X$, then $(Y^1, Y^0) \indep D \mid e(X)$\;}
+\end{center}
+
+\scriptsize
+In mean form, $\underbrace{E\big[D \mid Y^1,Y^0, X\big] = E\big[D \mid X\big]}_{\text{assumed}} \quad \Longrightarrow \quad \underbrace{E\big[D \mid Y^1,Y^0, e(X)\big] = E\big[D \mid e(X)\big]}_{\text{to show}}$.
+
+The right-hand side is $e(X)$ by the previous slide, so only the left-hand side is left to prove:
+$$
+\begin{aligned}
+E\big[D \mid Y^1,Y^0, e(X)\big]
+&= E_{X}\Big[\, E\big[D \mid Y^1,Y^0, X, e(X)\big] \;\Big|\; Y^1,Y^0, e(X)\Big]
+&& \text{law of iterated exp.} \\[1pt]
+&= E_{X}\Big[\, E\big[D \mid Y^1,Y^0, X\big] \;\Big|\; Y^1,Y^0, e(X)\Big]
+&& \text{$e(X)$ is a function of $X$} \\[1pt]
+&= E_{X}\Big[\, \underbrace{E\big[D \mid X\big]}_{=\;e(X)} \;\Big|\; Y^1,Y^0, e(X)\Big] \;=\; e(X). \;\blacksquare
+&& \textbf{unconfoundedness}
+\end{aligned}
+$$
+
+/normalsize
+
+The $ATE$ is identified by comparing treated and control units at the same **score** rather than the same $X$: $ATE \;=\; E\Big[\, E\big[Y \mid D{=}1, e(X)\big] - E\big[Y \mid D{=}0, e(X)\big] \,\Big]$
+
+
+<!--
+The assumption enters at **one line only** --- the third. With $Y^0$ alone it gives $Y^0 \indep D \mid e(X)$, all the $ATT$ needs. **You do not get** balance on *unobservables*, or common support where none exists.
+-->
 
 
 
@@ -143,13 +204,13 @@ C & Large, High & $400$ & $0.6$ & $240$ & $160$ \\
 
 ## Estimating the score
 
-- You know the **true** score only if you ran the experiment. Otherwise estimate it: $\Pr(D_i {=} 1 \mid X_i) = F(\beta X_i)$, by **logit or probit**.
+- You know the **true** score only if you ran the experiment. Otherwise estimate it: $\Pr(D_i {=} 1 \mid X_i) = F(\beta X_i)$, by **logit or probit** --- not OLS, which extrapolates linearly and will hand you "probabilities" outside $[0,1]$.
 - Judge the specification by **balance achieved**, not by fit. A score with a high pseudo-$R^2$ but poor balance is a bad score; the reverse is fine.
 - Fit, check balance, add interactions and polynomials where balance fails, refit. A legitimate specification search: it never looks at $Y$, so the stage is **blind to the outcome**. Say so in the paper.
 - **The score creates no support that $X$ lacks.** If a cell is all-treated or all-control, collapsing $X$ to a scalar hides that; it does not fix it.
 
 
-## Checking balance: two numbers, not a $t$-test
+## Checking balance: not a $t$-test
 
 The balancing property is checkable. Report it covariate by covariate, before and after.
 
@@ -177,30 +238,37 @@ age <- rnorm(n); vol <- rnorm(n); rnd <- rnorm(n)
 X  <- cbind(Size=size, Leverage=lev, ROA=roa, Age=age, Volatility=vol, `R&D`=rnd)
 D  <- rbinom(n, 1, plogis(0.9*size + 0.7*lev - 0.6*roa + 0.25*age + 0.7*vol^2 - 0.7))
 eh <- predict(glm(D ~ size+lev+roa+age+vol, family = binomial), type = "response")
-w  <- ifelse(D == 1, 1/eh, 1/(1-eh))
-wm <- function(x,u) sum(u*x)/sum(u)
-wv <- function(x,u){ m<-wm(x,u); sum(u)*sum(u*(x-m)^2)/(sum(u)^2-sum(u^2)) }
+
+S  <- 10                                    # subclassify: deciles of the estimated score
+br <- quantile(eh, seq(0, 1, length.out = S+1)); br[1] <- -Inf; br[S+1] <- Inf
+g  <- cut(eh, br, labels = FALSE)
+ws <- as.numeric(table(g))/n                # stratum shares
+
 den <- apply(X,2,function(x) sqrt((var(x[D==1])+var(x[D==0]))/2))
-smd <- function(u) sapply(1:ncol(X), function(k){ x<-X[,k]
-         (wm(x[D==1],u[D==1])-wm(x[D==0],u[D==0]))/den[k] })
-vr  <- function(u) sapply(1:ncol(X), function(k){ x<-X[,k]
-         wv(x[D==1],u[D==1])/wv(x[D==0],u[D==0]) })
-one <- rep(1,n); k <- ncol(X); y <- k:1; RED <- "#B2182B"
+raw_smd <- sapply(1:ncol(X), function(k) (mean(X[D==1,k])-mean(X[D==0,k]))/den[k])
+raw_vr  <- sapply(1:ncol(X), function(k) var(X[D==1,k])/var(X[D==0,k]))
+st_smd <- sapply(1:ncol(X), function(k){ x <- X[,k]
+  sum(ws * sapply(1:S, function(s) mean(x[g==s & D==1]) - mean(x[g==s & D==0])))/den[k] })
+st_vr <- sapply(1:ncol(X), function(k){ x <- X[,k]
+  vt <- sapply(1:S, function(s) var(x[g==s & D==1]))
+  vc <- sapply(1:S, function(s) var(x[g==s & D==0]))
+  sum(ws*vt)/sum(ws*vc) })
+k <- ncol(X); y <- k:1; RED <- "#B2182B"
 par(mfrow=c(1,2), mar=c(4,7,2.2,1), cex=0.8)
 plot(NULL, xlim=c(0,0.78), ylim=c(0.5,k+0.5), yaxt="n", ylab="",
      xlab="| standardized difference |", main="Means")
 axis(2, at=y, labels=colnames(X), las=1); abline(h=y, col="grey92")
 abline(v=0.1, lty=2, col=RED)
-points(abs(smd(one)), y, pch=1,  cex=1.3, col="grey35")
-points(abs(smd(w)),   y, pch=19, cex=1.3, col=RED)
-legend("right", c("raw","IPW weighted"), pch=c(1,19),
+points(abs(raw_smd), y, pch=1,  cex=1.3, col="grey35")
+points(abs(st_smd),  y, pch=19, cex=1.3, col=RED)
+legend("bottomright", c("raw","within score deciles"), pch=c(1,19),
        col=c("grey35",RED), bty="n", cex=0.95)
 plot(NULL, xlim=c(0.6,3.0), ylim=c(0.5,k+0.5), yaxt="n", ylab="",
      xlab="variance ratio  (treated / control)", main="Spreads")
 axis(2, at=y, labels=colnames(X), las=1); abline(h=y, col="grey92")
 abline(v=1, col="grey40"); abline(v=c(0.8,1.25), lty=2, col=RED)
-points(vr(one), y, pch=1,  cex=1.3, col="grey35")
-points(vr(w),   y, pch=19, cex=1.3, col=RED)
+points(raw_vr, y, pch=1,  cex=1.3, col="grey35")
+points(st_vr,  y, pch=19, cex=1.3, col=RED)
 ```
 
 \vspace{-0.3em}
@@ -209,10 +277,10 @@ Selection here is linear in `Size`, `Leverage`, `ROA`, `Age` --- and **quadratic
 
 ## Reading the balance plot
 
-- **Left panel, the success.** Four covariates start badly imbalanced --- `Size` at $0.65$, `Leverage` and `ROA` near $0.49$. After weighting all are under $0.02$. This is the plot referees want, and where most papers stop.
-- **Left panel, the trap.** `Volatility` looks *perfect* from the start: $\text{SMD} = -0.010$, and a $t$-test returns $p = 0.72$. On the evidence of means, nothing to see.
+- **Left panel, the success.** Four covariates start badly imbalanced --- `Size` at $0.65$, `Leverage` and `ROA` near $0.49$. Compared *within deciles of the score* all fall under $0.03$. This is the plot referees want, and where most papers stop.
+- **Left panel, the trap.** `Volatility` looks *perfect* from the start: $\text{SMD} = -0.010$. 
 - **Right panel.** Its variance ratio is $\mathbf{2.27}$ --- treated firms have more than twice the spread. Extreme volatility drives selection in *both* tails.
-- **Weighting makes it worse**, $2.27 \to \mathbf{2.83}$, because the fitted score never contained $\texttt{vol}^2$. Add that one term and the ratio falls to $\mathbf{1.03}$.
+- **Conditioning on the score makes it worse**, $2.27 \to \mathbf{2.80}$, because the fitted score never contained $\texttt{vol}^2$. Add that one term and the ratio falls to $\mathbf{1.07}$.
 - Judge the score by **balance achieved, not by fit** --- and balance means the whole distribution. Check squares and interactions, not just levels.
 
 

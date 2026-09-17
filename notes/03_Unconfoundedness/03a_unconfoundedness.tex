@@ -300,14 +300,13 @@ number, weight instead of match, then compare with regression.
   confounders are observed}.
 \item
   Subclassification, matching, propensity scores and regression are all
-  answers to ``how.'' They differ less than their names suggest.
+  answers to ``how.''
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Treatment assignment mechanisms resolve bias, not models}
 \protect\phantomsection\label{treatment-assignment-mechanisms-resolve-bias-not-models}
-Recall Lecture 1's decomposition. It is an \textbf{identity} --- true in
-every dataset, experimental or not:
+Recall Lecture 1's decomposition:
 
 \[
 \underbrace{E[Y|D{=}1] - E[Y|D{=}0]}_{SDO}
@@ -319,13 +318,8 @@ every dataset, experimental or not:
 \begin{itemize}
 \tightlist
 \item
-  Nothing here is an assumption; it holds whatever you do.
-\item
-  \textbf{A regression cannot delete the last two terms.} No functional
-  form, no fixed effects, no clustering choice touches them.
-\item
-  What deletes them is a \textbf{claim about how treatment was
-  assigned}.
+  What deletes the last two terms is a \textbf{claim about how treatment
+  was assigned}.
 \end{itemize}
 \end{frame}
 
@@ -360,14 +354,11 @@ every dataset, experimental or not:
   model. A regression is a \textbf{statistical model}, not an assignment
   mechanism.
 \item
-  Confusing them is the most common error in empirical finance: treating
-  a long control list as an identification strategy.
-\item
   Unconfoundedness is this lecture's mechanism: treatment assigned
   \textbf{as if at random within strata of \(X\)}.
 \item
-  Everything that follows is a statistical model, credible \emph{only}
-  if you can defend that mechanism.
+  A statistical model, credible \emph{only} if you can defend that
+  mechanism.
 \item
   Defend the mechanism first; choose the estimator second.
 \end{itemize}
@@ -392,13 +383,12 @@ every dataset, experimental or not:
   Everything rests on one claim: \textbf{there is no dashed circle}. No
   unobserved \(U\) pointing at both \(D\) and \(Y\).
 \item
-  That claim is \textbf{not testable}. No diagnostic, balance table, or
-  specification test can establish it.
+  That claim is \textbf{not testable}.
 \item
   It is defended with institutional knowledge, not statistics.
 \item
   The literature calls it \textbf{unconfoundedness}, \textbf{conditional
-  independence (CIA)}, or \textbf{selection on observables}. Same thing.
+  independence}, or \textbf{selection on observables}. Same thing.
 \end{itemize}
 \end{frame}
 
@@ -421,9 +411,6 @@ Colliders}\label{confounders-covariates-and-colliders}
 \item
   \textbf{Sex} and \textbf{age} drive both who bought first class and
   who reached a lifeboat. Textbook confounding.
-\item
-  The data are real, complete, small enough to compute by hand, and the
-  confounders are undisputed.
 \end{itemize}
 \end{frame}
 
@@ -481,7 +468,7 @@ Type & Example & What conditioning does \\
 \textbf{Confounder}       & $W$ sex, $C$ age & \textbf{Required.} Closes a backdoor path. \\
 \textbf{Collider}         & $F$ fame         & \textbf{Forbidden.} Opens a closed path. \\
 \textbf{Neutral / precision} & $S$ swimming  & Optional. No bias either way; shrinks the standard error. \\
-\textbf{Mediator}         & $M$ lifeboat    & \textbf{Forbidden} for the total effect. Blocks the causal path. \\
+\textbf{Mediator}         & $M$ lifeboat    & \textbf{Forbidden} for the total effect. \textbf{Allowed} for the partial effect. \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -494,14 +481,11 @@ Type & Example & What conditioning does \\
   Only one of these four rows is about bias \emph{reduction}. Two are
   about bias \emph{creation}.
 \item
-  \(S\) predicts the outcome but not treatment: free precision. The
-  honest case for non-confounder controls.
+  \(S\) predicts the outcome but not treatment: free precision.
 \item
   \(M\) is subtle. Conditioning on it asks: \emph{did first class help,
-  holding fixed the main way it helped?} Near zero --- and the wrong
-  question.
+  holding fixed the main way it helped?}
 \item
-  The categories are properties of the \textbf{graph}, not the variable.
   Press coverage \emph{before} boarding would not be a collider.
 \end{itemize}
 \end{frame}
@@ -519,28 +503,11 @@ Titanic & Finance analogue & Rule \\
 $W$, $C$ sex, age  & Firm size, industry, credit rating & Condition on \\
 $F$ fame           & \emph{Subsequent} analyst coverage & Never condition on \\
 $S$ swimming       & Pre-period export-market demand    & Optional, improves precision \\
-$M$ lifeboat       & Amount actually drawn on the line  & Never condition on \\
+$M$ lifeboat       & Amount actually drawn on the line  & Depends \\
 --- & Unobserved managerial quality & The thing that sinks you \\
 \bottomrule
 \end{tabular}
 \end{center}
-
-\vspace{0.4em}
-
-\begin{itemize}
-\tightlist
-\item
-  Analyst coverage is the finance collider: it responds to \emph{both}
-  the financing event and firm performance.
-\item
-  The drawn amount is the mediator a referee will \emph{ask} for ---
-  ``surely control for how much they borrowed.'' That removes the
-  channel you are measuring.
-\item
-  The last row has no Titanic counterpart, and that is the whole
-  problem. On the Titanic we know the confounders; in finance we rarely
-  do.
-\end{itemize}
 \end{frame}
 
 \begin{frame}{Covariate selection without a DAG}
@@ -568,11 +535,9 @@ working rules:
 \begin{itemize}
 \tightlist
 \item
-  Rule 2 does most of the work; rule 3 is most often violated in
-  finance.
+  Rule 3 is most often violated.
 \item
-  ``Pre-treatment'' does the heavy lifting in rule 2: a timing argument,
-  and timing is checkable.
+  ``Pre-treatment'' enforces rule 2---a simple, verifiable timing check.
 \end{itemize}
 \end{frame}
 
@@ -607,7 +572,7 @@ ATU = E[Y^1 - Y^0 \mid D{=}0]
   \end{itemize}
 \item
   They coincide only under constant effects. With heterogeneity they
-  differ, sometimes a lot.
+  differ.
 \item
   \textbf{The estimand is a choice you make about the policy question.}
 \end{itemize}
@@ -636,8 +601,7 @@ Would forcing non-adopters to adopt help them? & $ATU$ \\
   one your data answers well.
 \item
   Papers routinely estimate the \(ATT\) then draw conclusions requiring
-  the \(ATE\) or \(ATU\). Watch for it in referee reports --- including
-  your own.
+  the \(ATE\) or \(ATU\).
 \end{itemize}
 \end{frame}
 
@@ -656,15 +620,12 @@ Would forcing non-adopters to adopt help them? & $ATU$ \\
   Among units with the \emph{same} \(X\), treatment is as good as
   randomly assigned: \textbf{conditional randomization}.
 \item
-  The §1 assignment mechanism, stratum by stratum: \[
+  Stratum by stratum: \[
   \begin{aligned}
   E[Y^1 \mid X{=}x] &= E[Y^1 \mid D{=}1, X{=}x] = E[Y^1 \mid D{=}0, X{=}x] \\[0.7em]
   E[Y^0 \mid X{=}x] &= E[Y^0 \mid D{=}1, X{=}x] = E[Y^0 \mid D{=}0, X{=}x]
   \end{aligned}
   \]
-\item
-  Strong because it's conditional independence with respect to
-  \textbf{both} potential outcomes.
 \end{itemize}
 \end{frame}
 
@@ -691,18 +652,10 @@ Would forcing non-adopters to adopt help them? & $ATU$ \\
 \tightlist
 \item
   The first equality is the \textbf{assumption}. The second is the
-  switching equation --- pure definition.
+  switching equation.
 \item
   Every method in this lecture is a different way of executing that
   substitution.
-\item
-  Switching estimators cannot rescue a design: all lean on the first
-  equality, none can test it. \textbf{Identification} credibility is
-  common to all.
-\item
-  They differ downstream --- functional form, extrapolation, which
-  strata get weight. Those are \textbf{estimation} differences; Lecture
-  3b §3 returns to them.
 \end{itemize}
 \end{frame}
 
@@ -768,7 +721,6 @@ Everything ahead assumes unconfoundedness. The methods split on
 Rests on       & Common support & Functional form \\
 Fills the gap by & It does not --- it refuses & Projecting the fitted model into it \\
 Methods        & Subclassification, matching, propensity scores & Regression \\
-Covered in     & §4--§8, and Lecture 3b §1 & Lecture 3b §2 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -784,12 +736,7 @@ Covered in     & §4--§8, and Lecture 3b §1 & Lecture 3b §2 \\
   \textbf{Strong common support} (needed for the \(ATE\)): \[
   0 < \Pr(D=1 \mid X = x) < 1 \quad \text{for all } x
   \] At every value of \(X\), both treated and untreated units must
-  exist. \textless!-- - Cunningham's jigsaw analogy:
-  \textbf{unconfoundedness is the blueprint; common support is whether
-  the pieces are actually in the box.}
-\item
-  A perfect blueprint is useless if a piece is missing --- and a
-  complete box is useless if the blueprint is wrong. --\textgreater{}
+  exist.
 \end{itemize}
 \end{frame}
 
@@ -811,9 +758,6 @@ Failure $\Rightarrow$ bias & Failure $\Rightarrow$ extrapolation \\
 
 \begin{itemize}
 \tightlist
-\item
-  You can have one without the other, and the failures look nothing
-  alike.
 \item
   Common support is the assumption you have \textbf{no excuse} for not
   checking --- and the one most papers skip.
@@ -875,8 +819,9 @@ Old         & $100$ & $1/3$ \\
 \begin{itemize}
 \tightlist
 \item
-  The \(ATE\) is a number \textbf{no stratum experiences}. It describes
-  a population, not a unit.
+  If there's no old people in the treatment group, then clearly you
+  cannot calculate \(SDO_{o}\) and so common support ultimately breaks
+  the whole estimation process down.
 \end{itemize}
 \end{frame}
 
@@ -891,16 +836,6 @@ Old         & $100$ & $1/3$ \\
 \item
   Only the \textbf{untreated} potential outcome must be independent of
   treatment.
-\item
-  Firms may \emph{anticipate their own gains} \(Y^1\) and select on
-  them, but not on how they would have done anyway.
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Often defensible: a firm knows its expected benefit from a credit
-    line better than its counterfactual path without one.
-  \end{itemize}
 \item
   \textbf{Weak common support}: Controls must exist wherever treated
   units do --- but not conversely. \[
@@ -928,8 +863,7 @@ ATT    &= \underbrace{\sum_x \Big( E[Y \mid D{=}1, X{=}x] - E[Y \mid D{=}0, X{=}
   treated} --- makes it the \(ATT\): strata with no treated units get
   zero weight.
 \item
-  \textbf{Rule}: if you can only defend the weak version, your estimand
-  is the \(ATT\). Say so.
+  If you can only defend the weak version, your estimand is the \(ATT\).
 \end{itemize}
 \end{frame}
 
@@ -990,7 +924,7 @@ $ATU$ & $n_{k,\text{untreated}} / N_{\text{untreated}}$ & control share \\
   But first class held a very different mix of people. Sex and age are
   confounders, and observable.
 \item
-  Stratify on \(\{\)sex, age\(\}\): four strata, all occupied.
+  Stratify on \(\{\)sex, age\(\}\): four strata.
 \end{itemize}
 \end{frame}
 
@@ -1010,53 +944,42 @@ Female child &    45 &   1 & $100.0\%$ & $61.4\%$ & $38.6$ pp \\
 \end{center}
 
 \vspace{0.4em}
-
-\begin{itemize}
-\tightlist
-\item
-  Every within-stratum difference is \textbf{smaller than the \(35.4\)
-  pp raw gap.} Confounding was inflating the estimate.
-\item
-  Composition: \(76\%\) of passengers were adult males --- the
-  \emph{smallest} effect --- but only \(54\%\) of first class.
-\item
-  The last stratum holds \textbf{one} first-class female child. Remember
-  her.
-\end{itemize}
 \end{frame}
 
 \begin{frame}{Three estimands, three answers}
 \protect\phantomsection\label{three-estimands-three-answers}
-Same four differences. Only the weights change.
-
 \begin{center}
-\begin{tabular}{lrrrr}
+\begin{tabular}{lcccc}
 \toprule
-Weight on & Adult male & Adult female & Male child & Female child \\
+ & Difference in & \multicolumn{3}{c}{Stratification weight $k$} \\
+\cmidrule(lr){3-5}
+Stratum & survival & $ATE$ & $ATT$ & $ATU$ \\
 \midrule
-$ATE$ (population share)  & $0.757$ & $0.193$ & $0.029$ & $0.020$ \\
-$ATT$ (treated share)     & $0.538$ & $0.443$ & $0.015$ & $0.003$ \\
-$ATU$ (control share)     & $0.795$ & $0.150$ & $0.031$ & $0.023$ \\
+Adult male   & $13.7$ pp & $0.757$ & $0.538$ & $0.795$ \\
+Adult female & $34.6$ pp & $0.193$ & $0.443$ & $0.150$ \\
+Male child   & $59.3$ pp & $0.029$ & $0.015$ & $0.031$ \\
+Female child & $38.6$ pp & $0.020$ & $0.003$ & $0.023$ \\
+\midrule
+             & $SDO$     & $\widehat{ATE}$ & $\widehat{ATT}$ & $\widehat{ATU}$ \\
+Estimate     & $35.4$ pp & $19.6$ pp & $23.8$ pp & $18.9$ pp \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\vspace{0.3em}
-
-\[
-\widehat{ATE} = 19.6 \text{ pp}, \qquad
-\widehat{ATT} = 23.8 \text{ pp}, \qquad
-\widehat{ATU} = 18.9 \text{ pp}
-\]
+\vspace{0.2em}
 
 \begin{itemize}
 \tightlist
 \item
+  Each estimate is a \textbf{weighted average of the same four
+  differences}, read down its column:
+  \(0.757(13.7) + 0.193(34.6) + 0.029(59.3) + 0.020(38.6) = 19.6\) pp.
+\item
   The raw \(35.4\) pp falls to roughly \textbf{20 pp} once composition
-  is held fixed. Nearly half the headline gap was confounding.
+  is held fixed.
 \item
   \(ATT > ATE\) because first class was disproportionately adult
-  \emph{female} --- the stratum with a large effect.
+  \emph{female}.
 \end{itemize}
 \end{frame}
 
@@ -1100,18 +1023,16 @@ $ATT$ & \textbf{Yes} --- $23.7$ pp from the three occupied strata \\
 \begin{itemize}
 \tightlist
 \item
-  One binary covariate: 2 strata. Ten binary covariates:
-  \(2^{10} = 1{,}024\). One continuous covariate: infinitely many.
+  1 binary covariate: 2 cells. 10 binary: \(2^{10} = 1{,}024\). 1
+  continuous: infinitely many.
 \item
-  Cells multiply exponentially; your sample does not. Empty cells become
-  the norm, not the exception.
+  Cells grow exponentially; your sample doesn't. Empty cells become the
+  norm.
 \item
-  Non-parametric methods \textbf{break down honestly}: they simply
-  cannot compute the estimate.
+  Non-parametric methods \textbf{fail}: no estimate.
 \item
-  Regression \textbf{does not break down}: it extrapolates across empty
-  cells using functional form, and reports a number with a standard
-  error.
+  Regression \textbf{doesn't fail}: it extrapolates across empty cells
+  via functional form --- and reports a number with a standard error.
 \end{itemize}
 \end{frame}
 
@@ -1126,7 +1047,7 @@ $ATT$ & \textbf{Yes} --- $23.7$ pp from the three occupied strata \\
   missing and must be filled in.
 \item
   Most methods impute \textbf{implicitly}, inside a formula. Matching
-  does it \textbf{explicitly}, unit by unit --- its main virtue.
+  does it \textbf{explicitly}, unit by unit.
 \item
   Start from the \(ATT\). Exactly \textbf{one} term is unavailable:
 \end{itemize}
@@ -1183,14 +1104,7 @@ unit \(i\), and \(M_i = |\mathcal{J}(i)|\).
 \begin{itemize}
 \tightlist
 \item
-  If two controls sit at the same distance from \(i\), use both ---
-  breaking ties arbitrarily injects the analyst's coin flip.
-  \textless!-- - \(M_i\) also varies when a caliper binds: a treated
-  unit with no control inside the caliper contributes nothing, and
-  \(N_T\) must then count only the units you actually matched.
-\item
-  You can \emph{point at the specific firms} doing the work for each
-  observation. No regression output permits that. --\textgreater{}
+  If two controls sit at the same distance from \(i\), use both.
 \end{itemize}
 \end{frame}
 
@@ -1215,8 +1129,7 @@ For a control unit \(j\), the missing half is \(Y^1\). Let
   \(ATE\) averages all \(N\) of them.
 \item
   Equivalently
-  \(\widehat{ATE} = \frac{N_T}{N}\widehat{ATT} + \frac{N_C}{N}\widehat{ATU}\)
-  --- the weights from §4, Subclassification, back again.
+  \(\widehat{ATE} = \frac{N_T}{N}\widehat{ATT} + \frac{N_C}{N}\widehat{ATU}\).
 \end{itemize}
 \end{frame}
 
@@ -1226,11 +1139,10 @@ For a control unit \(j\), the missing half is \(Y^1\). Let
 \tightlist
 \item
   With discrete \(X\) and full common support, exact matching and
-  subclassification give the \textbf{same answer} --- the same
-  estimator, organized differently.
+  subclassification give the \textbf{same answer}.
 \item
-  The difference is bookkeeping: subclassification aggregates to stratum
-  effects first; matching imputes unit by unit.
+  The difference: subclassification aggregates to stratum effects first;
+  matching imputes unit by unit.
 \item
   Same fatal problem: with a continuous covariate, \textbf{exact matches
   occur with probability zero.}
@@ -1283,8 +1195,7 @@ Matching}\label{nearest-neighbour-matching}
 
 \begin{frame}{Multiple dimensions and the distance metric}
 \protect\phantomsection\label{multiple-dimensions-and-the-distance-metric}
-With several covariates, ``closest'' requires a definition --- and the
-choice changes the answer.
+With several covariates, ``closest'' requires a definition.
 
 \begin{itemize}
 \tightlist
@@ -1360,8 +1271,8 @@ average. \(K_j\) counts how often control \(j\) is used.
   it is the without-replacement formula: with \(K_j \in \{0,1\}\), term
   (b) vanishes.
 \item
-  \(\hat\sigma^2(X_j) = \mathrm{var}(Y \mid X_j, D{=}0)\), the outcome
-  variance among controls.
+  \(\hat\sigma^2(X_j) = \mathrm{var}(Y \mid X_j, D{=}0)\), the
+  conditional outcome variance among controls at \(X_j\).
 \item
   Here \(M\) is \textbf{fixed} --- the clean \(K_j(K_j{-}1)\) split
   needs it.
@@ -1435,9 +1346,6 @@ Mahalanobis  & $1315.0$ & $325.5$ & $590.1$ & \textbf{3} of 20 \\
   Mahalanobis makes \texttt{gpa} count --- and \texttt{gpa} is noise.
   \textbf{Three controls serve all ten trainees}; one is used five
   times.
-\item
-  Term (a) alone still reports \(199.8\). The reuse correction triples
-  it.
 \end{itemize}
 \end{frame}
 
@@ -1445,8 +1353,8 @@ Mahalanobis  & $1315.0$ & $325.5$ & $590.1$ & \textbf{3} of 20 \\
 
 \begin{frame}{The matching discrepancy is bias, not noise}
 \protect\phantomsection\label{the-matching-discrepancy-is-bias-not-noise}
-Matching was only \emph{approximate}: \(X_{j(i)} \approx X_i\), never
-\(=\). What does the leftover gap cost?
+Matching was only \emph{approximate}: \(X_{j(i)} \approx X_i\). What
+does the leftover gap cost?
 
 \begin{itemize}
 \tightlist
@@ -1501,8 +1409,7 @@ the true \(ATT\), then add and subtract
 \begin{itemize}
 \tightlist
 \item
-  Scaled by \(\sqrt{N_T}\), rows (1) and (2) converge to mean-zero
-  normals: noise, and they average away.
+  Scaled by \(\sqrt{N_T}\), rows (1) and (2) average out.
 \item
   Row (3) does not. Its summands are \textbf{signed}: if the nearest
   control is systematically older or smaller, every term carries the
@@ -1545,7 +1452,7 @@ the true \(ATT\), then add and subtract
 \begin{enumerate}
 \tightlist
 \item
-  \textbf{Match.} Nearest neighbour on your metric; form
+  \textbf{Match.} Nearest neighbour matching; form
   \(\hat\delta_i = Y_i - Y_{j(i)}\) for each treated unit.
 \item
   \textbf{Regress.} OLS on the \textbf{matched control units only}:
@@ -1575,32 +1482,6 @@ the true \(ATT\), then add and subtract
   Step 2 never touches a treated outcome: \(\hat\mu^0\) is fitted where
   \(Y^0\) is \emph{observed}, then transplanted. Unconfoundedness
   permits the transplant.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Only the gap has to be right}
-\protect\phantomsection\label{only-the-gap-has-to-be-right}
-\begin{itemize}
-\tightlist
-\item
-  The estimator uses only the \textbf{difference}
-  \(\hat\mu^0(X_i) - \hat\mu^0(X_{j(i)})\). With one covariate and a
-  linear fit that is simply \(\hat\beta\,(X_i - X_{j(i)})\).
-\item
-  So \(\hat\mu^0\) must be accurate \emph{over the gap}, not globally.
-  Get the level wrong everywhere and the correction is unaffected:
-  \(\hat\alpha\) cancels.
-\item
-  \textbf{This is why bias correction is more credible than regression
-  alone.} Regression extrapolates \(\hat\mu^0\) across the whole
-  covariate space; bias correction interpolates across a gap matching
-  already made small.
-\item
-  Division of labour: \textbf{matching does the heavy lifting on
-  comparability; regression cleans up the remainder.}
-\item
-  The worse your matches, the more work the regression does --- and the
-  more the method degenerates into regression.
 \end{itemize}
 \end{frame}
 
@@ -1676,8 +1557,8 @@ Doug  & 22 & 26 & \$105 & $\$73.3$ & $\$31.7$ \\
   age. Refit on all six and Fred \((32, \$500)\) flips it to
   \(\hat\beta = +43.7\), giving \(\widehat{ATT}^{BC} = \$112.6\).
 \item
-  Four points and one outlier. The ``small'' regression is doing
-  enormous work --- the method's exposure.
+  One outlier. The ``small'' regression is doing enormous work --- the
+  method's exposure.
 \end{itemize}
 \end{frame}
 
@@ -1713,8 +1594,10 @@ Doug  & 22 & 26 & \$105 & $\$73.3$ & $\$31.7$ \\
   assigned deletes its bias terms.
 \item
   \textbf{Covariates come in four kinds}: confounders (include),
-  colliders (never), precision covariates (optional), mediators (never).
-  Pre-treatment timing is your best protection.
+  colliders (never), precision covariates (optional), mediators
+  (\emph{depends on the estimand}: forbidden for the total effect,
+  required for the partial). Pre-treatment timing is your best
+  protection.
 \item
   \textbf{Unconfoundedness}, \((Y^1,Y^0) \indep D \mid X\):
   randomization \emph{within} strata of \(X\). Untestable; defended
@@ -1729,7 +1612,8 @@ Doug  & 22 & 26 & \$105 & $\$73.3$ & $\$31.7$ \\
   \(ATU = 18.9\).
 \item
   The \textbf{curse of dimensionality} is structural, not a small-sample
-  nuisance. One missing passenger killed two of three parameters.
+  nuisance. One passenger of \(2{,}201\) killed the \(ATE\) and \(ATU\);
+  the \(ATT\) survived.
 \end{itemize}
 \end{frame}
 
@@ -1739,28 +1623,27 @@ Doug  & 22 & 26 & \$105 & $\$73.3$ & $\$31.7$ \\
 \tightlist
 \item
   \textbf{Matching} is explicit imputation: replace the missing
-  \(Y^0_i\) with a comparable control's observed outcome. Exact matching
-  is the honest version, and it fails on continuous \(X\).
+  \(Y^0_i\) with a comparable control's outcome. Exact matching is the
+  honest version; it fails on continuous \(X\).
 \item
   \textbf{Nearest-neighbour matching} buys feasibility with a
-  \textbf{matching discrepancy} that is \emph{signed}, not noise:
-  treated units with high \(X\) are matched downward. It is bias.
+  \textbf{matching discrepancy} that is \emph{signed}, not noise.
 \item
-  \textbf{The bias shrinks slower than the standard error}:
-  \(O_p(N^{-1/k})\) against \(O_p(N^{-1/2})\). At \(k = 2\) they are the
-  same order; at \(k \geq 3\) the bias dominates and the \(t\)-statistic
-  is invalid.
+  \textbf{That bias is a product}: how bad the matches are, times how
+  steep \(\mu^0\) is. Either factor at zero kills it.
 \item
   \textbf{Two separate repairs.} The \emph{variance} estimator fixes
-  inference: matching with replacement makes comparisons dependent, and
+  inference: reusing controls makes comparisons dependent, and
   \(K_j(K_j-1)\) prices that in. \emph{Bias correction} fixes the
-  estimate, using a regression only to price the gap
-  \(\hat\mu(X_i) - \hat\mu(X_{j(i)})\) --- far weaker than modelling the
-  level of \(Y\).
+  estimate, subtracting a modelled
+  \(\hat\mu^0(X_i) - \hat\mu^0(X_{j(i)})\).
 \item
   \textbf{Scale matters.} Euclidean and Mahalanobis are different
-  estimators, not different implementations: on the training data they
-  return \(1607.5\) and \(1315.0\).
+  estimators, not different implementations: \(1607.5\) against
+  \(1315.0\), truth \(1607.5\).
+\item
+  \textbf{Report raw and bias-corrected side by side.} A large gap says
+  the matches were poor and the outcome model is load-bearing.
 \item
   Next: the same assumption, executed by collapsing \(X\) to \textbf{one
   number}.

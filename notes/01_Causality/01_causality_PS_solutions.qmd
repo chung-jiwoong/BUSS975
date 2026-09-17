@@ -1,0 +1,349 @@
+---
+title: "Solutions --- Problem Set: Causality and Potential Outcomes"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+*Solution key. All numerical results below are produced by the code shown --- the document recomputes them at render time, so the printed numbers and the code cannot drift apart.*
+
+*For the written parts, what follows is a model answer, not the only acceptable one. Grade on whether the mechanism is identified correctly, not on wording.*
+
+# Problem 1 (Assignment mechanisms and the SDO decomposition)
+
+```{r}
+Y0 <- c(1, 2, 3, 2, 4, 7, 8, 9, 8, 10)
+Y1 <- c(8, 8, 8, 6, 7, 9, 9, 9, 7, 8)
+delta <- Y1 - Y0
+delta
+```
+
+## (a) Treatment effects and the three estimands
+
+Regulator A has perfect foresight and treats the five banks with the largest $\delta_i$ --- banks **1--5**, with $\delta = 7,6,5,4,3$.
+
+```{r}
+A   <- 1:5
+pi_ <- length(A)/10
+c(ATE = mean(delta), ATT = mean(delta[A]), ATU = mean(delta[-A]))
+c(check = pi_*mean(delta[A]) + (1 - pi_)*mean(delta[-A]))
+```
+
+So $ATE = 2.5$, $ATT = 5$, $ATU = 0$, and with $\pi = 0.5$,
+$$
+\pi \cdot ATT + (1-\pi) \cdot ATU = 0.5(5) + 0.5(0) = 2.5 = ATE. \checkmark
+$$
+
+The decomposition is an identity, not a result: $ATE$ is a weighted average of the effect on the treated and the effect on the untreated, weighted by group size.
+
+## (b) The observed data and the SDO
+
+```{r}
+Yobs <- ifelse(1:10 %in% A, Y1, Y0)
+D    <- as.integer(1:10 %in% A)
+rbind(Bank = 1:10, D = D, Y = Yobs)
+c(EY1 = mean(Yobs[A]), EY0 = mean(Yobs[-A]), SDO = mean(Yobs[A]) - mean(Yobs[-A]))
+```
+
+**What is missing.** For the treated banks 1--5 we observe $Y^1$ and have lost $Y^0$; for the untreated banks 6--10 we observe $Y^0$ and have lost $Y^1$. Exactly half the potential-outcomes table is gone, and no amount of additional data recovers it --- this is the fundamental problem of causal inference, not a data-collection failure.
+
+$$
+SDO = 7.4 - 8.4 = -1.0
+$$
+
+The regulator's program raises lending by 2.5pp on average, and the data say it *lowered* lending by 1pp.
+
+## (c) The decomposition, verified
+
+```{r}
+selection <- mean(Y0[A]) - mean(Y0[-A])
+het       <- (1 - pi_) * (mean(delta[A]) - mean(delta[-A]))
+c(ATE = mean(delta), selection = selection, het_TE = het,
+  total = mean(delta) + selection + het)
+```
+
+$$
+\underbrace{-1.0}_{SDO} \;=\; \underbrace{2.5}_{ATE} \;+\; \underbrace{(2.4 - 8.4)}_{\text{selection bias} \;=\; -6.0} \;+\; \underbrace{0.5(5-0)}_{\text{het.\ TE bias} \;=\; +2.5} \checkmark
+$$
+
+Note the sizes. The causal effect is $+2.5$; the selection bias is $-6.0$, more than twice as large and of the opposite sign. It alone reverses the conclusion.
+
+## (d) Regulator B
+
+```{r}
+B     <- 6:10
+YobsB <- ifelse(1:10 %in% B, Y1, Y0)
+c(ATT_B = mean(delta[B]), ATU_B = mean(delta[-B]),
+  SDO_B = mean(YobsB[B]) - mean(YobsB[-B]))
+```
+
+\begin{center}
+\begin{tabular}{lccc}
+\toprule
+ & True $ATE$ & $ATT$ & $SDO$ \\
+\midrule
+Regulator A (treats the 5 with largest gains) & $2.5$ & $5.0$ & $-1.0$ \\
+Regulator B (treats the 5 healthiest)         & $2.5$ & $0.0$ & $+6.0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+**Why $ATE$ is unchanged but $ATT$ is not.** $ATE = E[\delta_i]$ averages over *all ten banks* and is a property of the potential-outcome table alone. No regulator touches that table --- the $\delta_i$ were fixed before anyone chose anything. $ATT = E[\delta_i \mid D_i = 1]$ averages over *the subgroup the regulator selected*, so it is a property of the table **and** the assignment rule. Change the rule and you change which $\delta_i$ enter the average: A selects the top five ($ATT=5$), B selects the bottom five ($ATT=0$).
+
+The same two regulators, facing identical banks with identical true effects, produce estimates of $-1.0$ and $+6.0$. Neither is the $ATE$.
+
+## (e) Explaining it, and the sample-size proposal
+
+**For a journalist.** The regulator is good at its job: it directs capital to the banks that will benefit most, which are precisely the banks in the worst shape to begin with. Those banks were going to have terrible lending growth without help (an average of 2.4%); the healthy banks left alone were going to do fine anyway (8.4%). The help works --- it adds 5pp to the banks that get it --- but 5pp is not enough to close a 6pp starting gap. Comparing the rescued to the never-needed-rescuing measures *who was sick*, not *whether the medicine worked*. The program looks harmful only because the regulator aimed it well.
+
+**The colleague is wrong.** Selection bias is not sampling noise; it does not shrink with $n$. It is the term
+$$
+E[Y^0 \mid D = 1] - E[Y^0 \mid D = 0] = -6.0,
+$$
+a feature of the **assignment mechanism**. With 10,000 banks allocated by the same rule, that term is still $-6.0$; all that changes is that the $SDO$ is estimated more precisely. More data delivers a tighter confidence interval around the wrong number --- and, worse, makes the wrong number look more credible.
+
+# Problem 2 (SUTVA in financial markets)
+
+## (a) Classifying the four violations
+
+**(i) Recapitalizing half the banks --- *no interference*.** Treated banks bid deposits and good borrowers away from untreated banks, so an untreated bank's outcome depends on *other* banks' treatment status: its $Y^0$ is pushed down by the program. The control group is therefore not a valid stand-in for what the treated would have looked like untreated, and the naive comparison **overstates** the effect on the treated --- part of the measured gap is the control group being harmed, not the treated being helped.
+
+**(ii) TARP funds from \$200m to \$25bn --- *no hidden variation in treatment*.** "Receiving TARP" is not one treatment but a continuum of doses bundled behind a single indicator, so $Y_i^1$ is not well defined. Strictly, there is no single "true effect" to over- or understate: the comparison recovers a dose-weighted mixture whose weights are whatever the dose distribution happened to be. Relative to the effect of a *typical* (small) injection, it will **overstate**, because the average is pulled toward the large injections received by large banks.
+
+**(iii) Subsidy to 30% of a fixed-output industry --- *no interference*.** Output is zero-sum by construction: subsidized firms gain exactly what unsubsidized firms lose, so treatment raises $Y^1$ for the treated *and* lowers $Y^0$ for the controls. The naive comparison **overstates** --- it double-counts, measuring the gain and the offsetting loss as though both were the treatment effect.
+
+**(iv) Pooling anti-takeover provisions --- *no hidden variation in treatment*.** A classified board, a poison pill, and a supermajority requirement are different interventions pooled into one indicator, so "adopting an anti-takeover provision" has many versions. The estimate is a composition-weighted average of distinct effects; if the provisions differ in sign or strength, the pooled estimate is attenuated toward zero and **understates** the effect of the strongest provisions.
+
+## (b) Is the DiD estimate wrong?
+
+Not *wrong* --- it answers a different question from the one the reader assumes. Write the measured gap as
+$$
+\underbrace{(Y^1_{\text{treated}} - Y^0_{\text{treated}})}_{\text{partial-equilibrium effect}} \;+\; \underbrace{(Y^0_{\text{treated}} - Y_{\text{control, observed}})}_{\text{spillover onto controls}} .
+$$
+The **partial-equilibrium** effect answers: *"If my firm receives the subsidy and no one else does, what happens to my output?"* That is a real and useful quantity --- it is the question a single firm's CFO, or a regulator granting one waiver, would ask. The DiD estimates it consistently.
+
+The **general-equilibrium** effect answers: *"If the government subsidizes 30% of the industry, what happens to industry output?"* Here that answer is **zero** by construction, since demand fixes total output. The DiD cannot recover it, and reporting the DiD as "the effect of the subsidy program" silently substitutes the first question for the second. This is the standard error in policy evaluation: scaling up a partial-equilibrium estimate to a population-wide intervention.
+
+## (c) Repairing scenario (ii)
+
+Redefine the treatment as a **dose**: for example $D_i = $ injection as a share of pre-crisis assets, and estimate a dose--response function; or define a binary treatment as "an injection of at least $x\%$ of assets" and compare it against a clean control.
+
+**What you are left with.** Under the dose–response version the estimand is $\partial E[Y \mid \text{dose}]/\partial \text{dose}$ --- the effect of a *marginal* increase in injection size, which is well defined because the treatment now is. Under the threshold version it is the effect of an injection of at least $x\%$ of assets, on the subpopulation that received one.
+
+**How it differs from what the researcher wanted.** They wanted "the effect of TARP," a single number describing the program. They now have a well-defined causal quantity attached to a specific dose, and can no longer speak about the program as a whole without also specifying the counterfactual distribution of doses. The threshold version additionally changes the *population*: it discards banks below the threshold, so the estimand is local to larger recipients. Note what has been bought and sold: precision of meaning in exchange for scope.
+
+## (d) Why SUTVA is prior to independence
+
+SUTVA is what makes the objects $Y_i^0$ and $Y_i^1$ *exist as unit-level quantities in the first place*. Independence, $(Y^0, Y^1) \indep D$, is a statement about the joint distribution of those objects and the treatment --- so it presupposes that they are well-defined random variables attached to unit $i$.
+
+If unit $i$'s outcome depends on the whole assignment vector, then there is no such thing as "$Y_i^1$": there is a different potential outcome for each of the $2^N$ configurations of everyone else's treatment. Independence then has no well-formed statement to make, because the thing it would be an assumption *about* has not been defined.
+
+The practical consequence: **randomization does not fix a SUTVA violation.** A coin flip guarantees $(Y^0, Y^1) \indep D$; it guarantees nothing about whether $Y_i$ depends on $D_j$. A perfectly executed RCT in scenario (iii) still returns an estimate that is not the general-equilibrium effect. Selection bias is a problem with *how units were chosen*; a SUTVA violation is a problem with *what the estimand means*, and no design repairs it.
+
+# Problem 3 (Randomization inference: the exact case)
+
+```{r}
+y       <- c(6, 7, 8, 3, 4, 5)
+treated <- c(1, 2, 3)
+sdo_obs <- mean(y[treated]) - mean(y[-treated])
+sdo_obs
+```
+
+## (a) The SDO and the sharp null
+
+$SDO = \tfrac{6+7+8}{3} - \tfrac{3+4+5}{3} = 7 - 4 = 3$.
+
+**Fisher's sharp null:** $H_0: \delta_i = Y_i^1 - Y_i^0 = 0$ for **every** $i$.
+
+**How it differs from the average null.** The Neyman null says $E[\delta_i] = 0$ --- the effect is zero *on average*, which permits large individual effects that happen to cancel. The sharp null says every individual effect is zero. Sharp implies average; the converse fails.
+
+**Why only the sharp null fills in the table.** If $\delta_i = 0$ then $Y_i^1 = Y_i^0$, and both equal the value we observed, whichever arm unit $i$ was in. Nothing is missing any more --- the counterfactual is *filled in by the hypothesis*, not estimated. Under the average null this fails: a unit with $\delta_i \neq 0$ would have shown a **different** outcome under a different assignment, so we cannot hold $y$ fixed while reshuffling the labels, and the entire permutation construction loses its licence.
+
+## (b) The reference set
+
+```{r}
+perms <- combn(6, 3)
+ncol(perms)
+```
+
+There are $\binom{6}{3} = 20$ assignments. Under the sharp null each firm's outcome is the same no matter who was treated, so the vector $y$ is fixed across all 20 and **only the labels move** --- which is exactly what makes the reference distribution computable.
+
+The realized treated group $\{1,2,3\}$ holds the three **largest** outcomes $(6,7,8)$, so it attains the **largest** possible $SDO = +3$. Its mirror image, treating $\{4,5,6\}$, attains the **smallest**, $-3$. The realized assignment therefore sits at the extreme edge of the distribution --- there is no assignment more favourable to the treatment.
+
+## (c) The exact $p$-value
+
+```{r}
+sdo_all <- apply(perms, 2, function(tr) mean(y[tr]) - mean(y[-tr]))
+p_exact <- mean(abs(sdo_all) >= abs(sdo_obs))
+c(SDO = sdo_obs, K = ncol(perms), p_exact = p_exact)
+sort(round(unique(sdo_all), 3))
+```
+
+$p = 2/20 = 0.10$. Exactly two of the twenty assignments are as extreme as the one observed: the realized assignment itself and its mirror image. The statistic takes only ten distinct values --- discreteness is intrinsic to exact tests.
+
+## (d) Why not the bootstrap
+
+The **bootstrap** resamples *observations* with replacement, so its distribution describes **sampling uncertainty**: how the estimate would move if a different set of firms had been drawn into the study. **Randomization inference** holds the six firms fixed and reshuffles *who was treated*, so its distribution describes **assignment uncertainty**: how the estimate would move if the lottery had come out differently.
+
+Here the second is the right object, for a concrete reason: these six firms are not a sample of anything --- they are the pilot's entire population, and nobody drew them at random. The only genuinely random event in the whole design is the lottery, and randomization inference is the procedure that conditions on exactly that. The bootstrap would answer a question about a sampling step that never happened. (Independently, a bootstrap at $n = 6$ would be unreliable anyway, but that is a secondary objection --- even with good behaviour it would be the wrong quantity.)
+
+## (e) If the design had been coin flips
+
+```{r}
+V  <- as.matrix(expand.grid(rep(list(0:1), 6)))   # all 2^6 assignment vectors
+nt <- rowSums(V)
+c(reference_set = nrow(V), degenerate = sum(nt == 0 | nt == 6))
+
+ok    <- which(nt > 0 & nt < 6)                    # SDO undefined if a group is empty
+sdo_B <- apply(V[ok, ], 1, function(v) mean(y[v == 1]) - mean(y[v == 0]))
+c(p_among_welldefined = mean(abs(sdo_B) >= abs(sdo_obs)))
+```
+
+The reference set is now $2^6 = \mathbf{64}$, not 20.
+
+`combn(6, 3)` is the wrong denominator because it enumerates only the assignments with *exactly* three treated. Under independent coin flips, assignments with one, two, four or five treated were equally possible outcomes of the randomization, and the $p$-value is a probability computed over **the assignments the experiment could actually have produced**. Restricting to the 20 answers a question about a different experiment.
+
+The consequence is not cosmetic: the $p$-value rises from $0.100$ to about $0.161$.
+
+A wrinkle worth noticing: two of the 64 vectors put every firm in one arm, leaving the $SDO$ undefined. The usual fixes are to condition on the realized number treated (which returns you to the 20, and is a defensible analysis of a Bernoulli design) or to use a statistic defined for every vector, such as the treated-group total.
+
+\begin{center}
+\emph{The permutation scheme must mirror the physical randomization --- get it wrong and the $p$-value is not approximately right, it answers a different question.}
+\end{center}
+
+## (f) What six units can and cannot do
+
+The smallest attainable two-sided $p$-value is
+$$
+\frac{2}{\binom{6}{3}} = \frac{2}{20} = 0.10 .
+$$
+Since $0.10 > 0.05$, **a six-unit experiment with three treated can never reject at the 5% level** --- not for any outcome data, however enormous the effect. The realized assignment here was already the most extreme of all twenty, and it still returns $p = 0.10$.
+
+The lesson is that power in an exact test is bounded by the **design**, not by the effect size: with $K$ assignments no two-sided $p$ below $2/K$ exists. Before running a small experiment, compute $2/K$ and ask whether you could ever detect anything.
+
+**Where this logic returns:** the placebo/permutation inference used in **synthetic control**, where the treatment is reassigned across donor units and the treated unit's gap is ranked against the placebo distribution. There too the attainable $p$-value is bounded by the number of donors.
+
+# Problem 4 (Choosing a test statistic, and when exact enumeration fails)
+
+## (a) Three statistics, one $p$-value
+
+```{r}
+R_tilde <- rank(y) - (length(y) + 1)/2          # normalised ranks
+rbind(y = y, rank = rank(y), R_tilde = R_tilde)
+
+ks_stat <- function(a, b) {
+  g <- sort(unique(c(a, b)))
+  max(abs(sapply(g, function(v) mean(a <= v)) - sapply(g, function(v) mean(b <= v))))
+}
+T_rank <- function(tr) mean(R_tilde[tr]) - mean(R_tilde[-tr])
+T_ks   <- function(tr) ks_stat(y[tr], y[-tr])
+
+rank_all <- apply(perms, 2, T_rank)
+ks_all   <- apply(perms, 2, T_ks)
+c(T_rank   = T_rank(treated),  p_rank = mean(abs(rank_all) >= abs(T_rank(treated))),
+  T_KS     = T_ks(treated),    p_KS   = mean(ks_all >= T_ks(treated)))
+```
+
+The normalised ranks are $(0.5, 1.5, 2.5, -2.5, -1.5, -0.5)$, giving $T_{\text{rank}} = 1.5 - (-1.5) = 3$. The two groups do not overlap at all, so the empirical CDFs separate completely and $T_{KS} = 1$, its maximum possible value.
+
+All three statistics return $p = 0.10$ --- identical to the $SDO$.
+
+**Why they must agree here.** The treated firms are *exactly* the three largest outcomes. Any statistic that respects the ordering of the data therefore takes its most extreme attainable value at the realized assignment, and ties only with the mirror assignment $\{4,5,6\}$. So all three count the same two assignments out of twenty. The data are perfectly separated, and perfect separation is maximal evidence under every one of these statistics simultaneously.
+
+**What is actually binding** is not the statistic but $K = 20$: the $p$-value cannot go below $2/20$ regardless of what we measure. Choosing a cleverer statistic cannot buy power that the design does not contain. This is the opposite of the situation in part (c), where the choice decides everything.
+
+## (b) Logs and multiplicative effects
+
+Let the treatment scale every firm by a common factor, $Y_i^1 = c\,Y_i^0$.
+
+In **levels**, the unit-level effect is
+$$
+Y_i^1 - Y_i^0 = (c-1)\,Y_i^0,
+$$
+which **depends on $Y_i^0$** --- it is large for large firms and small for small ones. In **logs**,
+$$
+\ln Y_i^1 - \ln Y_i^0 = \ln c,
+$$
+which is **the same for every unit**, free of $Y_i^0$.
+
+So on the log scale a multiplicative alternative is a *constant additive shift* --- precisely the alternative a difference in means is built to detect. On the level scale the same alternative is heterogeneous and dominated by the largest units, which inflates the variability of the statistic and lowers power. Hence $T_{\log}$ is better powered against multiplicative alternatives, and is the natural choice for outcomes like earnings, assets, or trading volume, where effects are usually proportional and the distribution is right-skewed.
+
+**Why it cannot be used in (c).** The outcome there is an abnormal return, which is negative for many firms (the minimum is about $-9.1$). $\ln Y_i$ is undefined for $Y_i \leq 0$, so $T_{\log}$ does not exist for these data. A test statistic must be computable for *every* assignment in the reference set, not merely the realized one.
+
+## (c) When exact enumeration is impossible
+
+```{r}
+set.seed(3)
+control <- round(rnorm(30, 0, 1), 2)
+treated <- round(rnorm(30, 0, 4), 2)
+yy <- c(control, treated)
+dd <- c(rep(0, 30), rep(1, 30))
+```
+
+**(i) The size of the reference set.**
+
+```{r}
+choose(60, 30)
+```
+
+$\binom{60}{30} \approx 1.18 \times 10^{17}$. Enumerating them at a billion per second would take roughly four years, so the approach of Problem 3(c) is not merely slow but infeasible. Instead we **sample** the reference distribution: draw random reassignments, recompute the statistic, and rank the observed value among them. The resulting $p$-value is *approximate* rather than exact --- but the error is simulation error we control by taking more draws, not an asymptotic approximation we have to defend.
+
+**(ii)--(iii) Approximate $p$-values for both statistics.**
+
+```{r}
+obs_sdo <- abs(mean(treated) - mean(control))
+obs_ks  <- ks_stat(treated, control)
+
+set.seed(1)
+draws <- replicate(10000, {
+  p <- sample(dd)                                  # keeps exactly 30 treated
+  a <- yy[p == 1]; b <- yy[p == 0]
+  c(abs(mean(a) - mean(b)), ks_stat(a, b))
+})
+
+c(SDO = mean(treated) - mean(control), p_SDO = mean(draws[1, ] >= obs_sdo),
+  T_KS = obs_ks,                       p_KS  = mean(draws[2, ] >= obs_ks))
+```
+
+The $SDO$ is $0.345$ with $p \approx 0.64$ --- no evidence of anything. The Kolmogorov--Smirnov statistic is $0.467$ with $p \approx 0.001$ --- decisive.
+
+**(iv) What the $SDO$ could not see.**
+
+```{r}
+c(sd_treated = sd(treated), sd_control = sd(control),
+  sd_ratio = sd(treated)/sd(control), var_ratio = var(treated)/var(control))
+```
+
+The treated standard deviation is about **five times** the control standard deviation --- a variance ratio near **25** --- while the two means are nearly identical. The disclosure requirement changed the **dispersion** of abnormal returns and left their average essentially untouched.
+
+A difference in means compares only the first moment of the two distributions. A pure second-moment change is therefore invisible to it, not because the test was underpowered but because it was **structurally blind** to the feature that moved: no sample size would have rescued the $SDO$ here. $T_{KS}$ compares the entire empirical CDFs, so a change in spread shows up as a large vertical gap between them.
+
+**Economic interpretation.** The regulator did not make firms better or worse off on average. It made outcomes **more variable** --- the market now reacts far more sharply and differently across firms. That is exactly what one would expect from a genuine disclosure requirement: newly released firm-specific information gets impounded into prices, so returns spread out according to what each disclosure revealed, with winners and losers roughly offsetting. The policy changed the *risk*, not the *level*. A researcher who reported only the $SDO$ would have concluded the mandate did nothing, and would have missed its entire effect.
+
+## (d) Reporting only the second test
+
+**What is wrong.** The $p$-value of $0.001$ is the correct $p$-value for a $T_{KS}$ test that was *specified in advance*. It is not the $p$-value for the procedure actually followed, which was: *try the $SDO$; if it fails, try $T_{KS}$; report whichever rejects.* The relevant null distribution for that procedure is the distribution of the **minimum $p$-value over the statistics searched**, which is stochastically smaller than the distribution of any single one. Reporting $0.001$ therefore understates the true false-positive rate --- the familiar problem of specification search, with the multiplicity concealed because only the surviving test appears in the paper.
+
+**What would have made it credible.** Pre-specify the test statistic before looking at the outcome data (a pre-analysis plan, or simply a stated rule). Failing that, report *every* statistic tried along with its $p$-value and let the reader see the search --- which, in this instance, would have been the more informative paper anyway, since the contrast between the two results is the finding. A multiplicity adjustment over the statistics considered is a third option.
+
+**Validity versus power.** Every statistic discussed --- $SDO$, log difference, quantiles, ranks, $T_{KS}$ --- yields a **valid** exact (or approximate) test under the sharp null. Validity comes from the permutation construction and the sharp null, and does **not** depend on which statistic you choose: under $H_0$ the observed value is exchangeable with the reference values whatever the statistic. What the choice affects is **power** --- which alternatives you are able to detect. In (c) the $SDO$ has essentially no power against a pure variance shift, while $T_{KS}$ has a great deal.
+
+So the sin here is not using $T_{KS}$; $T_{KS}$ was the *right* statistic for what the policy actually did. The sin is choosing it after seeing the data and then reporting it as though it had been chosen before.
