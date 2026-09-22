@@ -1,0 +1,399 @@
+---
+title: "Solutions --- Problem Set: Unconfoundedness"
+subtitle: "BUSS975 --- covering Lectures 3a and 3b"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+*Solution key. Every numerical result below is produced by the code shown --- the document recomputes it at render time, so the printed numbers and the code cannot drift apart.*
+
+*For the written parts, what follows is a model answer, not the only acceptable one. Grade on whether the mechanism is identified correctly, not on wording.*
+
+# Problem 1 (Covariates, estimands, and the two assumptions)
+
+## (a) Classifying the variables
+
+\begin{center}
+\small
+\begin{tabular}{p{4.7cm}p{3.3cm}p{7.8cm}}
+\toprule
+Variable & Type & For the total effect \\
+\midrule
+(i) size, industry, rating & Confounder & \textbf{Include.} They drive both the bank's decision and investment; conditioning closes the backdoor paths. \\
+(ii) prior-year export demand & Precision covariate & \textbf{Optional; include.} It predicts $Y$ but not $D$, so it cannot bias anything and it shrinks the standard error. It is pre-treatment, so it cannot be an outcome. \\
+(iii) amount drawn & Mediator & \textbf{Exclude.} It lies on $D \to \text{drawing} \to Y$; conditioning on it removes part of the effect you want. \\
+(iv) later analyst coverage & Collider & \textbf{Exclude.} $D \to \text{coverage} \leftarrow Y$ is closed; conditioning on it opens it. It is also post-treatment. \\
+(v) managerial quality & Unobserved\newline confounder & Cannot be included. This is the threat to the design. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The variable whose treatment depends on the question is **(iii), the amount drawn**. Conditioning on it answers a *partial*-effect question: *did the credit line raise investment through channels other than the funds actually drawn* --- for instance as precautionary liquidity that lets the firm commit to projects --- holding fixed how much it drew? One caveat worth stating: even that partial effect is identified only if nothing unobserved drives both drawing and investment, and managerial quality (v) is an obvious candidate.
+
+## (b) Two questions, two estimands
+
+The regulator's question --- every firm with a line --- needs the **$ATE$**. The lending committee's question --- the firms that got one --- needs the **$ATT$**.
+
+- The $ATE$ requires **strong unconfoundedness**, $(Y^1, Y^0) \indep D \mid X$, and **strong common support**, $0 < e(X) < 1$ everywhere.
+- The $ATT$ requires only **weak unconfoundedness**, $Y^0 \indep D \mid X$, and **weak common support**, $e(X) < 1$ wherever treated firms are.
+
+The $ATT$ gets away with less because for the treated firms $Y^1$ is *observed*: only $Y^0$ is missing, and it is imputed from controls in the treated firms' own cells. Nothing is ever imputed for a control.
+
+## (c) Identifying the ATT
+
+$$
+\begin{aligned}
+ATT(x) &= E[Y^1 \mid D{=}1, X{=}x] - E[Y^0 \mid D{=}1, X{=}x] \\
+&= E[Y \mid D{=}1, X{=}x] - E[Y^0 \mid D{=}1, X{=}x] && \text{switching equation } (Y = Y^1 \text{ when } D{=}1) \\
+&= E[Y \mid D{=}1, X{=}x] - E[Y^0 \mid D{=}0, X{=}x] && \text{weak unconfoundedness, } Y^0 \indep D \mid X \\
+&= E[Y \mid D{=}1, X{=}x] - E[Y \mid D{=}0, X{=}x] && \text{switching equation } (Y = Y^0 \text{ when } D{=}0)
+\end{aligned}
+$$
+
+Unconfoundedness is used **once, on $Y^0$, in the second (missing) term** --- never on $Y^1$. The $ATT$ then averages $ATT(x)$ with weights $\Pr(X{=}x \mid D{=}1)$, the covariate distribution among the treated. Cells with no treated firms get zero weight, which is why the $ATT$ needs controls only where treated firms are.
+
+## (d) Imbens's third defence
+
+The defence: the decision-maker optimises something other than your outcome. A bank prices a credit line to manage default risk, relationship value and capital charges; a firm seeks one as liquidity insurance and covenant slack. Neither is choosing on next year's capital expenditure. Conditional on the credit-relevant observables --- size, industry, rating --- the residual variation in who gets a line is then plausibly unrelated to the firm's investment potential outcomes.
+
+It collapses **when an agent optimises precisely your outcome**: if firms apply for lines *because* they have specific projects lined up, or banks grant them on the strength of management's investment plans, then $D$ is chosen on $Y^1 - Y^0$ directly. Managerial quality (v) is exactly such a channel if good managers both secure lines and invest better.
+
+## (e) NSW: which assumption was each paper about?
+
+**Dehejia and Wahba** were about **common support**. Their gain came from discarding comparison units from the CPS and PSID that were utterly unlike NSW participants --- imposing overlap. Much of LaLonde's failure had been extrapolation, not confounding.
+
+**Smith and Todd** were about **unconfoundedness**, and the specification choices that stand in for it. The recovery was sensitive to the subsample and to the score specification, so whether the observables really make assignment ignorable was never settled --- and the specification that worked may have been found because the benchmark was known.
+
+You cannot use Dehejia and Wahba as a check because **they had an experimental benchmark to grade against, and you do not** --- that is why you are doing the study. You can check overlap with a histogram of $\hat e$. The part Smith and Todd showed to be fragile, unconfoundedness, cannot be checked in your data at all.
+
+# Problem 2 (Subclassification, estimands, and common support)
+
+```{r}
+N  <- c(A = 400, B = 400, C = 200)
+nT <- c(A = 100, B = 200, C = 180)
+nC <- N - nT
+y1 <- c(A = 14, B = 20, C = 31)      # E[Y | D=1, X]
+y0 <- c(A = 10, B = 18, C = 25)      # E[Y | D=0, X]
+e   <- nT / N
+tau <- y1 - y0
+rbind(e = e, tau = tau)
+```
+
+## (a) Three estimands
+
+```{r}
+ATE <- sum(N  * tau) / sum(N)        # weight: population share
+ATT <- sum(nT * tau) / sum(nT)       # weight: treated share
+ATU <- sum(nC * tau) / sum(nC)       # weight: control share
+pi_ <- sum(nT) / sum(N)
+round(c(ATE = ATE, ATT = ATT, ATU = ATU, pi = pi_,
+        check = pi_ * ATT + (1 - pi_) * ATU), 4)
+```
+
+The same three within-stratum effects, $(4, 2, 6)$, weighted three ways: $ATE = 3.60$, $ATT = 3.92$, $ATU = 3.31$, and $0.48 \times 3.92 + 0.52 \times 3.31 = 3.60$.
+
+## (b) The SDO and its decomposition
+
+```{r}
+EY_T   <- sum(nT * y1) / sum(nT)                 # E[Y | D=1]
+EY_C   <- sum(nC * y0) / sum(nC)                 # E[Y | D=0]
+SDO    <- EY_T - EY_C
+levels <- sum(nT * y0) / sum(nT) - EY_C          # E[Y0|D=1] - E[Y0|D=0]
+gains  <- (1 - pi_) * (ATT - ATU)
+round(c(SDO = SDO, ATE = ATE, levels = levels, gains = gains,
+        total = ATE + levels + gains), 4)
+```
+
+$SDO = 9.22$, more than two and a half times the $ATE$. Of the gap of $5.62$, **selection on levels contributes $5.30$** and selection on gains only $0.32$. Levels dominate because the waivers went disproportionately to stratum C, whose banks grow fast even without a waiver ($Y^0 = 25$).
+
+## (c) Why the ATT exceeds the ATE
+
+The regulator concentrated waivers in stratum C ($e = 0.9$), which also has the largest effect ($6$); the $ATT$ weights by the treated distribution, so it over-weights exactly the stratum where the waiver works best.
+
+## (d) Stratum A with no treated banks
+
+```{r}
+ATT_noA <- sum(nT[c("B", "C")] * tau[c("B", "C")]) / sum(nT[c("B", "C")])
+ATT_noA
+```
+
+**Only the $ATT$ survives**, at $3.89$: it weights strata by the treated distribution, and A would have no treated banks, so it gets zero weight. The $ATE$ and $ATU$ both need $E[Y \mid D{=}1, X{=}A]$, which would no longer exist.
+
+## (e) Stratum C with no controls
+
+```{r}
+ATU_noC <- sum(nC[c("A", "B")] * tau[c("A", "B")]) / sum(nC[c("A", "B")])
+ATU_noC
+```
+
+**Only the $ATU$ survives**, at $3.20$. The $ATE$ and $ATT$ both need $E[Y \mid D{=}0, X{=}C]$.
+
+**The rule:** an estimand survives if it puts zero weight on the empty cell. The $ATT$ needs controls wherever there are treated units (weak common support); the $ATU$, symmetrically, needs treated units wherever there are controls; the $ATE$ needs both everywhere.
+
+With ten binary covariates there are $2^{10} = 1{,}024$ cells. A sample of a few thousand leaves many of them with no treated units or no controls, so empty cells are the **norm** --- the curse of dimensionality.
+
+# Problem 3 (Matching: the discrepancy, the correction, the standard error)
+
+```{r}
+xT <- c(2, 6, 8, 10);  yT <- c(30, 44, 52, 58)       # treated
+xC <- c(1, 4, 9, 30);  yC <- c(10, 16, 26, 0)        # controls
+m    <- sapply(xT, function(x) which.min(abs(xC - x)))   # index of each match
+tauh <- yT - yC[m]
+data.frame(X_i = xT, match_X = xC[m], Y_i = yT, Y_match = yC[m], tau_i = tauh)
+mean(tauh)
+```
+
+## (a) The matches
+
+The banks at $X = 2, 6, 8, 10$ match the controls at $1, 4, 9, 9$, giving $\hat\tau_i = 20, 28, 26, 32$ and $\widehat{ATT} = 26.5$.
+
+The control at $X = 9$ is **used twice**; the one at $X = 30$ is **never used**. Matching silently discards controls unlike any treated unit --- it is a form of trimming. The $ATT$ does not need that control, and using it would require extrapolating from $X = 30$ down to the treated range.
+
+## (b) Reuse
+
+```{r}
+K <- sapply(seq_along(xC), function(j) sum(m == j))
+rbind(X_j = xC, K_j = K)
+sum(K * (K - 1))
+```
+
+$K = (1, 1, 2, 0)$ and $\sum_j K_j(K_j - 1) = 2$.
+
+A reused control puts its own noise $\varepsilon_j$ into every comparison that uses it, so those comparisons are **correlated**. The variance penalty counts the *pairs* of treated units sharing a control, which is $K_j(K_j-1)$. A control used once creates no pair and no penalty. By contrast $\sum_j K_j = N_T M$ whatever the reuse pattern, so it carries no information about dependence.
+
+## (c) The Abadie--Imbens standard error
+
+```{r}
+NT <- length(xT); M <- 1
+sig2  <- ifelse(K > 1, 50, 0)      # only reused controls enter term (b)
+termA <- sum((tauh - mean(tauh))^2) / NT
+termB <- sum(K * (K - 1) / M^2 * sig2) / NT
+c(termA = termA, termB = termB, sigma2 = termA + termB,
+  SE = sqrt((termA + termB) / NT), SE_termA_only = sqrt(termA / NT),
+  inflation = sqrt((termA + termB) / termA))
+```
+
+Term (a) is $18.75$ and term (b) is $\tfrac14 \times 2 \times 50 = 25$, so $\hat\sigma^2_{ATT} = 43.75$ and $SE = 3.31$. Term (a) alone gives $2.17$. **Reuse inflates the standard error by a factor of $1.53$** --- a standard error that ignores it is a third too small.
+
+## (d) Bias correction on the matched controls
+
+```{r}
+used  <- sort(unique(m))                        # distinct matched controls
+fit_m <- lm(yC[used] ~ xC[used]); coef(fit_m)
+b_m   <- coef(fit_m)[[2]]
+bc_m  <- tauh - b_m * (xT - xC[m])
+data.frame(X_i = xT, gap = xT - xC[m], correction = b_m * (xT - xC[m]),
+           tau_i = tauh, tau_BC = bc_m)
+mean(bc_m)
+```
+
+The three matched controls lie exactly on $\hat\mu^0(X) = 8 + 2X$. Correcting gives $\hat\tau^{BC}_i = 18, 24, 28, 30$ and **$\widehat{ATT}^{BC} = 25.0$**, down from $26.5$.
+
+The largest correction, $4$, goes to the bank at $X = 6$: its match is **two** units away (the others are one), and $\hat\mu^0$ has slope $2$. Matching bias is a **product** of how bad the match is and how steep $\mu^0$ is; either at zero kills it.
+
+Note the bank at $X = 8$: its correction is *positive*. Its match sits above it, so the raw comparison had understated its effect. The discrepancy is signed.
+
+## (e) Refitting on all four controls
+
+```{r}
+fit_a <- lm(yC ~ xC); coef(fit_a)
+b_a   <- coef(fit_a)[[2]]
+bc_a  <- tauh - b_a * (xT - xC[m])
+c(raw = mean(tauh), BC_matched = mean(bc_m), BC_all = mean(bc_a))
+```
+
+Adding the never-matched control flips the slope to **$\hat\beta = -0.51$**, and $\widehat{ATT}^{BC}$ becomes $26.89$. The correction has **reversed sign**: fitted on the matched controls it moved the estimate *down* by $1.5$; fitted on all four it moves it *up* by $0.39$.
+
+One distant control, at $X = 30$ and far outside the treated range, decides the direction of the correction. The "small" regression is doing extrapolation --- exactly what matching was meant to avoid --- and its answer depends on which controls you feed it. **Report the raw and bias-corrected estimates side by side, and say which controls the outcome model was fitted on.** A large gap is a diagnostic, not a nuisance.
+
+## (f) Two covariates and the distance metric
+
+Raw Euclidean distance is dominated by log assets: a one-standard-deviation gap in assets counts twenty times a one-standard-deviation gap in leverage, so you effectively match on assets alone. **Normalized Euclidean** (divide each covariate by its standard deviation) fixes the scale; **Mahalanobis** also accounts for correlation between them.
+
+The fix is **not free**. If leverage barely moves $Y^0$, up-weighting it degrades the matches on the covariate that matters. In the lecture's training data, Mahalanobis returned $1{,}315$ against a truth of $1{,}607.5$, while Euclidean hit it exactly.
+
+# Problem 4 (Propensity scores and weighting)
+
+## (a) Why balance is free and unconfoundedness is not
+
+The balancing property is free because $e(X)$ is a function of $X$. Conditioning on it adds nothing to $X$, so $E[D \mid X, e(X)] = E[D \mid X] = e(X)$; and averaging $E[D \mid X]$ over $X$ within a value of the score gives $E[D \mid e(X)] = e(X)$. Both sides equal $e(X)$ by the definition and the law of iterated expectations alone.
+
+In the propensity score theorem, unconfoundedness enters at **one step**: replacing $E[D \mid Y^1, Y^0, X]$ with $E[D \mid X]$ inside the iterated expectation. Everything else is bookkeeping.
+
+The implication: a balance table checks the balancing property, which holds automatically for a correctly specified score. **Good balance validates the score specification --- never unconfoundedness.** It says nothing about variables you did not put in the score, such as managerial quality.
+
+## (b) Equal means, unequal spreads
+
+A near-zero mean difference with a variance ratio of $2.4$ means treated units are **more dispersed** in this covariate than controls: selection in **both tails**, with treatment more likely at extreme values, high or low. Add the **squared term** to the logit. You know it worked if the variance ratio falls into $[0.8, 1.25]$ --- or at least $[0.5, 2]$ --- while the standardized difference stays below $0.1$, computed with the denominator fixed at its raw-sample value.
+
+A $t$-test is the wrong diagnostic because balance is a property of *this sample*, not a hypothesis about a population, and the $p$-value **confounds imbalance with sample size**: large samples flag trivial imbalances, small ones pass large ones, and dropping observations raises $p$-values by cutting power rather than by improving balance (Imai, King and Stuart 2008).
+
+## (c) IPW by hand
+
+```{r}
+firms <- data.frame(cell = c(rep("L", 8), rep("H", 4)),
+                    D    = c(1, 1, 0, 0, 0, 0, 0, 0,  1, 1, 1, 0))
+Y0c <- c(L = 10, H = 20); Y1c <- c(L = 13, H = 28)
+firms$Y   <- ifelse(firms$D == 1, Y1c[firms$cell], Y0c[firms$cell])
+firms$tau <- Y1c[firms$cell] - Y0c[firms$cell]
+firms$e   <- ave(firms$D, firms$cell)                   # the true cell share
+with(firms, round(c(e_L = e[cell == "L"][1], e_H = e[cell == "H"][1],
+                    ATE = mean(tau), ATT = mean(tau[D == 1]),
+                    SDO = mean(Y[D == 1]) - mean(Y[D == 0])), 4))
+```
+
+$e_L = 0.25$ and $e_H = 0.75$. The effects are $3$ and $8$, so $ATE = 4.67$ and $ATT = 6.00$, while the $SDO$ is $10.57$.
+
+```{r}
+Nf  <- nrow(firms)
+EY1 <- with(firms, sum(D * Y / e) / Nf)                 # Horvitz--Thompson
+EY0 <- with(firms, sum((1 - D) * Y / (1 - e)) / Nf)
+c(EY1 = EY1, EY0 = EY0, ATE_IPW = EY1 - EY0,
+  sum_w_treated = with(firms, sum(D / e)),
+  sum_w_control = with(firms, sum((1 - D) / (1 - e))))
+```
+
+$\widehat{E[Y^1]} = (2 \cdot 13/0.25 + 3 \cdot 28/0.75)/12 = 18$ and $\widehat{E[Y^0]} = (6 \cdot 10/0.75 + 20/0.25)/12 = 13.33$, so **$\widehat{ATE}_{IPW} = 4.67$, exactly the truth**. Each arm's weights sum to $12 = N$: **each arm is blown up into the full population**.
+
+```{r}
+w_odds <- with(firms, e / (1 - e))
+EY0_T  <- with(firms, sum((1 - D) * w_odds * Y) / sum((1 - D) * w_odds))
+c(treated_mean = with(firms, mean(Y[D == 1])), reweighted_controls = EY0_T,
+  ATT_IPW = with(firms, mean(Y[D == 1])) - EY0_T,
+  sum_odds_weights = with(firms, sum((1 - D) * w_odds)), N_T = sum(firms$D))
+```
+
+The controls get weights $1/3$ (L) and $3$ (H), which sum to $5 = N_T$. They are rebuilt into **the treated firms' covariate distribution** --- two L, three H --- giving $16$, so **$\widehat{ATT}_{IPW} = 22 - 16 = 6$**, again exact.
+
+## (d) A misestimated score: Horvitz--Thompson against Hájek
+
+```{r}
+firms$e_bad <- ifelse(firms$cell == "L", 0.20, 0.80)
+HT    <- with(firms, sum(D * Y / e_bad) / Nf)
+Hajek <- with(firms, sum(D * Y / e_bad) / sum(D / e_bad))
+c(sum_weights = with(firms, sum(D / e_bad)), HT = HT, Hajek = Hajek, truth = EY1)
+```
+
+The weights now sum to $13.75$, not $12$. Horvitz--Thompson returns $19.58$; Hájek returns $17.09$; the truth is $18$.
+
+**Hájek is guaranteed to be a weighted average of the observed treated outcomes**, so it always lies in $[13, 28]$; Horvitz--Thompson divides by $12$ regardless of what the weights actually sum to, and carries no such guarantee. Hájek is closer here, but it is still wrong.
+
+Normalizing fixes the **scale** of the weights, not their **relative sizes**. The bad score makes each L firm count four times an H firm instead of three, so L gets $73\%$ of the weight instead of $67\%$, pulling the answer toward $13$. A misspecified score stays misspecified; Hájek removes only one of its symptoms.
+
+## (e) A cell with no controls
+
+With cell V treated throughout, $e(V) = 1$. **The $ATE$ and the $ATT$ are both lost**: V's treated firms have no controls from which to impute $Y^0$. **The $ATU$ survives**, because V has no controls and so gets zero weight in it.
+
+**Retreating to the $ATT$ does not help here.** That advice works when overlap fails at $\hat e \approx 0$ --- regions with controls but no treated units, which the $ATT$ ignores. Here it fails at $\hat e = 1$, treated units with no controls, and that is exactly the side the $ATT$ needs: it requires $e(X) < 1$.
+
+Instead, **trim V and say so**: the estimand becomes the $ATT$ (or $ATE$) for firms outside V, and ten of the fifteen treated firms are gone. Alternatively, if the policy question concerns firms without the treatment, estimate the $ATU$, which V does not threaten.
+
+# Problem 5 (Regression when treatment effects are heterogeneous)
+
+```{r}
+cells <- data.frame(X = c(0, 0, 1, 1), D = c(1, 0, 1, 0),
+                    n = c(120, 480, 280, 120), y0 = c(10, 10, 20, 20), eff = c(2, 2, 8, 8))
+banks   <- cells[rep(1:4, cells$n), ]
+banks$Y <- banks$y0 + banks$D * banks$eff
+nrow(banks)
+```
+
+## (a) Three estimands, one coefficient
+
+```{r}
+ATE5 <- mean(banks$eff)
+ATT5 <- mean(banks$eff[banks$D == 1])
+ATU5 <- mean(banks$eff[banks$D == 0])
+rho  <- mean(banks$D)
+tau_hat <- coef(lm(Y ~ D + X, data = banks))[["D"]]
+c(ATE = ATE5, ATT = ATT5, ATU = ATU5, rho = rho, tau_hat = tau_hat)
+```
+
+$ATE = 4.4$, $ATT = 6.2$, $ATU = 3.2$, $\rho = 0.4$ --- and the canonical model returns **$\hat\tau = 4.8$, none of the three**.
+
+The failing assumption is the **constant effect**: the effect is $2$ for small banks and $8$ for large ones. Unconfoundedness holds by design, since assignment is random within class. **Linearity cannot fail** because $X$ is binary: $E[Y^0 \mid X]$ takes only two values, and two points always lie on a line, so $\alpha + \gamma X$ fits them exactly. The model is saturated in $X$.
+
+## (b) The variance-weighted average
+
+```{r}
+e_x   <- tapply(banks$D, banks$X, mean)        # e(X): 0.2 small, 0.7 large
+N_x   <- tapply(banks$D, banks$X, length)
+tau_x <- c(2, 8)
+s2    <- e_x * (1 - e_x)
+w     <- N_x * s2
+rbind(e = e_x, sigma2_D = s2, weight = w,
+      weight_share = w / sum(w), population_share = N_x / sum(N_x))
+sum(w * tau_x) / sum(w)
+```
+
+$\sigma^2_D = 0.2 \times 0.8 = 0.16$ for small banks and $0.7 \times 0.3 = 0.21$ for large ones, so the weights are $600 \times 0.16 = 96$ and $400 \times 0.21 = 84$, and
+$$
+\hat\tau = \frac{96 \times 2 + 84 \times 8}{96 + 84} = \frac{864}{180} = 4.8 . \checkmark
+$$
+**Large banks are over-weighted**: $47\%$ of the weight against $40\%$ of the population. Their treatment probability, $0.7$, is closer to a coin flip than the small banks' $0.2$, so $Var(D \mid X)$ is larger there --- and OLS learns most where treatment varies most.
+
+## (c) Through the proof, and through FWL
+
+```{r}
+num_x <- sapply(0:1, function(x) { s <- banks$X == x
+  mean(banks$Y[s] * (banks$D[s] - e_x[x + 1])) })
+rbind(E_Y_times_Dminus_e = num_x, sigma2_times_tau = s2 * tau_x)
+p_x <- N_x / sum(N_x)
+sum(p_x * num_x) / sum(p_x * s2)                     # ratio of averages
+Dtilde <- banks$D - fitted(lm(D ~ X, data = banks))  # FWL route
+cov(banks$Y, Dtilde) / var(Dtilde)
+```
+
+Cell by cell, $E[Y(D - e) \mid X]$ is $0.32 = 0.16 \times 2$ for small banks and $1.68 = 0.21 \times 8$ for large ones --- **exactly $\sigma^2_D(X)\,\tau(X)$**, as the proof's Step 2 says. Averaging over the population gives $0.864 / 0.18 = 4.8$. The Frisch--Waugh--Lovell ratio $\widehat{Cov}(Y, \tilde D)/\widehat{Var}(\tilde D)$ returns the same $4.8$: because $X$ is saturated, $\hat D = e(X)$ and $\tilde D = D - e(X)$, which is precisely the object in the proof.
+
+## (d) Regression adjustment
+
+```{r}
+ra    <- coef(lm(Y ~ D * X, data = banks))
+Xbar  <- mean(banks$X)
+Xbar1 <- mean(banks$X[banks$D == 1])
+c(delta = ra[["D"]], lambda = ra[["D:X"]],
+  ATE = ra[["D"]] + ra[["D:X"]] * Xbar, ATT = ra[["D"]] + ra[["D:X"]] * Xbar1)
+banks$Xc <- banks$X - Xbar
+coef(lm(Y ~ D * Xc, data = banks))[["D"]]
+```
+
+$\hat\delta = 2$ and $\hat\lambda = 6$. Then $\widehat{ATE} = 2 + 6 \times 0.4 = 4.4$ and $\widehat{ATT} = 2 + 6 \times 0.7 = 6.2$ --- **both exact**.
+
+**$\hat\delta$ alone is the effect at $X = 0$, the small banks' effect of $2$**, not the $ATE$. Centring $X$ at $\bar X = 0.4$ moves the reference point to the population average, and the refitted $\hat\delta$ becomes $4.4$, the $ATE$. Centring at $\bar X_1 = 0.7$ would deliver the $ATT$ instead.
+
+## (e) Słoczyński's weights
+
+```{r}
+w1_solved <- (ATU5 - tau_hat) / (ATU5 - ATT5)
+p  <- fitted(lm(D ~ X, data = banks))
+V1 <- mean((p[banks$D == 1] - mean(p[banks$D == 1]))^2)   # population variances
+V0 <- mean((p[banks$D == 0] - mean(p[banks$D == 0]))^2)
+w1_formula <- (1 - rho) * V0 / (rho * V1 + (1 - rho) * V0)
+c(w1_solved = w1_solved, w1_formula = w1_formula, V1 = V1, V0 = V0,
+  one_minus_rho = 1 - rho, rho = rho)
+```
+
+Solving $4.8 = w_1 \times 6.2 + (1 - w_1) \times 3.2$ gives $w_1 = 1.6/3 = 0.533$, and the formula, with $V[p \mid D{=}1] = 0.0525$ and $V[p \mid D{=}0] = 0.04$, returns the same $0.533$ exactly.
+
+**$w_1$ is below $1 - \rho = 0.6$** because the score varies more among the treated than among the controls ($0.0525 > 0.04$). With equal variances, $w_1$ would be exactly $1 - \rho$.
+
+Relative to size, **the treated get the larger weight**: they are $40\%$ of the banks but carry $53\%$ of the weight. That is Słoczyński's headline --- *the smaller group gets the larger weight* --- so the canonical coefficient leans toward the $ATT$, the effect for the minority group, which is rarely the estimand anyone asked for.

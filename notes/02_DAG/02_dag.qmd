@@ -201,22 +201,31 @@ control variable, and get an estimate with the wrong sign.}
 - Two researchers with different institutional knowledge will draw different DAGs and reach different conclusions --- and that is the point. The disagreement is now **visible and arguable**.
 - Practical advice: draw the DAG *before* you run the regression. If you cannot draw it, you do not yet understand your identification strategy.
 
+## Conditioning is not intervening
+
+- **Conditioning on $X$** filters: "among firms that *happen* to have $X = x$." We keep a subpopulation, which may be special in ways we cannot see.
+- **Intervening on $X$** sets: "if we *assigned* $X = x$ to every firm." The population stays fixed; only $X$ and its consequences move.
+- Prediction needs the first. Causal inference needs the second.
+- In graph terms, intervening **deletes every arrow into $X$**: $X$ is no longer caused by its parents; it is caused by us.
+  - That is what randomization does physically. No arrows in, nothing to block --- no controls needed for identification.
+- The rest of the machinery answers one question: **when does conditioning on the right $Z$ reproduce intervening?**
+
 ## Controlling for is not setting
 
-- A recurring confusion, worth naming before we build the machinery.
-- **Controlling for $X$** filters the data: "among firms that *happen* to have $X = x$." The population changes --- we keep a subpopulation, which may be special in ways we cannot see.
-- **Setting $X$** intervenes: "if we *assigned* $X = x$ to every firm." The population stays fixed; only $X$ moves.
-- Prediction needs only the first. Causal inference needs the second.
-- In graph terms, setting $X$ means **deleting every arrow into $X$** --- $X$ is no longer caused by its parents; it is caused by us.
-  - That is exactly what a randomized experiment does physically.
-  - It is why randomization needs no controls. There are no arrows left to block.
+- **Conditioning on $X$** filters: "among firms that *happen* to have $X = x$." We keep a subpopulation, which may be special in ways we cannot see.
+- **Intervening on $X$** sets: "if we *assigned* $X = x$ to every firm." The population stays fixed; only $X$ and its consequences move.
+- Prediction needs the first. Causal inference needs the second.
+- In graph terms, intervening **deletes every arrow into $X$**: $X$ is no longer caused by its parents; it is caused by us.
+  - That is what randomization does physically. No arrows in, nothing to block --- no controls needed for identification.
+- The rest of the machinery answers one question: **when does conditioning on the right $Z$ reproduce intervening?**
 
 ## Ratings predict default; ratings do not prevent it
 
 - Let $Y = 1$ if a firm defaults within five years, and let $X$ be its credit rating.
-- **Filtering**: among AAA issuers, default is rare. Ratings are superb *predictors* --- selling this number is a profitable business.
-- **Setting**: suppose a regulator relabelled every junk issuer AAA. Default rates would barely move. The label is not the cash flows.
-- Filtering **selects** firms that were already creditworthy; setting **changes the label** and leaves creditworthiness untouched.\footnote{The causal effect is not exactly zero. Kisgen and Strahan 2010: when the SEC certified DBRS in 2003, yields moved 39bp per notch --- the label alone, with fundamentals unchanged.}
+- **Conditioning**: among AAA issuers, default is rare. Ratings are superb *predictors* --- selling this number is a profitable business.
+- **Intervening**: suppose a regulator relabelled every junk issuer AAA. Default rates would barely move. The label is not the cash flows.
+- Conditioning **selects** firms that were already creditworthy; Intervening **changes the label** and leaves creditworthiness untouched.\footnote{The causal effect is not exactly zero. Kisgen and Strahan 2010: when the SEC certified DBRS in 2003, yields moved 39bp per notch --- the label alone, with fundamentals unchanged.}
+
 <!-- - The causal effect is not exactly zero --- ratings do move borrowing costs, covenant triggers, and forced buying and selling by investors whose mandates are rating-based --- but nothing like the AAA-to-junk gap.
   - (Kisgen and Strahan 2010: when the SEC certified DBRS in 2003, yields moved **39bp per notch** --- the label alone, with fundamentals unchanged.) -->
 - Ask of any empirical result: *is this a filter, or an intervention?*

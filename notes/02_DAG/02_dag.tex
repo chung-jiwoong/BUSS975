@@ -570,34 +570,63 @@ control variable, and get an estimate with the wrong sign.}
 \end{itemize}
 \end{frame}
 
+\begin{frame}{Conditioning is not intervening}
+\protect\phantomsection\label{conditioning-is-not-intervening}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Conditioning on \(X\)} filters: ``among firms that
+  \emph{happen} to have \(X = x\).'' We keep a subpopulation, which may
+  be special in ways we cannot see.
+\item
+  \textbf{Intervening on \(X\)} sets: ``if we \emph{assigned} \(X = x\)
+  to every firm.'' The population stays fixed; only \(X\) and its
+  consequences move.
+\item
+  Prediction needs the first. Causal inference needs the second.
+\item
+  In graph terms, intervening \textbf{deletes every arrow into \(X\)}:
+  \(X\) is no longer caused by its parents; it is caused by us.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    That is what randomization does physically. No arrows in, nothing to
+    block --- no controls needed for identification.
+  \end{itemize}
+\item
+  The rest of the machinery answers one question: \textbf{when does
+  conditioning on the right \(Z\) reproduce intervening?}
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Controlling for is not setting}
 \protect\phantomsection\label{controlling-for-is-not-setting}
 \begin{itemize}
 \tightlist
 \item
-  A recurring confusion, worth naming before we build the machinery.
+  \textbf{Conditioning on \(X\)} filters: ``among firms that
+  \emph{happen} to have \(X = x\).'' We keep a subpopulation, which may
+  be special in ways we cannot see.
 \item
-  \textbf{Controlling for \(X\)} filters the data: ``among firms that
-  \emph{happen} to have \(X = x\).'' The population changes --- we keep
-  a subpopulation, which may be special in ways we cannot see.
+  \textbf{Intervening on \(X\)} sets: ``if we \emph{assigned} \(X = x\)
+  to every firm.'' The population stays fixed; only \(X\) and its
+  consequences move.
 \item
-  \textbf{Setting \(X\)} intervenes: ``if we \emph{assigned} \(X = x\)
-  to every firm.'' The population stays fixed; only \(X\) moves.
+  Prediction needs the first. Causal inference needs the second.
 \item
-  Prediction needs only the first. Causal inference needs the second.
-\item
-  In graph terms, setting \(X\) means \textbf{deleting every arrow into
-  \(X\)} --- \(X\) is no longer caused by its parents; it is caused by
-  us.
+  In graph terms, intervening \textbf{deletes every arrow into \(X\)}:
+  \(X\) is no longer caused by its parents; it is caused by us.
 
   \begin{itemize}
   \tightlist
   \item
-    That is exactly what a randomized experiment does physically.
-  \item
-    It is why randomization needs no controls. There are no arrows left
-    to block.
+    That is what randomization does physically. No arrows in, nothing to
+    block --- no controls needed for identification.
   \end{itemize}
+\item
+  The rest of the machinery answers one question: \textbf{when does
+  conditioning on the right \(Z\) reproduce intervening?}
 \end{itemize}
 \end{frame}
 
@@ -609,16 +638,20 @@ control variable, and get an estimate with the wrong sign.}
   Let \(Y = 1\) if a firm defaults within five years, and let \(X\) be
   its credit rating.
 \item
-  \textbf{Filtering}: among AAA issuers, default is rare. Ratings are
+  \textbf{Conditioning}: among AAA issuers, default is rare. Ratings are
   superb \emph{predictors} --- selling this number is a profitable
   business.
 \item
-  \textbf{Setting}: suppose a regulator relabelled every junk issuer
+  \textbf{Intervening}: suppose a regulator relabelled every junk issuer
   AAA. Default rates would barely move. The label is not the cash flows.
 \item
-  Filtering \textbf{selects} firms that were already creditworthy;
-  setting \textbf{changes the label} and leaves creditworthiness
+  Conditioning \textbf{selects} firms that were already creditworthy;
+  Intervening \textbf{changes the label} and leaves creditworthiness
   untouched.\footnote{The causal effect is not exactly zero. Kisgen and Strahan 2010: when the SEC certified DBRS in 2003, yields moved 39bp per notch --- the label alone, with fundamentals unchanged.}
+\end{itemize}
+
+\begin{itemize}
+\tightlist
 \item
   Ask of any empirical result: \emph{is this a filter, or an
   intervention?}

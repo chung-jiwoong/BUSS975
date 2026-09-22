@@ -19,17 +19,43 @@ format:
         \usepackage{booktabs}
 ---
 
-*Five problems. Plan on about four hours. Problem 4 asks you to run a short simulation in R (or Stata); attach your code and output. Nothing else requires software --- Problem 5 is arithmetic you can do by hand.*
+*Five problems. Plan on about four hours. Problem 5 asks you to fit regressions in R (or Stata); attach your code and output. Problems 2--4 are arithmetic you can do by hand, and Problem 1 needs only a pen.*
 
 *Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
-*Further practice --- including the material cut from this set --- is in the companion file `03_unconfoundedness_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
+*Further practice is in the companion file `03_unconfoundedness_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
 
-## Problem 1 (Estimands, identification, and subclassification)
+## Problem 1 (Covariates, estimands, and the two assumptions)
 
-*What this is for: unconfoundedness does not deliver "the" treatment effect. It delivers whichever one you asked for, under an assumption whose strength depends on which one that is.*
+*What this is for: every method in these two lectures executes the same substitution --- a control's outcome standing in for a treated unit's missing $Y^0$. Whether that substitution is legitimate is settled before you choose an estimator: by what you condition on, and by which assumption you can defend.*
 
-A regulator can grant a supervisory waiver ($D$) to banks. The outcome $Y$ is loan growth. Banks fall into three observable strata, and within each stratum treatment is as good as random:
+You want the effect of receiving a bank credit line ($D$) on a firm's capital expenditure over the following year ($Y$). You have, or could construct, the following variables:
+
+  i. firm size, industry and credit rating, all measured before the line was granted;
+  ii. demand in the firm's export markets over the prior year, which moves investment but plays no part in the bank's decision;
+  iii. the amount the firm actually drew on the line;
+  iv. the number of analysts covering the firm in the year *after* the line was granted, which rises both with credit access and with investment;
+  v. managerial quality, which drives both the bank's decision and the firm's investment, and which you cannot measure.
+
+(a) Classify each variable as a confounder, a collider, a precision covariate or a mediator, and say whether it belongs in the conditioning set for the *total* effect of the credit line. For the one variable whose treatment depends on the question being asked, state the question that conditioning on it would answer.
+
+(b) A banking regulator asks: "what would happen to investment if *every* firm had a credit line?" A bank's lending committee asks: "did the lines *we granted* raise investment at the firms that got them?" Name the estimand each question needs. Then state which version of unconfoundedness, and which version of common support, each estimand requires --- and explain in one sentence why one of them gets away with the weaker version of both.
+
+(c) Write the identification argument for $ATT(x)$ step by step, starting from
+$$
+ATT(x) = E[Y^1 \mid D{=}1, X{=}x] - E[Y^0 \mid D{=}1, X{=}x],
+$$
+and label each step as either the switching equation or the identifying assumption. On which potential outcome, and in which term, is unconfoundedness used? What weights then turn $ATT(x)$ into the $ATT$?
+
+(d) Variable (v) cannot be measured, so the design rests on an argument, not a test. Using Imbens's third defence, make the best case you can that unconfoundedness is plausible in this setting --- then state the circumstance under which that defence collapses.
+
+(e) LaLonde's (1986) observational estimates of the NSW training effect ranged from a fraction of the experimental benchmark to the wrong sign. Dehejia and Wahba (1999, 2002) largely recovered the benchmark; Smith and Todd (2005) showed that the recovery was fragile. For each of the two later papers, say which identifying assumption --- unconfoundedness or common support --- its argument was really about. Then explain why you cannot use Dehejia and Wahba's success as a *check* in your own credit-line study.
+
+## Problem 2 (Subclassification, estimands, and common support)
+
+*What this is for: under unconfoundedness the estimand is a choice about weights --- and which cells of your data are empty decides which estimands you can still compute.*
+
+A regulator grants a supervisory waiver ($D$) to banks. The outcome $Y$ is loan growth (%). Banks fall into three observable strata, and within each stratum the waiver is as good as randomly assigned:
 
 \begin{center}
 \begin{tabular}{lrrrrr}
@@ -43,21 +69,21 @@ C & $200$ & $180$ & $\phantom{0}20$ & $31$ & $25$ \\
 \end{tabular}
 \end{center}
 
-(a) Compute $e(X)$ in each stratum and the within-stratum effect. Then compute the $ATE$, the $ATT$ and the $ATU$, and verify that $ATE = \pi\, ATT + (1-\pi)\,ATU$.
+(a) Compute $e(X)$ and the within-stratum effect in each stratum. Using the subclassification weight that defines each estimand, compute the $ATE$, the $ATT$ and the $ATU$, and verify that $ATE = \pi \cdot ATT + (1-\pi)\cdot ATU$, where $\pi$ is the share treated.
 
-(b) Compute the simple difference in outcomes, $SDO = E[Y \mid D{=}1] - E[Y \mid D{=}0]$, pooling across strata. It is more than twice the $ATE$. Decompose the gap: how much comes from the strata having different baselines, and how much from treatment concentrating where the effect is largest?
+(b) Compute the simple difference in outcomes, $SDO = E[Y \mid D{=}1] - E[Y \mid D{=}0]$, pooling across strata. Decompose the gap $SDO - ATE$ into selection on levels and selection on gains, and say which one dominates here.
 
-(c) Write out the identification argument for the $ATE$ in three lines --- starting from $ATE(x) = E[Y^1 \mid X{=}x] - E[Y^0 \mid X{=}x]$, applying unconfoundedness, applying the switching equation, then averaging. At which line, and on which term, is unconfoundedness used *twice*?
+(c) The $ATT$ exceeds the $ATE$. Explain why in one sentence, in terms of where the regulator's waivers went.
 
-(d) Now do the same for the $ATT$. Show that the $ATT$ needs unconfoundedness on the $Y^0$ term only, and that the weights change from $\Pr(X{=}x)$ to $\Pr(X{=}x \mid D{=}1)$. State the practical consequence: which of the two estimands survives if stratum C had contained *no* control banks at all?
+(d) Suppose stratum A had contained **no** treated banks --- all 400 of its banks controls. Which of the $ATE$, $ATT$ and $ATU$ can you still compute? Compute each one that survives.
 
-(e) Suppose the regulator's rule actually depended on a fourth characteristic you cannot observe. Which of your four numbers in (a) --- $e(X)$, $ATE$, $ATT$, $ATU$ --- is still correctly estimated, and which are not? Explain in one sentence why no balance table on A, B, C could reveal the problem.
+(e) Suppose instead stratum C had contained **no** controls --- all 200 of its banks treated. Which estimands survive now? Compute each one that survives. State the general rule that (d) and (e) illustrate, and explain why, with ten binary covariates rather than one three-valued one, this situation is the norm rather than a curiosity.
 
-## Problem 2 (Matching: the discrepancy, the correction, the standard error)
+## Problem 3 (Matching: the discrepancy, the correction, the standard error)
 
-*What this is for: matching's three separate problems --- the match is imperfect, the imperfection is signed, and the matches are not independent --- and the fact that they need three different repairs.*
+*What this is for: nearest-neighbour matching has three separate problems --- the match is imperfect, the imperfection is signed, and the matches are not independent --- and each needs its own repair.*
 
-Four treated banks are matched to the nearest control on a single covariate $X$, one neighbour, with replacement.
+Four treated banks are matched to the nearest control on a single covariate $X$ (log assets), one neighbour, with replacement. The outcome $Y$ is loan growth (%).
 
 \begin{center}
 \begin{tabular}{lrrrr@{\qquad}lrrrr}
@@ -65,61 +91,60 @@ Four treated banks are matched to the nearest control on a single covariate $X$,
 \multicolumn{5}{c}{\emph{Treated}} & \multicolumn{5}{c}{\emph{Control}} \\
 \cmidrule(r){1-5}\cmidrule(l){6-10}
 $X_i$ & $2$ & $6$ & $8$ & $10$ & $X_j$ & $1$ & $4$ & $9$ & $30$ \\
-$Y_i$ & $30$ & $44$ & $52$ & $58$ & $Y_j$ & $10$ & $16$ & $26$ & $68$ \\
+$Y_i$ & $30$ & $44$ & $52$ & $58$ & $Y_j$ & $10$ & $16$ & $26$ & $0$ \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-(a) Find each treated bank's match, compute $\hat\tau_i = Y_i - Y_{j(i)}$, and report $\widehat{ATT}$. Which control is used twice, and which is never used at all? What does the unused one tell you about how matching treats a sample?
+(a) Find each treated bank's match, compute $\hat\tau_i = Y_i - Y_{j(i)}$, and report $\widehat{ATT}$. Which control is used twice, and which is never used? What does the unused control tell you about what matching does to a sample?
 
-(b) Compute $K_j$ for each control and then $\sum_j K_j(K_j - 1)$. Explain in words why this quantity, and not $\sum_j K_j$, is what the Abadie--Imbens variance estimator needs.
+(b) Compute $K_j$ --- the number of times control $j$ is used --- for each control, and then $\sum_j K_j(K_j - 1)$. Explain why the Abadie--Imbens variance estimator needs $K_j(K_j - 1)$ rather than $K_j$.
 
 (c) Take $\hat\sigma^2(X_j) = 50$ at the reused control. Compute both terms of
 $$
-\hat\sigma^2_{ATT} = \frac{1}{N_T}\sum_{i:D_i=1}\big(\hat\tau_i - \widehat{ATT}\big)^2
-\;+\; \frac{1}{N_T}\sum_{j:D_j=0}\frac{K_j(K_j-1)}{M^2}\,\hat\sigma^2(X_j),
+\hat\sigma^2_{ATT} = \underbrace{\frac{1}{N_T}\sum_{i:D_i=1}\big(\hat\tau_i - \widehat{ATT}\big)^2}_{\text{(a) spread of unit effects}}
+\;+\; \underbrace{\frac{1}{N_T}\sum_{j:D_j=0}\frac{K_j(K_j-1)}{M^2}\,\hat\sigma^2(X_j)}_{\text{(b) penalty for reuse}},
 $$
-then report $\mathrm{SE}(\widehat{ATT}) = \sqrt{\hat\sigma^2_{ATT}/N_T}$. By what factor does the reuse term inflate the standard error relative to the first term alone?
+then report $SE(\widehat{ATT}) = \sqrt{\hat\sigma^2_{ATT}/N_T}$. By what factor does the reuse term inflate the standard error relative to term (a) alone?
 
-(d) Abadie and Imbens (2006) show the matching discrepancy is $O_p(N^{-1/k})$ with $k$ continuous covariates, while the standard error is $O_p(N^{-1/2})$. For $k = 1, 2, 3$, give the order of bias *relative to* the standard error and say what each case means for inference. Then state what the bias-corrected estimator subtracts, and why the regression it requires is a weaker assumption than running that regression on the full sample instead.
+(d) Apply the bias correction of Lecture 3a, §8. Following its Step 2, fit $\hat\mu^0(X) = \hat\alpha + \hat\beta X$ by OLS on the **distinct matched controls only**. Compute $\hat\tau^{BC}_i = \hat\tau_i - \hat\beta\,(X_i - X_{j(i)})$ for each treated bank and report $\widehat{ATT}^{BC}$. Which bank receives the largest correction, and which two factors make it so?
 
-## Problem 3 (Propensity scores: balance, weights, overlap)
+(e) Now refit $\hat\mu^0$ on **all four** controls, including the one never used as a match. Report the new $\hat\beta$ and $\widehat{ATT}^{BC}$. What happened to the correction, and what does this tell you about how much work the "small" regression is doing? What should you report as a result?
 
-*What this is for: the score is a dimension-reduction device, not an identification device --- and almost every mistake people make with it comes from forgetting that.*
+(f) Suppose you had matched on two covariates, log assets and the leverage ratio, where log assets has twenty times the standard deviation of leverage. What would raw Euclidean distance do, and which metric fixes it? Is the fix free?
 
-(a) State the balancing property and the propensity score theorem. Then explain precisely what is **not** claimed: in what sense do two units with the same $\hat e$ resemble each other, and in what sense do they not?
+## Problem 4 (Propensity scores and weighting)
 
-(b) A referee asks you to justify your score specification by reporting its pseudo-$R^2$ and a table of $t$-tests on covariate means. Give three separate reasons this is the wrong evidence, and say what you would report instead. Define the two statistics you would use and give the conventional thresholds for each.
+*What this is for: the score reduces $X$ to one number, and the weights rebuild a population from it. Both steps are exact in the population and fragile in a sample.*
 
-(c) In a sample, a covariate has standardized mean difference $0.01$ and a $t$-test $p$-value of $0.83$, but a variance ratio of $2.4$. What kind of selection produces this pattern? What single change to the propensity score specification would you try, and how would you know it had worked?
+(a) The balancing property, $D \indep X \mid e(X)$, holds with no assumption at all; the propensity score theorem needs unconfoundedness. Explain why the first is free, identify the single step in the proof of the second at which unconfoundedness enters, and state what this implies about the evidential value of a balance table.
 
-(d) For the $ATE$ a control unit is weighted $1/(1 - \hat e)$; for the $ATT$ it is weighted $\hat e/(1 - \hat e)$. Derive the second weight from the requirement that the reweighted controls reproduce the *treated* covariate distribution, and explain why this makes the $ATT$ require overlap in one direction only.
+(b) In your data one covariate has a standardized mean difference of $0.01$ and a $t$-test $p$-value of $0.83$, but a variance ratio of $2.4$. What kind of selection produces this pattern? What single change to the score specification would you try, and what statistic would tell you it had worked? Give one reason, beyond this example, why a $t$-test is the wrong balance diagnostic.
 
-## Problem 4 (Simulation: does any of it work?)
+(c) Twelve firms fall into two cells by leverage. Within each cell treatment is as good as random, and outcomes do not vary within a cell and arm:
 
-*What this is for: to run the four estimators of this lecture on data whose truth you know, and to see which ones are fooled by heterogeneity.*
+\begin{center}
+\begin{tabular}{lrrrrr}
+\toprule
+Cell & firms & treated & control & $Y$ if treated & $Y$ if control \\
+\midrule
+Low leverage (L)  & $8$ & $2$ & $6$ & $13$ & $10$ \\
+High leverage (H) & $4$ & $3$ & $1$ & $28$ & $20$ \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-Simulate $n = 4{,}000$ observations:
-$$
-X_1, X_2 \sim N(0,1), \qquad D \sim \text{Bernoulli}\big(\Lambda(0.8X_1 + 0.6X_2 - 0.3)\big),
-$$
-$$
-Y = 2 + 3X_1 + 2X_2 + \underbrace{(1 + 0.8X_1)}_{\text{unit-level effect}} D + \varepsilon, \qquad \varepsilon \sim N(0,1).
-$$
+Compute $e(X)$ in each cell, the true $ATE$, the true $ATT$ and the $SDO$. Then compute $\widehat{ATE}_{IPW}$ from the Horvitz--Thompson forms of $\widehat{E[Y^1]}$ and $\widehat{E[Y^0]}$, and $\widehat{ATT}_{IPW}$ by reweighting the controls with $\hat e/(1-\hat e)$, using the true cell shares as $\hat e$. Check what each set of weights sums to, and say what that sum means.
 
-(a) The treatment effect varies with $X_1$. Compute the true $ATE$ and the true $ATT$ *in your simulated sample* by averaging $1 + 0.8X_1$ over the right set of units. Explain in one sentence why $ATT > ATE$ here, in terms of the assignment mechanism.
+(d) Suppose instead your logit had returned $\hat e = 0.20$ for cell L and $\hat e = 0.80$ for cell H. Recompute $\widehat{E[Y^1]}$ both ways: Horvitz--Thompson (divide by $N$) and Hájek (divide by the sum of the weights). Which is guaranteed to be a weighted average of observed treated outcomes? Which is closer to the truth here --- and does normalizing fix a misspecified score?
 
-(b) Report the naive $SDO$ and the coefficient on $D$ from `lm(Y ~ D + X1 + X2)`. The regression is correctly specified for the *outcome* and still does not return the $ATT$. Which estimand is it closer to, and why?
-
-(c) Estimate the propensity score by logit, then compute the IPW estimates of the $ATE$ and the $ATT$. Report all four numbers --- two truths, two estimates --- in one small table. Use the normalized (Hájek) form for the $ATT$ and say why.
-
-(d) Plot the estimated score separately for treated and control units, and report the largest weight any single observation receives. Then re-run with the selection coefficients tripled to $(2.4, 1.8)$ and report the same two things. What has happened to overlap, to the largest weight, and to the stability of your estimates?
+(e) Now add a third cell, V: ten very large firms, **all** of them treated. Which of the $ATE$, $ATT$ and $ATU$ remain identified? Lecture 3b advises "retreating to the $ATT$, which only needs overlap in one direction." Does that advice help here? Explain, and say what you would do instead.
 
 ## Problem 5 (Regression when treatment effects are heterogeneous)
 
-*What this is for: the canonical model returns a number that is none of the three estimands --- and you can say exactly which number it is.*
+*What this is for: the canonical regression returns a number that is none of the three estimands --- and you can say exactly which number it is, and how to get the ones you wanted.*
 
-A supervisor grants waivers ($D$) to banks in two size classes. Within each class, assignment is as good as random. The outcome is loan growth.
+A supervisor grants waivers ($D$) to banks in two size classes. Within each class assignment is as good as random. The outcome is loan growth (%), measured without noise: every bank's outcome equals its class-and-arm value below.
 
 \begin{center}
 \begin{tabular}{lrrrrr}
@@ -132,17 +157,18 @@ Large & $400$ & $280$ & $120$ & $20$ & $+8$ \\
 \end{tabular}
 \end{center}
 
-(a) Compute the $ATE$, the $ATT$, the $ATU$ and the treated share $\rho$. Then fit the canonical model $Y = \alpha + \tau D + \gamma X + \varepsilon$ with $X = \mathbf{1}\{\text{Large}\}$ and report $\hat\tau$. Verify it equals the variance-weighted average with weights $N_j\, p_j(1-p_j)$, and confirm that $\hat\tau$ is **none** of the three estimands.
+Build the dataset in R (or Stata) with one row per bank --- 1,000 rows --- and let $X = \mathbf{1}\{\text{Large}\}$.
 
-(b) Słoczyński (2022) shows $\hat\tau = w_1 ATT + w_0 ATU$, where
+(a) Compute the $ATE$, the $ATT$, the $ATU$ and the treated share $\rho$. Fit the canonical model $Y = \alpha + \tau D + \gamma X + \varepsilon$ and report $\hat\tau$; show that it is **none** of the three estimands. Of the model's three bundled assumptions --- unconfoundedness, linearity, constant effect --- which fails here? Explain why linearity cannot fail with this $X$.
+
+(b) Lecture 3b shows that with $X$ saturated, $\hat\tau \to E[\sigma^2_D(X)\,\tau(X)] \,/\, E[\sigma^2_D(X)]$, where $\sigma^2_D(X) = e(X)\big(1-e(X)\big)$. Compute $\sigma^2_D(X)$ in each class, the weights $N_x\,\sigma^2_D(x)$, and the weighted average of the two class effects. Confirm it reproduces $\hat\tau$ exactly. Which class does OLS over-weight relative to its population share, and why?
+
+(c) Now verify the result through its proof. Compute $E\big[Y(D - e(X)) \mid X\big]$ in each class directly from the table, show that it equals $\sigma^2_D(X)\,\tau(X)$, and assemble $\hat\tau$ as a ratio of averages. Then confirm the same number by the Frisch--Waugh--Lovell route: regress $D$ on $X$, form $\tilde D = D - \hat D$, and compute $\widehat{Cov}(Y, \tilde D)/\widehat{Var}(\tilde D)$.
+
+(d) Fit the regression-adjustment model $Y = \alpha + \delta D + \gamma_0 X + \lambda\, D X + \varepsilon$. Report $\hat\delta$ and $\hat\lambda$, and recover the $ATE$ and the $ATT$ from them. Show that $\hat\delta$ on its own is not the $ATE$ --- say what it is instead --- and verify that re-fitting with $X$ centred at $\bar X$ makes it so.
+
+(e) Słoczyński (2022) writes $\hat\tau = w_1\,ATT + (1 - w_1)\,ATU$. Solve for $w_1$ using your answers to (a). Then compute it from his formula,
 $$
-w_1 = \frac{(1-\rho)\,V[p(X) \mid D{=}0]}{\rho\,V[p(X) \mid D{=}1] + (1-\rho)\,V[p(X) \mid D{=}0]}, \qquad w_0 = 1 - w_1 .
+w_1 = \frac{(1-\rho)\,V[p(X) \mid D{=}0]}{\rho\,V[p(X) \mid D{=}1] + (1-\rho)\,V[p(X) \mid D{=}0]},
 $$
-With one binary covariate the propensity score is exact, so compute both conditional variances by hand, then $w_1$ and $w_0$, and verify that they reproduce your $\hat\tau$ **exactly**. Why is $w_1 > \rho$, and what does that tell you about which estimand $\hat\tau$ leans toward?
-
-(c) Verify his two corollaries on your own numbers: $\hat\tau - ATT = w_0\,(ATU - ATT)$ and $\hat\tau - ATE = \delta\,(ATU - ATT)$ with $\delta = \rho - w_1$. Then compute the rule-of-thumb versions, $w_0 \approx \rho$ and $\delta \approx 2\rho - 1$, report how close they come here, and state the assumption they require.
-
-(d) Now fit the fully interacted model $Y = \alpha + \delta D + \gamma_{01} X + \gamma_{11}\, D \cdot X + \varepsilon$. Report $\hat\delta$ and $\hat\gamma_{11}$, then recover the $ATE$ and the $ATT$ from them. Note that $\hat\delta$ **alone is not the $ATE$**: state the condition under which it would be, and verify it by re-fitting with $X$ demeaned.
-
-(e) Write the canonical model's bias term $\hat\tau_{OLS} - \delta$ in terms of $\gamma_{11}$ and $\gamma_{01}$, and state the two assumptions under which it vanishes. Which one does regression adjustment remove, and which does it leave standing? Answer the second part in one sentence.
-
+where $p(X)$ is the linear projection of $D$ on $X$ --- here exactly $e(X)$, since $X$ is binary. Is $w_1$ above or below $1-\rho$, and why? Which group, the treated or the controls, gets the larger weight relative to its size?

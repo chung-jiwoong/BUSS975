@@ -49,8 +49,7 @@ execute:
 
 1. Propensity scores
 2. Regression
-3. What matching cannot do
-4. The NSW demonstration
+3. The NSW demonstration
 
 
 # 1. Propensity Scores
@@ -98,7 +97,7 @@ E\big[D \mid e(X)\big]
 $$
 
 \normalsize
-The mean version, $E[X \mid D{=}1, e(X)] = E[X \mid D{=}0, e(X)]$, is what a balance table tests.
+- The mean version, $E[X \mid D{=}1, e(X)] = E[X \mid D{=}0, e(X)]$, is what a balance table tests.
 <!-- $E_X[\,\cdot \mid e(X)]$ averages over $X$ within a value of the score.   **No assumption was used** --- this is arithmetic, true whether or not unconfoundedness holds. -->
 
 ## The propensity score theorem
@@ -123,9 +122,11 @@ E\big[D \mid Y^1,Y^0, e(X)\big]
 \end{aligned}
 $$
 
-/normalsize
+\vfill
 
-The $ATE$ is identified by comparing treated and control units at the same **score** rather than the same $X$: $ATE \;=\; E\Big[\, E\big[Y \mid D{=}1, e(X)\big] - E\big[Y \mid D{=}0, e(X)\big] \,\Big]$
+\normalsize
+
+- The $ATE$ is identified by comparing treated and control units at the same **score** rather than the same $X$: $ATE \;=\; E\Big[\, E\big[Y \mid D{=}1, e(X)\big] - E\big[Y \mid D{=}0, e(X)\big] \,\Big]$
 
 
 <!--
@@ -221,8 +222,8 @@ $$
 $$
 
 - **Standardized mean difference.** $|\text{SMD}| < 0.1$ is good.
-  - Keep the denominator **fixed at its raw-sample value** when recomputing after weighting, or the yardstick moves with the thing you are measuring.
-- **Variance ratio.** Means can match while spreads do not. Rubin: stay inside $[0.5,\,2]$, ideally $[0.8,\,1.25]$.
+  - Keep the denominator **fixed at its raw-sample value** when recomputing after adjustment, or the yardstick moves with the thing you are measuring.
+- **Variance ratio.** Means can match while spreads do not. Rubin(2001): stay inside $[0.5,\,2]$, ideally $[0.8,\,1.25]$.
 - **Do not use $t$-tests.** Balance is a property of *this sample*, not a population hypothesis --- and $p$ confounds imbalance with sample size (Imai, King and Stuart 2008).
 
 ## A balance plot: means are not enough
@@ -292,6 +293,8 @@ Once every unit has a $\hat e(X_i)$, three standard uses:
 2. **Weight.** Reweight the sample to build a pseudo-experiment --- inverse probability weighting.
 3. **Match.** Pair treated to control units with similar scores, then difference --- propensity score matching.
 
+- Busso, DiNardo and McCrary (2014): reweighting is competitive with the best matching estimators when overlap is good, whereas matching (e.g. nearest neighbour with bias correction) can be more effective when overlap is poor.
+
 <!--
 \vspace{0.3em}
 
@@ -339,6 +342,26 @@ Right panel: a treated mass at $\hat e \approx 1$ with no controls, and a contro
   - Consider retreating to the $ATT$, which only needs overlap in one direction.
 - What *not* to do: report the estimate and stay silent. Regression will extrapolate into a region with no data and give a standard error reflecting none of it.
 
+## Where the weighting idea comes from
+
+- The idea predates causal inference. **Horvitz and Thompson (1952)**, from survey sampling.
+- Among firms with $\hat e = 0.1$, only one in ten was treated. The treated arm under-represents this type tenfold, so each such treated firm stands in for ten: weight it by $1/\hat e = 10$. A treated firm with $\hat e = 0.9$ is typical of its type: weight $1/0.9 \approx 1.1$.
+- Do this in **both arms** --- treated by $1/\hat e$, control by $1/(1-\hat e)$ --- and you build a **pseudo-population** in which treatment no longer depends on $X$. Selection is undone by *recounting*, not by discarding or stratifying.
+- The weight depends on **which arm** a unit is in and on **which estimand** you want. And the danger is already visible: a score near $0$ or $1$ produces an enormous weight.
+
+<!--
+Among firms that look like this one (same X), few were treated, so the treated group under-represent this type.
+Type A: e=0.1 - 10 treated/90 control
+Type B: e=0.9 - 90 treated/10 control
+The population is 50/50. The treated group is skewed toward B.
+If you just average outcomes in the treated group, you're mostly learning about B firms.
+Now weight each treated by 1/e 
+Each A treated firm counts 1/0.1 = 10 times 10 = 100
+Each B treated firm counts 1/0.9 = 1.1 times 90 = 100
+The weighted treated group is now 100/100, the same composition as the population.
+-->
+
+
 ## Inverse probability weighting
 
 Create a balanced pseudo-population by inverse
@@ -347,8 +370,8 @@ probability weighting. Write $\hat e_i$ for $\hat e(X_i)$ and $\pi = \Pr(D{=}1)$
 \small
 $$
 \begin{aligned}
-ATE \;&=\; E\!\left[Y_1 - Y_0\right] = E\!\left[\frac{D\,Y}{e(X)}\right] - E\!\left[\frac{(1-D)\,Y}{1 - e(X)}\right] \\
-ATT \;&=\; E\!\left[Y_1 - Y_0 \middle| D = 1 \right] = \frac{1}{\pi}\,\left(E\!\left[DY\right] - E\!\left[\frac{e(X)(1-D)Y}{1 - e(X)}\right]\right) \\[1em]
+ATE \;&=\; E\!\left[Y^1 - Y^0\right] = E\!\left[\frac{D\,Y}{e(X)}\right] - E\!\left[\frac{(1-D)\,Y}{1 - e(X)}\right] \\
+ATT \;&=\; E\!\left[Y^1 - Y^0 \middle| D = 1 \right] =\frac{1}{\pi}\,\left(E\!\left[DY\right] - E\!\left[\frac{e(X)(1-D)Y}{1 - e(X)}\right]\right) \\[1em]
 \widehat{ATE}_{IPW} \;&=\; \frac{1}{n}\sum_{i=1}^{n}\left[\frac{D_i}{\hat e_i} - \frac{1 - D_i}{1 - \hat e_i}\right] Y_i \\
 \widehat{ATT}_{IPW} \;&=\; \frac{1}{n_T}\sum_{i=1}^{n}\left[D_i - (1 - D_i)\,\frac{\hat e_i}{1 - \hat e_i}\right] Y_i
 \end{aligned}
@@ -430,7 +453,7 @@ $10$ & Large & $0$ & $20$ & $26$ & $6$ & $\mathbf{20}$ \\
 
 - Small banks are **rarely** rescued, $1$ of $5$; large banks **usually** are, $4$ of $5$. So $e(\text{Small}) = 0.2$ and $e(\text{Large}) = 0.8$.
 - Small banks gain $2$, large banks gain $6$. Truth: $ATE = 4$, $ATT = 5.2$.
-- Only the **bold** column is observed. Comparing rescued with not gives $\mathbf{11.2}$ --- nearly three times the $ATE$.
+- Only the **bold** column is observed. SDO = $\mathbf{11.2}$.
 
 ## The ATE rebuilds the population
 
@@ -469,20 +492,21 @@ Large & $1$ & $4.00$ & $\mathbf{4}$ & $4$ \\
 \end{center}
 
 - Multiplying the controls by $e/(1-e)$ makes their count match the injected count **exactly** --- last column.
-- Bank $10$ is the lone large control and must cover **four** rescued banks, so it carries weight $4$. Push $e$ toward $1$ and nobody is left to carry it: **this is where the $ATT$ fails**, and why it needs only $e(X) < 1$ while the $ATE$ needs $0 < e(X) < 1$.
+- Bank $10$ is the lone large control and must cover **four** rescued banks, so it carries weight $4$. 
+- If e were 1 — all five large banks rescued, there is no large control to reweight and create counterfactuals: **this is where the $ATT$ fails**, and why it needs only $e(X) < 1$ while the $ATE$ needs $0 < e(X) < 1$.
 
 ## Does it work?
 
 $$
 \begin{aligned}
 \widehat{E[Y^1]} &= \tfrac{1}{10}\!\left[\tfrac{12}{0.2} + \tfrac{24+25+27+28}{0.8}\right] = \tfrac{60 + 130}{10} = 19 \\
-\widehat{E[Y^0]} &= \tfrac{1}{10}\!\left[\tfrac{8+9+11+12}{0.8} + \tfrac{20}{0.2}\right] = \tfrac{50 + 100}{10} = 15 \\[0.2em]
-\widehat{ATT}\; &= \underbrace{\tfrac{12 + 24+25+27+28}{5}}_{\text{injected mean}\;=\;23.2} \;-\; \underbrace{\tfrac{(8+9+11+12)(0.25) + 20(4)}{4(0.25) + 1(4)}}_{\text{controls}\,\times\,\text{odds}\;=\;18.0}
+\widehat{E[Y^0]} &= \tfrac{1}{10}\!\left[\tfrac{8+9+11+12}{0.8} + \tfrac{20}{0.2}\right] = \tfrac{50 + 100}{10} = 15 \\[0.3em]
+\widehat{ATE}\; &= \widehat{E[Y^1]} - \widehat{E[Y^0]} \;=\; 19 - 15 \;=\; \mathbf{4} \\[0.3em]
+\widehat{ATT}\; &= \underbrace{\tfrac{12 + 24+25+27+28}{5}}_{\text{injected mean}\;=\;23.2} \;-\; \underbrace{\tfrac{(8+9+11+12)(0.25) + 20(4)}{4(0.25) + 1(4)}}_{\text{controls}\,\times\,\text{odds}\;=\;18.0} \;=\; \mathbf{5.2}
 \end{aligned}
 $$
 
-- Truth: $ATE = 4$, $ATT = 5.2$. The naive $SDO$ is $23.2 - 12 = \mathbf{11.2}$.
-- IPW returns $19 - 15 = \mathbf{4}$ and $23.2 - 18.0 = \mathbf{5.2}$. Both exactly right.
+- Truth: $ATE = 4$, $ATT = 5.2$. **Both exactly recovered.** The naive $SDO$ is $23.2 - 12 = \mathbf{11.2}$, nearly three times the $ATE$.
 - $ATT > ATE$ because large banks gain more, and large banks are where the injections went. **Selection on gains --- the two estimands correctly disagree.**
 
 
@@ -506,7 +530,7 @@ $$
 
 ## Example 1
 
-Four rescued banks. **Every one has lending growth $Y = 10$**, so the answer must be $10$ for $\widehat{E[Y^1]}$. Here $N = 8$.
+Four rescued banks. **Every one has lending growth $Y = 10$**, so the answer must be $10$ for $\widehat{E[Y^1]}$. Here $N = 8$ (including control with $D=0$).
 
 \begin{center}
 \footnotesize
@@ -533,8 +557,12 @@ $$
 $$
 \normalsize
 
-- The weights sum to $10$, not $8$. HT divides by $8$ anyway, returning $10 \times \tfrac{10}{8}$ --- a number that appears nowhere in the data.
+- The weights sum to $10$, not $8$. HT divides by $8$ anyway, returning $10 \times \tfrac{10}{8}$.
 
+<!--
+- This is not sampling noise. $E[\sum_i D_i/e_i] = N$ holds in expectation, but a fitted logit only enforces $\sum_i (D_i - \hat e_i) = 0$, never $\sum_i D_i/\hat e_i = N$.
+- Hájek normalizes by the realized weight sum. It is a ratio estimator --- consistent, a convex combination of observed $Y$, and what every implementation actually computes.
+-->
 
 ## Example 2
 
@@ -564,12 +592,16 @@ $$
 - D carries $\mathbf{89\%}$ of the weight.
 - **Normalization is necessary, not sufficient.** Check overlap separately: trim, or retreat to the $ATT$ when the trouble is at $\hat e \approx 0$.
 
+<!-- - Effective sample size $(\sum w)^2/\sum w^2 = 56^2/2512 \approx 1.25$: four banks, one observation's worth of information. -->
+
+
 ## Propensity score matching
 
 - Match each treated unit to controls with a **similar score**, then difference.
-- **Caliper** matching: refuse any match farther than some tolerance (say $0.001$ on the score), *discarding* the treated unit if none qualifies. **Radius** matching: average all controls inside the tolerance.
+  - **Caliper** matching: refuse any match farther than some tolerance (say $0.001$ on the score), *discarding* the treated unit if none qualifies. 
+  - **Radius** matching: average all controls inside the tolerance.
 - Two problems with both:
-  - The tolerance is **chosen by the researcher** (Huntington-Klein et al. 2021).
+  - The tolerance is **chosen by the researcher** <!-- (Huntington-Klein et al. 2021). -->
   - Dropping treated units **changes the estimand**: the $ATT$ summarised the *original* treated sample.
 <!-- - The score is estimated, so its sampling error enters the standard errors (Abadie--Imbens 2016). -->
 - King and Nielsen (2019): two units can share a score, $e(X_i) = e(X_j)$, with opposite covariate profiles $X_i \neq X_j$. Matching on the scalar score can *increase* local imbalance relative to multivariate distance matching.
@@ -618,7 +650,7 @@ $$
 
 - It buys **dimension reduction**, not identification. If $X$ omits a confounder, $e(X)$ omits it too.
 - Regression hides missing common support behind linear extrapolation; plotting $\hat e(X)$ exposes it.
-- A high pseudo-$R^2$ means covariates nearly predict treatment ($e(X) \to 0$ or $1$): positivity breaks and IPW variance explodes. A low one means treatment is nearly independent of $X$ --- close to an RCT.
+- A high pseudo-$R^2$ means covariates nearly predict treatment ($e(X) \to 0$ or $1$): positivity breaks and IPW variance explodes. A low one means treatment is nearly independent of $X$ --- close to an RCT on observables.
 - IPW shifts the modelling assumption from the outcome equation $E[Y \mid D, X]$ to the assignment equation $P(D{=}1 \mid X)$.
 
 <!--
@@ -744,9 +776,9 @@ round(c(naive = mean(Y[D == 1]) - mean(Y[D == 0]),
 
 ## Crossing to the other side of the map
 
-- Everything so far has been an **interpolation** method: subclassification, matching, the propensity score. Each refuses to compare a treated unit with no counterpart; common support is the binding constraint.
+- Everything so far has been an **interpolation** method: subclassification, matching, the propensity score. Common support is the binding constraint.
 - Regression sits on the other side: it needs no common support, so **the curse of dimensionality does not arise**.
-- It buys that with a **functional form**. Where the data are silent the model speaks anyway: OLS imputes the counterfactual by **extrapolating** into regions with no comparable units.
+- It buys that with a **functional form**: OLS imputes the counterfactual by **extrapolating** into regions with no comparable units.
 - The trade: matching needs overlap; regression needs a correctly specified outcome model.
 - Both still need unconfoundedness. Nothing in this section relaxes it.
 
@@ -821,21 +853,36 @@ legend("bottomright", c("truth", "OLS",
 - Keep that distinction in view. In causal inference we are not predicting outcomes --- we are predicting **missing potential outcomes**, which is a different target.
 -->
 
-## The bivariate case is easy; the multivariate case looks hard
+## What exactly is that coefficient?
+
+- In practice you will estimate the effect by running
+$$
+Y_i = \alpha + \delta D_i + \gamma X_i + \varepsilon_i .
+$$
+- What *is* $\hat\delta$? It is generally **neither the $ATE$ nor the $ATT$**.
+- Two questions come first:
+  1. **Which variation in $D$** does OLS use, once $X$ is in the regression?
+  2. **How does it weight** the units that supply that variation?
+- **Frisch--Waugh--Lovell** answers the first: OLS uses only the part of $D$ that $X$ cannot predict. The weighting result then follows from it.
+<!-- - So the next few slides are mechanics rather than philosophy. The payoff is that the causal interpretation of $\hat\delta$ turns out to be a fact about **which observations the estimator listens to**. -->
+
+
+## Coefficients as scaled covariances
 
 - With one regressor,
 $$
 Y_i = \beta_0 + \beta_1 X_i + u_i,
 \qquad
-\hat\beta_1 = \frac{\mathrm{Cov}(Y_i, X_i)}{\mathrm{Var}(X_i)} .
+\hat\beta_1 = \frac{\widehat{Cov}(Y_i, X_i)}{\widehat{Var}(X_i)} .
 $$
 - The coefficient is the slope of the best-fit line: a **covariance scaled by a variance**.
 - Now add covariates:
 $$
-Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_k X_{ki} + \varepsilon_i .
+Y_i = \beta_0 + \beta_1 X_{1i} + \beta_2 X_{2i} + \cdots + \beta_K X_{Ki} + \varepsilon_i .
 $$
 <!-- - How can $\hat\beta_1$ still be a scaled covariance? If the $X$'s are correlated with each other and with $Y$, then adding more of them *changes* $\hat\beta_1$ --- so it cannot be the same simple object. -->
-- Multivariate coefficients are **not** simple scaled covariances. But Frisch--Waugh--Lovell (Frisch and Waugh 1933; Lovell 1963) says they are scaled covariances of something else.
+- $\hat\beta_1$ is no longer $\widehat{Cov}(Y, X_1)/\widehat{Var}(X_1)$. **Frisch and Waugh (1933); Lovell (1963)**: it is still a scaled covariance --- of *residualized* variables.
+<!-- - Read $X_1$ as the treatment $D$ throughout what follows; the theorem is stated for a general regressor, and $D$ is the case we care about. -->
 
 ## Frisch--Waugh--Lovell in three steps
 
@@ -855,7 +902,7 @@ The variation in $X_{1i}$ that is *uncorrelated* with everything else --- **part
 $$
 Y_i = \alpha + \beta_1 \tilde X_{1i} + \varepsilon_i,
 \qquad
-\hat\beta_1 = \frac{\mathrm{Cov}(Y_i, \tilde X_{1i})}{\mathrm{Var}(\tilde X_{1i})} .
+\hat\beta_1 = \frac{\widehat{Cov}(Y_i, \tilde X_{1i})}{\widehat{Var}(\tilde X_{1i})} .
 $$
 
 - $\hat\beta_1$ is **identical** to the coefficient on $X_{1i}$ in the full regression.
@@ -881,17 +928,17 @@ $N$   & $4000$     & $4000$ \\
 \end{tabular}
 \end{center}
 
-- The estimate sits $0.39$ above the true $1500$ --- sampling noise.
+- The estimate sits $\$3.20$ above the true $\$1{,}500$ --- $0.39$ standard errors, i.e. sampling noise.
 - The standard errors do *not* agree, and that is not sampling noise.
 
 ## Residualize both sides
 
 - Another version residualizes the outcome too:
 $$
-\begin{align}
+\begin{aligned}
 \tilde Y_i \;=\; Y_i \;-\; \hat Y_i &\quad\text{from}\quad Y_i = \lambda_0 + \lambda_2 X_{2i} + \cdots + \lambda_K X_{Ki} + v_i,\\
 &\quad\text{then}\quad \tilde Y_i = \beta_1 \tilde X_{1i} + \varepsilon_i.
-\end{align}
+\end{aligned}
 $$
 - Both versions return **exactly the same $\hat\beta_1$**.
 - The double-residual version buys one more thing: **its residuals are those of the full regression**.
@@ -901,24 +948,23 @@ $$
 
 \begin{center}
 \footnotesize
-\begin{tabular}{lcc}
+\begin{tabular}{lccc}
 \toprule
- & $\hat\beta_d$ & s.e. \\
+ & (1) full OLS & (2) single, $Y \sim \tilde D$ & (3) double, $\tilde Y \sim \tilde D$ \\
 \midrule
-\multicolumn{3}{l}{\emph{original:} the controls explain $0.1\%$ of earnings} \\
-full OLS                          & $1503.201$ & $8.249$ \\
-single, $Y \sim \tilde D$          & $1503.201$ & $8.287$ \\
-double, $\tilde Y \sim \tilde D$   & $1503.201$ & $8.247$ \\
+\multicolumn{4}{l}{\emph{original:} the controls explain $0.1\%$ of earnings} \\
+$d$ & $1503.201$ & $1503.201$ & $1503.201$ \\
+    & $(8.249)$  & $(8.287)$  & $(8.247)$ \\
 \midrule
-\multicolumn{3}{l}{\emph{expanded:} the controls explain $93\%$} \\
-full OLS                          & $1503.201$ & $8.249$ \\
-single, $Y \sim \tilde D$          & $1503.201$ & $\mathbf{91.493}$ \\
-double, $\tilde Y \sim \tilde D$   & $1503.201$ & $8.247$ \\
+\multicolumn{4}{l}{\emph{expanded:} the controls explain $93\%$} \\
+$d$ & $1503.201$ & $1503.201$ & $1503.201$ \\
+    & $(8.249)$  & $(\mathbf{91.493})$ & $(8.247)$ \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-- Residualize only $D$: the residuals still carry everything age and GPA explain.
+- (1) and (3) differ only in degrees of freedom ($n-k-1$ vs. $n-2$); the residuals are identical.
+- (2) residualizes only $D$. The part of $Y$ that age and GPA explain goes to the error term. Harmless at $R^2 = 0.1\%$; fatal at $93\%$.
 
 <!--
 
@@ -979,120 +1025,101 @@ $$
 ## Why FWL is worth knowing
 
 - **It tells you what variation identifies your coefficient.** $\hat\beta_1$ uses only the part of $X_1$ that the controls cannot explain. <!-- Add a control that absorbs most of the variation in $X_1$, and you are estimating from whatever scraps remain.-->
-- **It makes the estimate visualizable.** Residualize *both* sides and scatter $\tilde Y$ against $\tilde X_1$: a multivariate coefficient becomes a picture whose slope is $\hat\beta_1$.\footnote{Filoso (2013) gives the worked proof and a Stata implementation.}
+- **It makes the estimate visualizable.** Residualize *both* sides and scatter $\tilde Y$ against $\tilde X_1$: a multivariate coefficient becomes a picture whose slope is $\hat\beta_1$.
 - **It is the engine behind much else.** Fixed effects, double machine learning and the weighting results below are all FWL in disguise.
 - Angrist and Pischke (2009) call this **regression anatomy**, and it is the single most useful algebraic fact about OLS.
 
+
 ## Exogeneity, and the canonical OLS model
 
-- Write the **canonical OLS model**:
+- The **canonical OLS model**:
 $$
-Y_i = \alpha + \delta D_i + \gamma X_i + \varepsilon_i .
+Y_i = \alpha + \delta D_i + \gamma X_i + \varepsilon_i.
 $$
-- For $\hat\delta$ to be causal, $D_i$ must be *exogenous* $\Rightarrow$ Imbens and Rubin (2015) put it plainly: exogeneity "combines unconfoundedness with functional form and constant treatment effect assumptions that are quite strong, and arguably unnecessary."
-- Three assumptions, not one. You have met unconfoundedness; the other two arrived silently, in the act of writing the equation.
+- $E[\varepsilon_i \mid D_i, X_i] = 0$  means "$D$ is exogenous." It bundles three assumptions:
+  - **Unconfoundedness**: $E[Y^0 \mid D, X] = E[Y^0 \mid X]$.
+  - **Linearity**: $E[Y^0 \mid X] = \alpha + \gamma X$.
+  - **Constant effect**: $\tau_i = \delta$ for every $i$.
+<!-- - You have met the first. The other two arrived silently. Imbens and Rubin (2015) call them strong and arguably unnecessary --- matching and weighting need neither.-->
+- We take $X$ to be pre-treatment throughout. If $D$ moves $X$, $X$ is an outcome, not a control (Lecture 2).
 
 
-## Taking conditional expectations
+## When the three assumptions fail 
 
-- Take expectations separately for the treated and control groups:
+Each failure pushes something into $\varepsilon_i$ that is correlated with $D_i$.
+
+- **Linearity fails:** $E[Y^0 \mid X] = g(X) \neq \alpha + \gamma X$. The unmodeled part $g(X) - \alpha - \gamma X$ enters $\varepsilon_i$ and is correlated with $D$ through $X$. 
+  - *Fix:* flexible controls — polynomials, splines, category dummies
+
+- **Constant effect fails:** $\tau_i \neq \delta$. The term $D_i(\tau_i - \bar\tau)$ enters $\varepsilon_i$. $\hat\delta_{OLS}$ becomes a variance-weighted average of $\tau_i$, overweighting cells with high $Var(D \mid X)$, and can differ sharply from the ATE. 
+  - *Fix:* interact $D_i$ with covariates
+
+- **Unconfoundedness fails:** $E[Y^0 \mid D, X] \neq E[Y^0 \mid X]$, i.e. selection on unobservables: $E[Y^0 \mid D{=}1, X] \neq E[Y^0 \mid D{=}0, X]$. 
+  - *Fix:* change the design!
+
+
+<!-- 
+## Proof: Three assumptions imply OLS exogeneity
+
+1. **Constant Effect ($\tau_i = \delta$):**
+   $$Y_i = Y_i^0 + \delta D_i$$
+
+2. **Isolate Residual ($\varepsilon_i$):**
+   $$\varepsilon_i = Y_i - \alpha - \delta D_i - \gamma X_i = Y_i^0 - \alpha - \gamma X_i$$
+
+3. **Apply Unconfoundedness ($E[Y^0 \mid D, X] = E[Y^0 \mid X]$):**
+   $$E[\varepsilon_i \mid D_i, X_i] = E[Y_i^0 \mid D_i, X_i] - \alpha - \gamma X_i = E[Y_i^0 \mid X_i] - \alpha - \gamma X_i$$
+
+4. **Apply Linearity ($E[Y^0 \mid X] = \alpha + \gamma X$):**
+   $$E[\varepsilon_i \mid D_i, X_i] = (\alpha + \gamma X_i) - \alpha - \gamma X_i = 0 \quad \blacksquare$$
+--> 
+
+
+
+## OLS as a variance-weighted average
+
+\begin{center}
+\fbox{\;\textbf{Claim}\quad With $X$ saturated and unconfoundedness, $\;\hat\delta_{OLS} \to E\big[\sigma^2_D(X)\,\tau(X)\big] \,\big/\, E\big[\sigma^2_D(X)\big]$\;}
+\end{center}
+
+\scriptsize
+*Saturated*: a dummy per value of $X$, so $D$ on the controls gives $e(X)$ exactly. Let $\tau(X) = E[\tau_i \mid X]$, $\sigma^2_D(X) = Var(D \mid X) = e(1-e)$.
+
+**Step 1 (FWL).** $\tilde D = D - e(X)$ has mean zero, so $\delta_{OLS} = Cov(Y, \tilde D)/Var(\tilde D) = E\big[Y(D - e)\big] / E\big[(D - e)^2\big]$.
+
+**Step 2 (within a cell).** The denominator is $E\big[(D - e)^2 \mid X\big] = \sigma^2_D(X)$. For the numerator, substitute $E[Y \mid X] = e\,E[Y \mid D{=}1,X] + (1-e)\,E[Y \mid D{=}0,X]$:
 $$
-\begin{aligned}
-E[Y_i \mid D_i = 1, X_i] &= \alpha + \delta\, E[D_i \mid D_i = 1, X_i] + \gamma_{1} E[X_i \mid D_i = 1, X_i] \\
-E[Y_i \mid D_i = 0, X_i] &= \alpha + \delta\, E[D_i \mid D_i = 0, X_i] + \gamma_{1} E[X_i \mid D_i = 0, X_i]
-\end{aligned}
+E\big[Y(D - e) \mid X\big] = e\,E[Y \mid D{=}1,X] - e\,E[Y \mid X]
+= e(1-e)\big(E[Y \mid D{=}1,X] - E[Y \mid D{=}0,X]\big) = \sigma^2_D(X)\,\tau(X),
 $$
-- Now replace $Y$ with $Y^1$ or $Y^0$ as appropriate --- and do the same for $X$.
-- Why would $X$ have potential outcomes? **If $X^1 \neq X^0$, then $D$ causes $X$, and $X$ is an outcome, not a covariate.** That is the bad-control problem.
-- And allow the covariate to matter differently in the two worlds, $\gamma_{11}$ against $\gamma_{01}$:
+the last step by **unconfoundedness**. **Step 3.** Iterate expectations over $X$ in numerator and denominator. $\blacksquare$
+
+Weights depend on $i$ only through $X_i$: largest where $e(X) = \tfrac12$, **zero** where $e(X) \in \{0,1\}$. No functional form for $Y$ was used --- saturation absorbed it.
+
+**Słoczyński (2022).** If $X$ enters *linearly* instead, with $Y^0, Y^1$ linear in $X$: $\;\delta_{OLS} = w_1\,ATT + (1 - w_1)\,ATU$, where
 $$
-\begin{aligned}
-E[Y^1_i \mid D_i = 1, X_i] &= \alpha + \delta\, E[D_i \mid D_i = 1, X^1_i] + \gamma_{11} E[X^1_i \mid D_i = 1, X^1_i] \\
-E[Y^0_i \mid D_i = 0, X_i] &= \alpha + \delta\, E[D_i \mid D_i = 0, X^0_i] + \gamma_{01} E[X^0_i \mid D_i = 0, X^0_i]
-\end{aligned}
+w_1 = \frac{(1-\rho)\,V[p(X) \mid D{=}0]}{\rho\,V[p(X) \mid D{=}1] + (1-\rho)\,V[p(X) \mid D{=}0]}, \qquad \rho = \Pr(D{=}1), \quad p(X) = \text{linear projection of } D \text{ on } X.
 $$
+Equal variances give $w_1 = 1 - \rho$: **the $ATT$ gets the control share** --- the smaller group gets the larger weight.
 
-## What $\gamma_{11} \neq \gamma_{01}$ actually means
+## Regression adjustment
 
-- Let $Y^1$ be earnings with a college degree, $Y^0$ earnings without one, and $X$ be age.
-- $\gamma_{11}$ is the age--earnings profile for **college graduates**; $\gamma_{01}$ is that profile for the same people **had they not gone**.
-- $\gamma_{11} \neq \gamma_{01}$ **is** heterogeneous treatment effects --- the return to treatment varying with $X$.
-- In finance this is unremarkable: the effect of index inclusion, a rating change or a governance shock varies with firm size. If it does, $\gamma_{11} \neq \gamma_{01}$.
-
-## Heterogeneous treatment effect bias
-
-- OLS on the canonical model is a difference in conditional means:
+- Interact treatment with every covariate:
 $$
-\hat\delta_{OLS} = E[Y^1_i \mid D_i = 1, X^1_i] - E[Y^0_i \mid D_i = 0, X^0_i].
+Y_i = \alpha + \delta D_i + \gamma_0 X_i + \lambda\, D_i X_i + \varepsilon_i,
+\qquad
+\widehat{ATT} = \hat\delta + \hat\lambda \bar X_1, \quad
+\widehat{ATE} = \hat\delta + \hat\lambda \bar X .
 $$
-- Substitute the two expressions from the previous slide.
-$$
-\hat\delta_{OLS} \;=\; \delta \;+\; \underbrace{\Big(\gamma_{11} E[X^1_i \mid D_i = 1, X^1_i] \;-\; \gamma_{01} E[X^0_i \mid D_i = 0, X^0_i]\Big)}_{\text{heterogeneous treatment effect bias}}
-$$
-- This is what the canonical OLS model identifies. Not $\delta$. $\delta$ plus a term that has nothing to do with omitted variables.
-- Notice what is *not* in the bias term: any unobserved confounder. We assumed unconfoundedness holds perfectly and there is nothing left to omit.
+- Or center first: interact with $(X_i - \bar X_1)$ and read the $ATT$ off $\hat\delta$; with $(X_i - \bar X)$ for the $ATE$. Same coefficients, different covariate distribution.
 
-## The two assumptions you signed up for
-
-The bias term vanishes if and only if **both** of the following hold.
-
-1. **Covariates are not outcomes.** $X^1 = X^0 = X$: the covariates do not respond to treatment.
-2. **Treatment effects are homogeneous in $X$.** $\gamma_{11} = \gamma_{01} = \gamma_1$: the return to treatment does not vary with the covariates.
-
-- Under A1 and A2, $\hat\delta_{OLS} = \delta$. Fail either one and the canonical model is biased.
-- **A1 has no repair.** Do not control for a collider or a mediator $\Rightarrow$ Lecture 2!
-- **A2 does have a repair**, and it is a change to the specification, not to the data. That is the next slide.
-- A2 is strong. Neither matching nor the propensity score required it: they average heterogeneous effects rather than assuming them away.
-
-## Regression adjustment: Oaxaca's answer
-
-- The problem was never OLS. It was **one specification**: additive and separable.
-<!-- - The fix comes from Ronald Oaxaca, who finished his PhD at Princeton in 1971 under Orley Ashenfelter. His dissertation introduced a decomposition of wage differentials, published as Oaxaca (1973), developed independently and contemporaneously with Blinder (1973), and generalizing a technique of the sociologist Evelyn Kitagawa (1955). -->
-- The **Kitagawa--Oaxaca--Blinder decomposition** splits a mean gap into differences in *endowments* (education, experience) and differences in the *returns* to them.
-<!-- - Becker (1957) had given economics a theory of labour-market discrimination; Oaxaca gave it an empirical framework. -->
-- Słoczyński (2015, 2020) showed the decomposition is also a **treatment effects estimator**, identifying both the $ATE$ and the $ATT$. That is what "regression adjustment" means.
-
-## Deriving the specification
+- Equivalently: fit $Y$ on $X$ separately in each arm. For the $ATT$, impute  $Y^0$ for treated units from the control fit and average the gap over the treated.  For the $ATE$, also impute $Y^1$ for controls from the treated fit and average  over everyone. `teffects ra` does both and gets the SEs right.
 
 
-- Write both potential outcomes, letting $X$ act differently on each:
-$$
-\begin{aligned}
-Y^0_i &= \alpha + \gamma_{01} X_i + \varepsilon_i \\
-Y^1_i &= \alpha + \gamma_{01} X_i + \delta D_i + \gamma_{11} X_i \cdot D_i + \varepsilon_i
-\end{aligned}
-$$
-- Take conditional expectations, then form $\delta = E[Y^1_i \mid D_i, X_i] - E[Y^0_i \mid D_i, X_i]$:
-\small
-$$
-\begin{aligned}
-&= \big(\alpha + \gamma_{01} E[X_i \mid D_i{=}0, X_i] + \delta + \gamma_{11} E[X_i \cdot D_i \mid D_i{=}1, X_i]\big) - \big(\alpha + \gamma_{01} E[X_i \mid D_i{=}0, X_i]\big) \\[0.2em]
-&= \delta + \gamma_{11} E[X_i \cdot D_i \mid D_i = 1]
-\end{aligned}
-$$
-\normalsize
-- The $\gamma_{01}$ terms cancel because the *same* coefficient appears in both potential outcomes. What remains is the interaction --- exactly the term the canonical model omitted.
+<!-- 
+## A simulation where nothing is omitted
 
-
-## The regression adjustment estimator
-
-To identify the $ATE$ and the $ATT$ under unconfoundedness **with heterogeneous effects**, run
-$$
-Y_i = \alpha + \delta D_i + \gamma_{01} X_i + \gamma_{11}\, D_i \cdot X_i + \varepsilon_i .
-$$
-
-- Interact the treatment with **every** covariate. Then
-$$
-\widehat{ATE} = \hat\delta, \qquad \widehat{ATT} = \hat\delta + \hat\gamma_{11}\, E[X_i \mid D_i = 1],
-$$
-where $E[X_i \mid D_i = 1]$ is the covariate mean **in the treated group only**.\footnote{The $ATE$ result requires $X$ to be demeaned in the full sample. If you interact with terms that are not mean-zero --- squares, cross-products --- add them back: $\widehat{ATE} = \hat\delta + \sum_k \hat\gamma_{1k}\bar X_k$.}
-
-- The difference between the two estimands is now visible and mechanical: the same coefficients, evaluated at a different covariate distribution.
-<!-- - See Imbens and Wooldridge (2009), Wooldridge (2010), and Słoczyński (2020). -->
-
-## Does it work?
-
-Simulation: $5{,}000$ workers, $5{,}000$ with a college degree; two exogenous covariates, age and GPA, with **different means in the treated and control groups**; both recentred, plus their squares and their interaction. Then
+Simulation: $5{,}000$ workers, $2{,}500$ with a college degree and $2{,}500$ without; two exogenous covariates, age and GPA, with **different means in the treated and control groups**; both recentred, plus their squares and their interaction. Then
 $$
 \begin{aligned}
 Y^0 &= 15000 + 10.25\,\text{age} - 10.5\,\text{age}^2 + 1000\,\text{gpa} - 10.5\,\text{gpa}^2 + 500\,(\text{age}\cdot\text{gpa}) + e \\
@@ -1102,7 +1129,7 @@ $$
 
 - Because age and GPA are recentred, $E[Y^1 - Y^0] = \$2{,}500$ exactly. The $ATT$ is **not** $\$2{,}500$: the treated group differs in age and GPA composition, and the effect varies with both.
 - The canonical model here controls for age, age$^2$, GPA, GPA$^2$ and their interaction. Every covariate needed for unconfoundedness is in it. Nothing is omitted.
-<!-- - Cunningham reports the canonical model centred at $\$2{,}380$ against a true $ATE$ of $\$2{,}500$, and regression adjustment centred exactly on both the $ATE$ and the $ATT$ of $\$1{,}952$. -->
+- **Result** (Cunningham, 1,000 draws): the canonical model is centred at $\$2{,}380$ against a true $ATE$ of $\$2{,}500$. Regression adjustment is centred on the $ATE$, and on the true $ATT$ of $\$1{,}952$.
 
 ## When is the canonical model actually wrong?
 
@@ -1124,24 +1151,31 @@ Regression adj.\ ($ATT$) & $1812$ & $1941$ & $2069$ & $2198$ & $2327$ \\
 \end{center}
 
 - Regression adjustment recovers **both** estimands at every split.
-- At exactly $50/50$ the canonical model lands on the $ATE$ --- **by coincidence of the design, not by validity**.
-<!-- - The pattern is Słoczyński (2022): the canonical estimand is a weighted average of $ATT$ and $ATU$ in which the **smaller group gets the larger weight**. In finance, treated shares of $5\%$ are routine. -->
+- At $50/50$ the canonical model lands on the $ATE$ only because, in this design, the weights do not tilt $X$ --- **coincidence, not validity**. It is not a property of $50/50$ splits: the previous slide's design is also $50/50$, and there the canonical model misses by $\$120$.
+- The pattern is Słoczyński (2022): the canonical estimand is a weighted average of $ATT$ and $ATU$ in which the **smaller group gets the larger weight**. In finance, treated shares of $5\%$ are routine.
+-->
 
+<!-- 
 ## What regression adjustment does not buy
 
 - Regression adjustment removes the **constant-effects** assumption. It does not remove the **functional form** assumption, and cannot.
-- Inside the model is a model of the missing potential outcome. The true $Y^0$ contained age, age$^2$, GPA, GPA$^2$ and age$\,\cdot\,$GPA --- so the treatment had to be interacted with **all five**.
-- Drop one interaction and it breaks. With the effect also varying in age$\,\cdot\,$GPA, the fully interacted model returns $2576$ against a true $ATE$ of $2575$; omitting the single $D \cdot (\text{age}\cdot\text{gpa})$ term returns $2368$.
+- Inside the model is a model of the missing potential outcome, and it carries two separate requirements:
+  - every term of $Y^0$ --- age, age$^2$, GPA, GPA$^2$, age$\,\cdot\,$GPA --- must be in the model as a **main effect**;
+  - $D$ must be interacted with every term **the effect varies with**. Here $\tau = 2500 + 100\,\text{age} + 1100\,\text{gpa}$, so $D \cdot \text{age}$ and $D \cdot \text{gpa}$ suffice.
+- Omit a *needed* interaction and it breaks. Let the effect also vary in age$\,\cdot\,$GPA: the fully interacted model returns $2576$ against a true $ATE$ of $2575$; dropping the single $D \cdot (\text{age}\cdot\text{gpa})$ term returns $2368$.
 - **The functional-form requirement replaces the common-support requirement. It is not free.** You have swapped a checkable condition for an uncheckable one.
 - This is the honest summary of the trade made at the start of the section.
+-->
 
+<!-- 
 ## Three things wrong with the canonical model
 
 1. **It assumes constant treatment effects.** Neither matching nor the propensity score asked for this. Regression adjustment removes it, at the cost of interacting treatment with everything.
-2. **Its weights are wrong.** Słoczyński (2022) shows the coefficient is $w_1 \cdot ATT + w_0 \cdot ATU$, with each group's weight **inversely** proportional to its size; **it is generally none of the three**.
+2. **Its weights are wrong.** Słoczyński (2022) shows the coefficient is $w_1 \cdot ATT + w_0 \cdot ATU$, where the weights depend on group sizes --- the **smaller group gets more weight**, other things equal --- and on how much the score varies within each group. So even a $50/50$ split need not weight them equally; **it is generally none of the three**.
 3. **It delivers only one number.** One treatment indicator, one coefficient. Regression adjustment delivers the $ATE$ and the $ATT$ from the same fit.
+-->
 
-
+<!-- 
 # 3. What Matching Cannot Do
 
 ## Matching creates no new variation
@@ -1181,7 +1215,7 @@ Given all that, matching still earns its place:
 \vspace{0.3em}
 
 - Use it as a *complement* to regression and a check on it --- not as an identification strategy.
-
+--> 
 
 <!--
 # 4. Sensitivity Analysis
@@ -1302,7 +1336,7 @@ infeasible: $Y \sim D + X + U$ & $1.014$ & $0.562$ \\
 -->
 
 
-# 4. The NSW Demonstration
+# 3. The NSW Demonstration
 
 ## The 1970s empirical crisis
 
@@ -1310,7 +1344,6 @@ infeasible: $Y \sim D + X + U$ & $1.014$ & $0.562$ \\
 - Job-training programs in the 1970s were evaluated observationally, and the estimates were all over the place --- depending, apparently, on the analyst.
 - The **National Supported Work (NSW) Demonstration** was different: it *randomized* participation. So the experimental effect was known.
 - That created a **benchmark**: could observational methods, applied to the same treated units, recover the experimental answer?
-- Everything in this lecture gets graded against it.
 
 ## What LaLonde did
 
@@ -1325,7 +1358,7 @@ infeasible: $Y \sim D + X + U$ & $1.014$ & $0.562$ \\
 - Their finding: the observational estimates *did* recover the experimental benchmark reasonably well --- **once common support was imposed**.
 - Much of LaLonde's failure was an **overlap** problem, not only confounding: the CPS and PSID groups held huge numbers of people utterly unlike NSW participants.
 - Discard the non-comparable units and the methods perform far better.
-- This is why the Lecture 3a §3 distinction matters: two assumptions were failing, and only one is checkable.
+<!-- - This is why the Lecture 3a §3 distinction matters: two assumptions were failing, and only one is checkable. -->
 
 ## Smith and Todd: not so fast either
 
@@ -1340,26 +1373,30 @@ infeasible: $Y \sim D + X + U$ & $1.014$ & $0.562$ \\
 - Neither condition is verifiable in the setting where you need them:
   - Unconfoundedness is **untestable**, always.
   - Common support is **checkable**.
-- So the practical lesson is asymmetric: do the check you can do, and argue explicitly for the assumption you cannot.
+- Do the check you can do, and argue explicitly for the assumption you cannot.
 - **A useful exercise**: the NSW data are freely available. Apply every method here and compare to the \$1,800 benchmark --- the fastest way to build instincts about when these methods hold up.
 
 # Wrapping Up
 
 ## Summary [Part 1]: the score and what it does
 
-- **The propensity score** reduces $X$ to one number and defeats the curse of dimensionality for *conditioning*. It does nothing for **identification** --- unconfoundedness is still assumed, never delivered.
-- **Judge the score by balance achieved, not by fit.** A high pseudo-$R^2$ with bad balance is a bad score; the reverse is fine. The stage is blind to $Y$, which is what makes the specification search legitimate.
-- **Balance means the distribution, not the mean.** Standardized differences *and* variance ratios. Our `Volatility` covariate had $\text{SMD} = -0.010$ and a variance ratio of $2.27$.
-- **IPW** reweights into a pseudo-experiment: $1/\hat e$ and $1/(1-\hat e)$ build the population; $\hat e/(1-\hat e)$ on controls alone rebuilds the *treated* distribution. Watch the tails, and normalize.
-- **Propensity score matching** is the one use with a serious case against it: King and Nielsen (2019) show it targets complete randomization when blocking was available, so pruning can *increase* imbalance.
+- **The propensity score** reduces $X$ to one number. Balance given $e(X)$ is free; the theorem --- conditioning on $e(X)$ suffices --- needs unconfoundedness. It buys dimension reduction, never **identification**.
+- **Judge the score by balance, not fit** --- and balance means the whole distribution. 
+<!-- Our `Volatility` had $\text{SMD} = -0.010$ but a variance ratio of $2.27$, and conditioning on a misspecified score made it worse.-->
+- **Plot the overlap.** Common support is the one assumption you can check. Trim if you must, and say how the estimand changed.
+- **IPW** reweights into a pseudo-population: $1/\hat e$ and $1/(1-\hat e)$ for the $ATE$; $\hat e/(1-\hat e)$ on controls for the $ATT$. Normalize (Hájek), and watch the tails.
+- **Propensity score matching** is the weakest use: two units can share a score with opposite covariates, so pruning can *increase* imbalance (King and Nielsen 2019).
 
-## Summary [Part 2]: the verdict
+## Summary [Part 2]: regression, and the verdict
 
-- **Regression is a conditioning strategy too**, not a rival family. FWL shows it uses only the **residual variation in $D$**, and Słoczyński's weights show the resulting coefficient is generally neither the $ATE$ nor the $ATT$.
-- **Matching creates no new exogenous variation.** If OLS was endogenous, matching is endogenous. It cannot fix an unobserved confounder, reverse causality, or a bad control.
-- **NSW**: these methods can work when overlap is real and the confounders are measured --- and you can only ever verify one of those two.
+- **The trade.** Matching needs overlap; regression needs a correctly specified outcome model. Both still need unconfoundedness.
+- **FWL.** OLS identifies $\delta$ only from the part of $D$ that $X$ cannot predict.
+- **The canonical model** bundles unconfoundedness, linearity and constant effects. With heterogeneous effects it returns a variance-weighted average, heaviest where treatment is a coin flip --- generally neither the $ATE$ nor the $ATT$ (Angrist 1998; Słoczyński 2022).
+- **Regression adjustment** --- interacting $D$ with $X$ --- recovers both, but still leans on functional form.
+- **NSW.** These methods work when overlap is real and the confounders are measured --- and you can only ever verify the first.
 - Next lecture: designs that *create* variation instead of assuming it away.
 
+<!-- 
 ## A checklist for your own paper
 
 1. State the **estimand** before the estimator. $ATE$, $ATT$, or $ATU$ --- and say why the policy question needs that one.
@@ -1371,34 +1408,26 @@ infeasible: $Y \sim D + X + U$ & $1.014$ & $0.562$ \\
 7. Run a **sensitivity analysis**, and calibrate the threshold against an observed covariate.
 8. Run a **placebo** on a pre-treatment period.
 9. Say plainly what would break the design --- and what unobservable would have to exist.
+-->
 
 ## References
 
 \tiny
 
-- Altonji, J., T. Elder and C. Taber (2005). Selection on Observed and Unobserved Variables: Assessing the Effectiveness of Catholic Schools. *JPE* 113, 151--184.
-- Ben-Michael, E., A. Feller and J. Rothstein (2021). The Augmented Synthetic Control Method. *JASA* 116, 1789--1803.
-- Blinder, A. (1973). Wage Discrimination: Reduced Form and Structural Estimates. *Journal of Human Resources* 8, 436--455.
-- Cinelli, C. and C. Hazlett (2020). Making Sense of Sensitivity: Extending Omitted Variable Bias. *JRSS Series B* 82, 39--67.
+- Angrist, J. (1998). Estimating the Labor Market Impact of Voluntary Military Service Using Social Security Data on Military Applicants. *Econometrica* 66, 249--288.
+- Angrist, J. and J.-S. Pischke (2009). *Mostly Harmless Econometrics: An Empiricist's Companion*. Princeton University Press.
+- Busso, M., J. DiNardo and J. McCrary (2014). New Evidence on the Finite Sample Properties of Propensity Score Reweighting and Matching Estimators. *Review of Economics and Statistics* 96, 885--897.
+- Crump, R., V. J. Hotz, G. Imbens and O. Mitnik (2009). Dealing with Limited Overlap in Estimation of Average Treatment Effects. *Biometrika* 96, 187--199.
 - Cunningham, S. *Causal Inference: The Remix*, Ch. 5 (§5.9 for regression).
 - Dehejia, R. and S. Wahba (1999). Causal Effects in Nonexperimental Studies. *JASA* 94, 1053--1062.
-- Ding, P. (2024). *A First Course in Causal Inference*. Chapman and Hall/CRC.
-- Filoso, V. (2013). Regression Anatomy, Revealed. *Stata Journal* 13(1), 92--106.
+- Dehejia, R. and S. Wahba (2002). Propensity Score-Matching Methods for Nonexperimental Causal Studies. *Review of Economics and Statistics* 84, 151--161.
 - Frisch, R. and F. Waugh (1933). Partial Time Regressions as Compared with Individual Trends. *Econometrica* 1, 387--401.
 - Hájek, J. (1971). Comment on Basu. In *Foundations of Statistical Inference*, Holt, Rinehart and Winston, 236.
-- Hirano, K. and G. Imbens (2001). Estimation of Causal Effects Using Propensity Score Weighting. *Health Services and Outcomes Research Methodology* 2, 259--278.
-- Imbens, G. (2004). Nonparametric Estimation of Average Treatment Effects under Exogeneity. *Review of Economics and Statistics* 86, 4--29.
-- Imbens, G. and D. Rubin (2015). *Causal Inference for Statistics, Social, and Biomedical Sciences*. Cambridge University Press.
-- Imbens, G. and J. Wooldridge (2009). Recent Developments in the Econometrics of Program Evaluation. *JEL* 47(1), 5--86.
+- Horvitz, D. and D. Thompson (1952). A Generalization of Sampling Without Replacement from a Finite Universe. *JASA* 47, 663--685.
+- Imai, K., G. King and E. Stuart (2008). Misunderstandings between Experimentalists and Observationalists about Causal Inference. *JRSS Series A* 171, 481--502.
 - King, G. and R. Nielsen (2019). Why Propensity Scores Should Not Be Used for Matching. *Political Analysis* 27, 435--454.
-- Kitagawa, E. (1955). Components of a Difference Between Two Rates. *JASA* 50, 1168--1194.
 - LaLonde, R. (1986). Evaluating the Econometric Evaluations of Training Programs with Experimental Data. *AER* 76, 604--620.
 - Lovell, M. (1963). Seasonal Adjustment of Economic Time Series and Multiple Regression Analysis. *JASA* 58, 993--1010.
-- Oaxaca, R. (1973). Male--Female Wage Differentials in Urban Labor Markets. *International Economic Review* 14, 693--709.
-- Oster, E. (2019). Unobservable Selection and Coefficient Stability: Theory and Evidence. *JBES* 37, 187--204.
-- Rosenbaum, P. (2002). *Observational Studies*, 2nd ed. Springer.
 - Rosenbaum, P. and D. Rubin (1983). The Central Role of the Propensity Score in Observational Studies for Causal Effects. *Biometrika* 70, 41--55.
-- Rosenbaum, P. and J. Silber (2009). Amplification of Sensitivity Analysis in Matched Observational Studies. *JASA* 104, 1398--1405.
 - Słoczyński, T. (2022). Interpreting OLS Estimands When Treatment Effects Are Heterogeneous: Smaller Groups Get Larger Weights. *Review of Economics and Statistics* 104(3), 501--509.
 - Smith, J. and P. Todd (2005). Does Matching Overcome LaLonde's Critique of Nonexperimental Estimators? *Journal of Econometrics* 125, 305--353.
-
