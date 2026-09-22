@@ -27,16 +27,16 @@ format:
           dde/.style={-{Stealth[length=2.2mm]},thick,dashed}
         }
 ---
-
+<!-- 
 *Four problems. Plan on about three hours. Problem 4 asks you to run a short simulation in R (or Stata); attach your code and output. Nothing else requires software.*
 
 *Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
 *Further practice --- including the material cut from this set --- is in the companion file `02_dag_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
-
+--> 
 ## Problem 1 (Reading a DAG)
 
-*What this is for: everything else in this lecture is an application of path-tracing. Do this one slowly.*
+<!-- *What this is for: everything else in this lecture is an application of path-tracing. Do this one slowly.* -->
 
 Consider the following graph, where $U$ is unobserved.
 
@@ -66,9 +66,11 @@ Consider the following graph, where $U$ is unobserved.
 
 (d) Suppose a researcher conditions on $\{X, C\}$. State precisely what each does: which paths open, which close, and whether the causal effect is identified.
 
-## Problem 2 (A finance DAG: index inclusion)
+\newpage
 
-*What this is for: the previous problem was a graph. This one is a research design --- and the answer is that the design fails, which is the point.*
+## Problem 2 (A DAG: index inclusion)
+
+<!-- *What this is for: the previous problem was a graph. This one is a research design --- and the answer is that the design fails, which is the point.* -->
 
 You want the effect of **inclusion in a major equity index** ($D$) on **firm investment** ($Y$). Let $S$ = firm size, $Q$ = firm quality (**unobserved**), $O$ = institutional ownership, $M$ = market conditions.
 
@@ -100,9 +102,11 @@ You want the effect of **inclusion in a major equity index** ($D$) on **firm inv
 
 (d) A referee insists you control for institutional ownership, $O$, "since index inclusion changes ownership and ownership affects investment." Give **two separate** reasons this is wrong.
 
+\newpage 
+
 ## Problem 3 (Bad controls and selection)
 
-*What this is for: the two mistakes that a DAG catches and a regression table never will. Both consist of conditioning on the wrong thing --- one deliberately, one by constructing the sample.*
+<!-- *What this is for: the two mistakes that a DAG catches and a regression table never will. Both consist of conditioning on the wrong thing --- one deliberately, one by constructing the sample.* -->
 
 (a) Give the operational rule for identifying a bad control from the DAG, stated in terms of the backdoor criterion. Then explain why a randomly assigned treatment does **not** protect you from bad-control bias.
 
@@ -121,6 +125,7 @@ You want the effect of **inclusion in a major equity index** ($D$) on **firm inv
 
 (d) A paper reports its main specification with and without a questionable control, and the coefficient moves substantially. What should the authors conclude, and what should they *not* conclude?
 
+<!-- 
 ## Problem 4 (Simulation: a bad control with randomized treatment)
 
 *What this is for: to see a randomized treatment produce a coefficient of exactly zero when the true effect is 2 --- and to be able to predict the number before you run it.*
@@ -143,3 +148,4 @@ $$
 *Hint: write down $\mathrm{var}(D)$, $\mathrm{cov}(D,M)$, $\mathrm{var}(M)$, $\mathrm{cov}(D,Y)$, $\mathrm{cov}(M,Y)$, then solve the two normal equations.* Verify your formula by re-running the simulation at $\sigma_M^2 = 0.25$ and $\sigma_M^2 = 4$.
 
 (d) Your formula implies the bias **shrinks** as $M$ becomes noisier. State this in words and explain why it is counterintuitive but correct.
+-->

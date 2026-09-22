@@ -1,0 +1,285 @@
+---
+title: "Solutions --- Problem Set: Directed Acyclic Graphs"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+        \usepackage{tikz}
+        \usetikzlibrary{arrows.meta,positioning,calc}
+        \tikzset{
+          dnode/.style={circle,draw,thick,minimum size=9mm,inner sep=1pt,font=\small},
+          unode/.style={circle,draw,thick,dashed,minimum size=9mm,inner sep=1pt,font=\small},
+          bnode/.style={rectangle,draw,thick,fill=gray!25,minimum size=9mm,inner sep=3pt,font=\small},
+          de/.style={-{Stealth[length=2.2mm]},thick},
+          dde/.style={-{Stealth[length=2.2mm]},thick,dashed}
+        }
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+*Solution key. The numbers in Problem 4 are produced by the code shown --- the document recomputes them at render time, so the printed output and the code cannot drift apart.*
+
+*For the written parts, what follows is a model answer, not the only acceptable one. Grade on whether the structure is identified correctly, not on wording.*
+
+# Problem 1 (Reading a DAG)
+
+## (a) Every path from $D$ to $Y$
+
+There are exactly three. A path may not revisit a node, and $U$ has only the single edge $U \to Y$, so no path from $D$ to $Y$ passes *through* $U$.
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Path & Directed? & Middle node & Status before conditioning \\
+\midrule
+$D \to M \to Y$   & Yes --- causal & $M$: chain     & Open (this is the effect) \\
+$D \leftarrow X \to Y$ & No        & $X$: fork      & Open \\
+$D \to C \leftarrow Y$ & No        & $C$: collider  & Closed \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Association flows along the first two; the third is blocked at $C$ by default.
+
+## (b) Which are backdoor paths
+
+A backdoor path must satisfy two conditions: it **connects $D$ and $Y$**, and its **first edge points into $D$**.
+
+- $D \leftarrow X \to Y$: connects $D$ and $Y$, and begins $D \leftarrow X$, an arrow into $D$. **Backdoor.**
+- $D \to M \to Y$: connects them, but leaves $D$ through an outgoing arrow. Not backdoor --- it is the causal path itself.
+- $D \to C \leftarrow Y$: connects them, but again leaves $D$ forward. **Not** a backdoor path, even though it is not causal either.
+
+So there is exactly one backdoor path, $D \leftarrow X \to Y$, and closing it is the entire identification problem here.
+
+## (c) Is $C$ a collider on every path it lies on?
+
+**In this graph, yes** --- but only for a reason peculiar to $C$: both of its edges ($D \to C$ and $Y \to C$) point into it, so $C$ is a sink. Wherever $C$ sits in the middle of a path, both of that path's edges at $C$ must be the incoming ones, which is the definition of a collider.
+
+That is an accident of $C$, not a general truth, and the graph contains its own counterexample. Look at $Y$:
+
+- on the path $X \to Y \leftarrow U$, the two edges at $Y$ both point in --- $Y$ is a **collider**;
+- on the path $D \to M \to Y \to C$, one edge enters $Y$ and one leaves --- $Y$ is a **chain** node.
+
+Same variable, two paths, two roles. "Collider" describes how two particular edges meet at a node *along a given path*; it is not a label a variable carries around. This is why the question "is $Z$ a good control?" has no answer until you say which path you mean --- a point the lecture makes as *whether a variable is a good control is not a property of the variable, it is a property of its position in the graph*.
+
+## (d) Conditioning on $\{X, C\}$
+
+**$X$ helps.** It is the middle of the fork $D \leftarrow X \to Y$, the only backdoor path. Conditioning on it closes that path and removes the confounding.
+
+**$C$ does damage, in two distinct ways.**
+
+1. $C$ is a collider on $D \to C \leftarrow Y$, a path that was **closed**. Conditioning on it **opens** the path and manufactures an association between $D$ and $Y$ that does not exist in the population. Nothing else in the graph can close it again: $C$ is the only intermediate node on that path, so the only way to block it is not to condition on $C$.
+2. $C$ is a **descendant of $D$**, so conditioning on it violates condition 2 of the backdoor criterion outright.
+
+**Verdict: the effect is *not* identified by $\{X, C\}$.** It *is* identified by $\{X\}$ alone, which closes the one backdoor path, leaves the causal path $D \to M \to Y$ open, and leaves $D \to C \leftarrow Y$ closed.
+
+Two further remarks worth making:
+
+- Do **not** add $M$. It is a mediator on the causal path; conditioning on it would delete the part of the effect that travels through $M$, leaving only a direct effect that the question did not ask for.
+- $U$ being unobserved costs nothing. It has no arrow into $D$, so it lies on no backdoor path --- it is a pure outcome predictor. In the lecture's terms it is a *neutral* variable: including it (if you could) would only tighten the standard error.
+
+# Problem 2 (A finance DAG: index inclusion)
+
+## (a) Every path from $D$ to $Y$
+
+\begin{center}
+\begin{tabular}{lll}
+\toprule
+Path & Type & Status \\
+\midrule
+$D \to Y$                             & Directed --- the estimand & Open \\
+$D \leftarrow S \to Y$                & Backdoor (fork at $S$)    & Open \\
+$D \leftarrow Q \to Y$                & Backdoor (fork at $Q$)    & Open \\
+$D \leftarrow M \to Y$                & Backdoor (fork at $M$)    & Open \\
+$D \to O \leftarrow Q \to Y$          & Not backdoor              & Closed (collider at $O$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+$O$ is a sink ($D \to O$, $Q \to O$), so any path reaching $O$ must either stop there or turn around through $Q$; that yields the fifth path and no others.
+
+## (b) Why $D \to O \leftarrow Q \to Y$ is not a backdoor path
+
+It fails the defining condition: its first edge, $D \to O$, points **out of** $D$, not into it. A backdoor path must begin with an arrow into $D$ --- that is what makes it a "back door."
+
+It is nonetheless **closed**, for a separate reason: $O$ is a collider on it ($D \to O \leftarrow Q$), and colliders block association by default. So the path carries no correlation between $D$ and $Y$ --- unless someone conditions on $O$, or on a descendant of $O$, which is exactly what part (d) is about.
+
+The two facts are independent, and it is worth keeping them apart: *not a backdoor path* says you have no obligation to close it; *closed* says there is nothing to close.
+
+## (c) Is the effect identified?
+
+**If everything were observable:** condition on $\{S, Q, M\}$. Each is the middle of one of the three open backdoor paths, and none is a descendant of $D$, so both conditions of the backdoor criterion hold. This set is also **minimal**: the three backdoor paths have no intermediate nodes in common, so dropping any one of $S$, $Q$, $M$ leaves the corresponding path open.
+
+**Given that $Q$ is unobserved:** the achievable set is $\{S, M\}$. That blocks $D \leftarrow S \to Y$ and $D \leftarrow M \to Y$, but leaves $D \leftarrow Q \to Y$ **open**. Firm quality drives both index inclusion and investment, and no amount of conditioning on observables closes that path.
+
+**Conclusion: the effect is not identified by conditioning on observables.** No regression of investment on an inclusion dummy plus size and market controls estimates the causal effect, however many controls are added --- the problem is a missing variable, not an insufficient one.
+
+What that implies for the design: abandon selection-on-observables here and find a source of variation in inclusion that is unrelated to quality. The standard route in this literature is the mechanical assignment rule --- inclusion determined by a rank threshold, as in the Russell 1000/2000 reconstitution --- which is a regression discontinuity, the subject of Lecture 4. Reaching that conclusion *before* running any regression is the DAG earning its keep.
+
+## (d) The referee who wants you to control for $O$
+
+**Reason 1: $O$ is a collider, so controlling for it creates bias rather than removing it.** Since $D \to O \leftarrow Q$, ownership is a common effect of inclusion and of unobserved quality. The path $D \to O \leftarrow Q \to Y$ is currently closed; conditioning on $O$ opens it and induces a spurious association between $D$ and $Y$ running through the very variable ($Q$) you cannot observe. You would be adding a bias that is not there.
+
+**Reason 2: $O$ is post-treatment, which the backdoor criterion forbids.** $O$ is a descendant of $D$, so including it violates condition 2 regardless of what else is true. Note also that the referee's premise --- "ownership affects investment" --- is an arrow $O \to Y$ that the DAG does not contain; if you granted it, $O$ would become a **mediator** on $D \to O \to Y$, and controlling for it would strip out part of the effect you are trying to measure. On either reading of the graph, $O$ does not belong on the right-hand side.
+
+The general rule behind both: controls must be determined **before** treatment.
+
+# Problem 3 (Bad controls and selection)
+
+## (a) The rule, and why randomization does not save you
+
+**The rule.** A bad control is a variable that is itself affected by the treatment --- a **descendant of $D$**. Conditioning on it violates condition 2 of the backdoor criterion. Operationally: *a control must be determined before treatment*; if $D$ could have moved it, it is not a control.
+
+Such a variable does damage in one of two ways. If it lies on a causal path ($D \to X \to Y$) it is a **mediator**, and conditioning blocks part of the effect. If it has a second parent ($D \to X \leftarrow A \to Y$) it is a **collider**, and conditioning opens a path that was closed.
+
+**Why randomization does not protect you.** Randomizing $D$ guarantees that nothing points into $D$ --- there are no backdoor paths, so the naive comparison is already unbiased. But that is a statement about the paths that *exist*. It says nothing about paths you *create*. Conditioning on a post-treatment collider opens $D \to X \leftarrow A \to Y$, and the bias appears in a perfectly executed experiment. Randomization protects the design you were handed; it does not protect you from what you do to the data afterwards.
+
+## (b) What each sample-construction step conditions on
+
+\begin{center}
+\small
+\begin{tabular}{p{5.1cm}p{4.4cm}p{5.4cm}}
+\toprule
+Study & Conditions on & Collider? \\
+\midrule
+(i) funds alive at the end of the sample & Survival & \textbf{Yes.} Survival is a common effect of skill and luck; conditioning on it makes them correlated among survivors. The textbook case. \\
+(ii) CRSP--Compustat merged data & Being US-listed \emph{and} successfully matched & \textbf{Yes.} Both are consequences of size, age and quality --- the same forces driving the outcome. Conditioned on without a line of code mentioning it. \\
+(iii) completed deals only & Deal completion & \textbf{Yes.} Completion is post-announcement and a common effect of announcement terms and unobserved deal quality or market reaction. \\
+(iv) bonds with a credit rating & Being rated & \textbf{Yes, plausibly.} Whether an issue is rated is a choice driven by issuer quality and by the pricing the issuer expects --- both connected to the outcome. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The common thread: **selection is conditioning**. You condition on a variable whenever you include it, stratify on it, drop observations on it, or use a dataset assembled using it --- and the last is the dangerous one, because it never appears in the code.
+
+## (c) A plausible bad control in each study
+
+**(i) Disclosure mandate $\to$ cost of capital.** *Analyst coverage.* The mandate changes coverage, so coverage is post-treatment. If coverage is one channel through which disclosure lowers the cost of capital, it is a mediator and controlling for it removes part of the answer; if it also responds to unobserved firm quality, conditioning opens a collider path. Liquidity or bid--ask spread fail the same way.
+
+**(ii) Bank merger $\to$ small-business lending.** *Post-merger branch count or local market share.* Mergers consolidate branch networks, so branches are an outcome of the merger and the main channel through which lending changes. Conditioning on them removes the mechanism, and local demand shocks --- unobserved --- drive both branches and lending, so a collider path opens too.
+
+**(iii) Governance reform $\to$ firm value.** *Leverage, Tobin's Q, institutional ownership, or CEO turnover* --- all plausibly moved by the reform. Each is a descendant of $D$; conditioning either blocks the channel or opens a path via unobserved management quality.
+
+## (d) The coefficient moves when the questionable control is added
+
+**What they should conclude.** The control is doing real work: it is correlated with both $D$ and $Y$, so the two specifications are estimating different things. Which one is right is a question the **DAG** answers, not the data. If the control is post-treatment, the specification *without* it is the one that estimates the total effect, and the movement is a measurement of bad-control bias --- a diagnostic, and worth reporting as such.
+
+**What they should not conclude.** Not that the smaller estimate is "more conservative," nor that more controls are safer, nor that the movement itself adjudicates between the specifications. A coefficient that moves is not a specification test: it tells you the control matters, never that including it is correct. And the converse fails too --- a coefficient that barely moves is not evidence of no confounding, since an omitted variable can be strong and the included control weak.
+
+The honest report is both specifications, plus a sentence saying which one the assumed graph supports and why.
+
+# Problem 4 (Simulation: a bad control with randomized treatment)
+
+## (a) The DAG, and what to expect
+
+\begin{center}
+\begin{tikzpicture}
+\node[dnode] (D) at (0,0)    {$D$};
+\node[dnode] (Y) at (4.4,0)  {$Y$};
+\node[unode] (A) at (4.4,1.8){$A$};
+\node[dnode] (M) at (2.2,-1.6){$M$};
+\draw[de] (D) -- (Y);
+\draw[de] (A) -- (Y);
+\draw[de] (D) -- (M);
+\draw[de] (A) -- (M);
+\end{tikzpicture}
+\end{center}
+
+$M = D + A + e_M$ gives $D \to M$ and $A \to M$; $Y = \beta D + \gamma A + e_Y$ gives $D \to Y$ and $A \to Y$. There is **no arrow $M \to Y$**.
+
+**$M$ is a collider, and only a collider.** It is a common effect of $D$ and $A$. It is *not* a mediator: nothing travels from $D$ to $Y$ through $M$, because $M$ does not enter the equation for $Y$.
+
+**Backdoor paths: none.** Nothing points into $D$ --- it is drawn independently, which is what "randomly assigned" means here. The only non-causal path, $D \to M \leftarrow A \to Y$, leaves $D$ forward (so it is not a backdoor path) and is closed anyway (collider at $M$).
+
+**So the regression of $Y$ on $D$ alone should return $\beta = 2$.** With no open backdoor path there is nothing to adjust for; $A$ is omitted, but $A$ is independent of $D$, so it inflates the residual variance without biasing the slope.
+
+## (b) The three regressions
+
+```{r}
+set.seed(975)
+n <- 200000; beta <- 2; gamma <- 4; sM2 <- 1
+D <- rnorm(n); A <- rnorm(n)
+M <- D + A + rnorm(n, 0, sqrt(sM2))
+Y <- beta * D + gamma * A + rnorm(n)
+c(Y_on_D     = coef(lm(Y ~ D))[["D"]],
+  Y_on_D_M   = coef(lm(Y ~ D + M))[["D"]],
+  Y_on_D_M_A = coef(lm(Y ~ D + M + A))[["D"]])
+```
+
+$Y$ on $D$ returns $2.00$ --- correct, as predicted. $Y$ on $D$ and $M$ returns $0.00$. $Y$ on $D$, $M$ and $A$ returns $2.00$ again.
+
+A researcher who ran only the second regression would conclude that **$D$ has no effect on $Y$** --- and would feel well justified, having "controlled for" a variable strongly correlated with both. They are wrong because $M$ is a collider: conditioning on it opens $D \to M \leftarrow A \to Y$, and the association that path transmits happens to be equal and opposite to the true effect. The third regression restores the truth by conditioning on $A$, which closes the newly opened path --- but $A$ is unobserved in any real study, so that repair is not available in practice.
+
+Note how bad this failure mode is. The treatment was randomly assigned, the control is a real variable measured without error, and the estimate is not merely biased but exactly zero.
+
+## (c) Derivation
+
+All variables are mean zero, so the normal equations for $Y = b_D D + b_M M$ are
+$$
+\begin{aligned}
+b_D\,\mathrm{var}(D) + b_M\,\mathrm{cov}(D,M) &= \mathrm{cov}(D,Y), \\
+b_D\,\mathrm{cov}(D,M) + b_M\,\mathrm{var}(M) &= \mathrm{cov}(M,Y).
+\end{aligned}
+$$
+With $D, A, e_M, e_Y$ mutually independent and $\mathrm{var}(D) = \mathrm{var}(A) = 1$:
+$$
+\begin{aligned}
+\mathrm{var}(D) &= 1, &
+\mathrm{cov}(D,M) &= \mathrm{cov}(D, D + A + e_M) = 1, \\
+\mathrm{var}(M) &= 1 + 1 + \sigma_M^2 = 2 + \sigma_M^2, &
+\mathrm{cov}(D,Y) &= \mathrm{cov}(D, \beta D + \gamma A + e_Y) = \beta, \\
+\mathrm{cov}(M,Y) &= \beta\,\mathrm{var}(D) + \gamma\,\mathrm{var}(A) = \beta + \gamma. &&
+\end{aligned}
+$$
+Substituting:
+$$
+b_D + b_M = \beta, \qquad b_D + b_M\,(2 + \sigma_M^2) = \beta + \gamma .
+$$
+Subtracting the first from the second leaves $b_M\,(1 + \sigma_M^2) = \gamma$, so
+$$
+b_M = \frac{\gamma}{1 + \sigma_M^2},
+\qquad
+b_D = \beta - b_M = \beta - \frac{\gamma}{1 + \sigma_M^2}. \qquad \blacksquare
+$$
+
+At $\beta = 2$, $\gamma = 4$, $\sigma_M^2 = 1$: $b_D = 2 - 4/2 = 0$, which is why the coefficient vanished exactly.
+
+```{r}
+check <- function(sM2, n = 200000, beta = 2, gamma = 4) {
+  set.seed(975)
+  D <- rnorm(n); A <- rnorm(n)
+  M <- D + A + rnorm(n, 0, sqrt(sM2))
+  Y <- beta * D + gamma * A + rnorm(n)
+  c(sigma_M2 = sM2,
+    simulated = coef(lm(Y ~ D + M))[["D"]],
+    formula   = beta - gamma / (1 + sM2))
+}
+round(rbind(check(0.25), check(1), check(4)), 4)
+```
+
+The formula matches the simulation at every value: $-1.20$, $0.00$ and $+1.20$.
+
+## (d) Why the bias shrinks as $M$ gets noisier
+
+**In words.** The noisier the collider, the smaller the damage from conditioning on it. As $\sigma_M^2 \to \infty$ the bias term $\gamma/(1+\sigma_M^2) \to 0$ and $b_D \to \beta$: a sufficiently noisy $M$ is harmless. At the other end, $\sigma_M^2 \to 0$ makes $M$ a perfect record of $D + A$ and the bias is at its worst, $b_D \to \beta - \gamma = -2$.
+
+**Why it feels wrong.** Every instinct trained on measurement error says noise is bad: a noisy regressor is attenuated, a noisy instrument is weak, a noisy outcome is imprecise. Here noise *helps*.
+
+**Why it is right.** The two cases are not the same, because $M$ is not being used to measure anything. The harm from conditioning on a collider comes entirely from what $M$ tells you about the **unobserved** $A$. Knowing $M$ and $D$ pins down $A + e_M$; how much that reveals about $A$ depends on the signal-to-noise ratio $1 : \sigma_M^2$. Add noise and each value of $M$ is consistent with a wider range of $A$, so conditioning on it induces less spurious $D$--$A$ correlation --- and in the limit, where $M$ is pure noise, conditioning on it is conditioning on nothing at all.
+
+The practical lesson runs the other way from the intuition: **the cleaner and better-measured a post-treatment control is, the more damage it does.** A precisely measured bad control is more dangerous than a sloppy one.
