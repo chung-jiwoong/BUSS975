@@ -18,17 +18,18 @@ format:
         \newcommand{\indep}{\perp\!\!\!\perp}
         \usepackage{booktabs}
 ---
-
+<!-- 
 *Four problems. Plan on about three hours. Problems 3(c) and 4(a)--(c) ask you to compute in R (or Stata); attach your code and output. Nothing else requires software.*
 
 *Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
 *Further practice --- including the regression-bridge material cut from this set --- is in the companion file `01_causality_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
+--> 
 
 ## Problem 1 (Assignment mechanisms and the SDO decomposition)
-
+<!-- 
 *What this is for: everything in this course rests on the claim that the assignment mechanism, not the estimator, determines whether a comparison is causal. This problem makes that claim arithmetic.*
-
+--> 
 A banking regulator can inject capital into distressed banks. Let $D_i = 1$ if bank $i$ receives an injection, and let the outcome $Y_i$ be lending growth (%) over the following year. The complete (and, in reality, unobservable) potential outcomes for ten banks are:
 
 \begin{center}
@@ -60,9 +61,13 @@ $$
 
 (e) Under Regulator A the true $ATE$ is positive but the $SDO$ is negative. Explain --- as you would to a journalist --- why a well-intentioned, *competent* regulator produces data suggesting its own program was harmful. Then evaluate a colleague's proposal: "the problem is that the sample is too small; with 10,000 banks the bias would disappear."
 
+\newpage
+
 ## Problem 2 (SUTVA in financial markets)
 
+<!-- 
 *What this is for: SUTVA is the assumption that is violated most often in finance and discussed least often. It is also the one that no amount of data or cleverness with estimators can repair.*
+-->
 
 (a) For each scenario, state whether the violation is of **no interference** or **no hidden variation in treatment**, explain the mechanism in one sentence, and state whether the naive treated-minus-control comparison would likely **overstate** or **understate** the true effect of treatment on the treated.
 
@@ -74,15 +79,17 @@ $$
 
   iv. A study estimates the effect of "adopting an anti-takeover provision" on firm value, pooling classified boards, poison pills, and supermajority requirements into a single indicator.
 
-(b) In scenario (iii), the researcher's difference-in-differences finds a large positive effect on treated firms' output. Is the estimate *wrong*? Distinguish carefully between the **partial-equilibrium** and **general-equilibrium** effects, and state which question each answers.
+(b) In scenario (iii), the subsidy was randomly assigned, so the researcher simply compares the output of subsidized and unsubsidized firms --- and finds a large positive effect on treated firms' output. Is the estimate *wrong*? Distinguish carefully between the **partial-equilibrium** and **general-equilibrium** effects, and state which question each answers.
 
 (c) Scenario (ii) can be repaired by redefining the treatment. Propose a redefinition, and state precisely what estimand you are left with and how it differs from the one the researcher wanted.
 
-(d) Explain why SUTVA is logically **prior** to the independence assumption --- that is, why a SUTVA violation is a more fundamental problem than selection bias.
+<!-- (d) Explain why SUTVA is logically **prior** to the independence assumption --- that is, why a SUTVA violation is a more fundamental problem than selection bias. -->
+
+\newpage
 
 ## Problem 3 (Randomization inference: the exact case)
 
-*What this is for: finance is full of settings with one treated state, one regulatory event, or five treated firms. Asymptotic standard errors are meaningless there. This is the alternative, and it is exact.*
+<!--  *What this is for: finance is full of settings with one treated state, one regulatory event, or five treated firms. Asymptotic standard errors are meaningless there. This is the alternative, and it is exact.* -->
 
 Six firms are enrolled in a pilot program. Three are selected **by lot** to receive treatment. The realized assignment and observed outcomes are:
 
@@ -101,7 +108,9 @@ $Y_i$ & 6 & 7 & 8 & 3 & 4 & 5 \\
 
 (b) How many distinct assignments of three treated firms out of six are possible? Under the sharp null, explain why the observed $Y_i$ would have been identical under every one of them. Without enumerating, identify the assignment producing the largest $SDO$ and the one producing the smallest, and say where the realized assignment sits in that distribution.
 
-(c) **Computational.** Compute the exact two-sided $p$-value, defined as the share of assignments for which $|SDO| \geq |SDO_{\text{observed}}|$. A skeleton is given below; report your code and output.
+(c) Compute the exact two-sided $p$-value, defined as the share of assignments for which $|SDO| \geq |SDO_{\text{observed}}|$. 
+
+<!-- A skeleton is given below; report your code and output.
 
 ```r
 y <- c(6, 7, 8, 3, 4, 5)
@@ -113,13 +122,17 @@ sdo_all <- apply(perms, 2, function(tr) mean(y[tr]) - mean(y[-tr]))
 
 mean(abs(sdo_all) >= abs(sdo_obs))    # exact two-sided p-value
 ```
+-->
 
 (d) A colleague suggests: *"Rather than all this permuting, just bootstrap the $SDO$ --- resample the six firms with replacement a few thousand times and read off the interval."* Explain what the bootstrap resamples and what randomization inference permutes, state which source of uncertainty each one describes, and say which is the right object here given how these firms were selected into treatment.
 
 (e) The code uses `combn(6, 3)`, which presumes the experiment fixed **exactly three** treated firms. Suppose instead the researcher had assigned each firm independently by a fair coin flip. How many assignments are in the reference set now? Explain why `combn(6, 3)` would then be the wrong denominator, and state in one sentence what this says about the relationship between the permutation scheme and the physical randomization.
 
-(f) The realized assignment was the most extreme of all possible assignments, yet the $p$-value does not fall below 0.05. Explain what this implies about the power of very small experiments, state the smallest attainable two-sided $p$-value with six units and three treated, and name one method later in the course that relies on exactly this logic.
+(f) The realized assignment was the most extreme of all possible assignments, yet the $p$-value does not fall below 0.05. Explain what this implies about the power of very small experiments, and state the smallest attainable two-sided $p$-value with six units and three treated.
+<!-- , and name one method later in the course that relies on exactly this logic. -->
 
+
+<!-- 
 ## Problem 4 (Choosing a test statistic, and when exact enumeration fails)
 
 *What this is for: the sharp null tells you what to hold fixed, but it does not tell you what to measure. The test statistic is a separate choice, and it decides what you are able to detect.*
@@ -151,3 +164,4 @@ d <- c(rep(0, 30), rep(1, 30))
   iv. The two $p$-values are very different. Report the treated and control **standard deviations**, and explain what the disclosure requirement did to the distribution of abnormal returns that a difference in means was structurally unable to see. State the economic interpretation: what has the regulator changed, if not the average?
 
 (d) Having found nothing with the $SDO$ in (c.ii), a researcher tries $T_{KS}$, finds (c.iii), and reports only the second. Explain precisely what is wrong with this, and state the practice that would have made the $T_{KS}$ result credible. In doing so, be careful to distinguish the **validity** of a randomization test from its **power** --- say which of the two the choice of test statistic affects, and which it does not.
+-->
