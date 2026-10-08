@@ -1,6 +1,6 @@
 ---
 title: "Problem Set: Unconfoundedness"
-subtitle: "BUSS975 --- covering Lectures 3a and 3b"
+subtitle: "BUSS975: Causal Inference in Financial Research"
 format:
   pdf:
     papersize: letter
@@ -18,16 +18,17 @@ format:
         \newcommand{\indep}{\perp\!\!\!\perp}
         \usepackage{booktabs}
 ---
-
+<!--
 *Five problems. Plan on about four hours. Problem 5 asks you to fit regressions in R (or Stata); attach your code and output. Problems 2--4 are arithmetic you can do by hand, and Problem 1 needs only a pen.*
 
 *Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
 *Further practice is in the companion file `03_unconfoundedness_PS_extra.qmd`. It is optional, and good preparation for the comprehensive exam.*
+-->
 
 ## Problem 1 (Covariates, estimands, and the two assumptions)
 
-*What this is for: every method in these two lectures executes the same substitution --- a control's outcome standing in for a treated unit's missing $Y^0$. Whether that substitution is legitimate is settled before you choose an estimator: by what you condition on, and by which assumption you can defend.*
+<!-- *What this is for: every method in these two lectures executes the same substitution --- a control's outcome standing in for a treated unit's missing $Y^0$. Whether that substitution is legitimate is settled before you choose an estimator: by what you condition on, and by which assumption you can defend.* -->
 
 You want the effect of receiving a bank credit line ($D$) on a firm's capital expenditure over the following year ($Y$). You have, or could construct, the following variables:
 
@@ -49,11 +50,14 @@ and label each step as either the switching equation or the identifying assumpti
 
 (d) Variable (v) cannot be measured, so the design rests on an argument, not a test. Using Imbens's third defence, make the best case you can that unconfoundedness is plausible in this setting --- then state the circumstance under which that defence collapses.
 
-(e) LaLonde's (1986) observational estimates of the NSW training effect ranged from a fraction of the experimental benchmark to the wrong sign. Dehejia and Wahba (1999, 2002) largely recovered the benchmark; Smith and Todd (2005) showed that the recovery was fragile. For each of the two later papers, say which identifying assumption --- unconfoundedness or common support --- its argument was really about. Then explain why you cannot use Dehejia and Wahba's success as a *check* in your own credit-line study.
+<!-- 
+(e) LaLonde's (1986) observational estimates of the NSW training effect ranged from a fraction of the experimental benchmark to the wrong sign. Dehejia and Wahba (1999, 2002) largely recovered the benchmark; Smith and Todd (2005) showed that the recovery was fragile. For each of the two later papers, say which identifying assumption --- unconfoundedness or common support --- its argument was really about. Then explain why you cannot use Dehejia and Wahba's success as a *check* in your own credit-line study. -->
+
+\newpage
 
 ## Problem 2 (Subclassification, estimands, and common support)
 
-*What this is for: under unconfoundedness the estimand is a choice about weights --- and which cells of your data are empty decides which estimands you can still compute.*
+<!-- *What this is for: under unconfoundedness the estimand is a choice about weights --- and which cells of your data are empty decides which estimands you can still compute.* -->
 
 A regulator grants a supervisory waiver ($D$) to banks. The outcome $Y$ is loan growth (%). Banks fall into three observable strata, and within each stratum the waiver is as good as randomly assigned:
 
@@ -79,9 +83,11 @@ C & $200$ & $180$ & $\phantom{0}20$ & $31$ & $25$ \\
 
 (e) Suppose instead stratum C had contained **no** controls --- all 200 of its banks treated. Which estimands survive now? Compute each one that survives. State the general rule that (d) and (e) illustrate, and explain why, with ten binary covariates rather than one three-valued one, this situation is the norm rather than a curiosity.
 
+\newpage
+
 ## Problem 3 (Matching: the discrepancy, the correction, the standard error)
 
-*What this is for: nearest-neighbour matching has three separate problems --- the match is imperfect, the imperfection is signed, and the matches are not independent --- and each needs its own repair.*
+<!-- *What this is for: nearest-neighbour matching has three separate problems --- the match is imperfect, the imperfection is signed, and the matches are not independent --- and each needs its own repair.* -->
 
 Four treated banks are matched to the nearest control on a single covariate $X$ (log assets), one neighbour, with replacement. The outcome $Y$ is loan growth (%).
 
@@ -113,9 +119,13 @@ then report $SE(\widehat{ATT}) = \sqrt{\hat\sigma^2_{ATT}/N_T}$. By what factor 
 
 (f) Suppose you had matched on two covariates, log assets and the leverage ratio, where log assets has twenty times the standard deviation of leverage. What would raw Euclidean distance do, and which metric fixes it? Is the fix free?
 
+
+\newpage
+
+
 ## Problem 4 (Propensity scores and weighting)
 
-*What this is for: the score reduces $X$ to one number, and the weights rebuild a population from it. Both steps are exact in the population and fragile in a sample.*
+<!-- *What this is for: the score reduces $X$ to one number, and the weights rebuild a population from it. Both steps are exact in the population and fragile in a sample.* -->
 
 (a) The balancing property, $D \indep X \mid e(X)$, holds with no assumption at all; the propensity score theorem needs unconfoundedness. Explain why the first is free, identify the single step in the proof of the second at which unconfoundedness enters, and state what this implies about the evidential value of a balance table.
 
@@ -140,9 +150,11 @@ Compute $e(X)$ in each cell, the true $ATE$, the true $ATT$ and the $SDO$. Then 
 
 (e) Now add a third cell, V: ten very large firms, **all** of them treated. Which of the $ATE$, $ATT$ and $ATU$ remain identified? Lecture 3b advises "retreating to the $ATT$, which only needs overlap in one direction." Does that advice help here? Explain, and say what you would do instead.
 
+\newpage
+
 ## Problem 5 (Regression when treatment effects are heterogeneous)
 
-*What this is for: the canonical regression returns a number that is none of the three estimands --- and you can say exactly which number it is, and how to get the ones you wanted.*
+<!-- *What this is for: the canonical regression returns a number that is none of the three estimands --- and you can say exactly which number it is, and how to get the ones you wanted.* -->
 
 A supervisor grants waivers ($D$) to banks in two size classes. Within each class assignment is as good as random. The outcome is loan growth (%), measured without noise: every bank's outcome equals its class-and-arm value below.
 

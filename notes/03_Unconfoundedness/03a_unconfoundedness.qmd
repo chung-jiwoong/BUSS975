@@ -536,7 +536,7 @@ Failure $\Rightarrow$ bias & Failure $\Rightarrow$ extrapolation \\
 \vspace{0.4em}
 
 - Common support is the assumption you have **no excuse** for not checking --- and the one most papers skip.
-- This distinction is the key to the NSW debate in Lecture 3b.
+<!-- - This distinction is the key to the NSW debate in Lecture 3b. -->
 
 ## Weighting treatment effects under unconfoundedness
 

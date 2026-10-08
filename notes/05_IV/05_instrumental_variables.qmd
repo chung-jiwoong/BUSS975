@@ -1,0 +1,850 @@
+---
+title: "Instrumental Variables"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+author: "Professor Ji-Woong Chung"
+institute: "Korea University"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    slide-level: 2
+    toc: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \setbeamertemplate{navigation symbols}{}
+        \setbeamertemplate{footline}[frame number]
+        \setbeamertemplate{itemize items}[circle]
+        \setbeamertemplate{itemize subitem}[triangle]
+        \setbeamercolor{frametitle}{fg=black}
+        \setbeamerfont{frametitle}{series=\bfseries}
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+        \usepackage{tikz}
+        \usetikzlibrary{arrows.meta,positioning,calc}
+        \tikzset{
+          dnode/.style={circle,draw,thick,minimum size=9mm,inner sep=1pt,font=\small},
+          unode/.style={circle,draw,thick,dashed,minimum size=9mm,inner sep=1pt,font=\small},
+          qnode/.style={circle,draw,thick,dotted,minimum size=9mm,inner sep=1pt,font=\small},
+          de/.style={-{Stealth[length=2.2mm]},thick},
+          dde/.style={-{Stealth[length=2.2mm]},thick,dashed}
+        }
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\scriptsize}
+        \makeatletter
+        \def\verbatim@font{\scriptsize\ttfamily}
+        \makeatother
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+---
+
+# 7.1 The Strangeness Principle
+
+## Where we left off
+
+- **Lecture 4 (RD).** Identification came from a *rule*: a known threshold in a running variable. One assumption --- continuity --- and an estimand at one point.
+- **Today (IV).** Identification comes from a *shock*: something in the world that pushes units into and out of treatment for reasons unrelated to their outcomes.
+- The problem IV addresses is the one matching and RD could not touch: **selection on unobservables**. You believe $D$ is correlated with something you cannot measure, and no amount of conditioning will fix it.
+- The price is steep. RD has one main identifying assumption. IV, under heterogeneous effects, has **five** --- and the most important one is untestable.
+- Cunningham's framing: IV is "unfairly maligned, poorly understood, very hard to imitate well." Finding a valid instrument is like finding a four-leaf clover.
+
+## A strange thing happened at Thanksgiving
+
+- Your brother, four years into a PhD, produces a chart at dinner. Mothers whose **first two children are the same sex** --- two boys or two girls --- are about **one percentage point less likely** to work for pay than mothers whose first two are a boy and a girl.
+- Everyone at the table stares. Why on earth would the *sexes* of two children have anything to do with whether their mother holds a job? Two boys are no more burdensome than one of each.
+- Nobody can explain it. That baffled reaction is the point.
+- This is a real result: **Angrist and Evans (1998)**.
+
+\vspace{0.4em}
+
+- The DAG you are implicitly drawing has a **hole** in it.
+
+## The hole in the DAG
+
+\begin{center}
+\begin{tikzpicture}[node distance=22mm]
+\node[dnode] (Z) at (0,0) {$Z$};
+\node[qnode] (Q) at (3.2,0) {\textbf{?}};
+\node[dnode] (Y) at (6.4,0) {$Y$};
+\node[unode] (A) at (4.8,1.8) {$A$};
+\draw[de] (Z) -- (Q);
+\draw[de] (Q) -- (Y);
+\draw[dde] (A) -- (Q);
+\draw[dde] (A) -- (Y);
+\node[below=1mm of Z, font=\scriptsize] {same-sex first two};
+\node[below=1mm of Y, font=\scriptsize] {mother works};
+\node[above=1mm of A, font=\scriptsize] {unobserved};
+\end{tikzpicture}
+\end{center}
+
+- You know the instrument, the outcome, and maybe the confounders. **You do not know the treatment** --- and that missing link is the source of the strangeness.
+- Fill the hole with **family size** and it evaporates: parents who want a mix of sexes and get two of a kind try for a third child, and a third child changes labour supply.
+- Sex ratios are valid *because* they move family size and are otherwise unrelated to the mother's labour supply.
+
+## The strangeness principle
+
+> A valid instrument neither directly causes the outcome, nor is correlated with anything else that does --- **except through the treatment.**
+
+- Because the treatment is absent from the raw $Z$--$Y$ correlation, any association you find *should not be there*. The feeling of strangeness is the informal smell test that it is not.
+- **Aunt Linda.** She runs a celebrated restaurant. Asked how it started, she says: *"Jury duty."* You blink. Sequestered for three weeks, she helped the courthouse cook, who taught her everything; a year later they opened together.
+- Jury duty $\to$ apprenticeship $\to$ success. Once you learn about the apprenticeship, the strangeness disappears. Jury service has no direct path to culinary fame --- which is exactly what makes it a usable instrument.
+- Note what the strangeness is *not*: it is not evidence. It is a prompt to go looking for the mechanism.
+
+## When nothing feels strange, be suspicious
+
+\begin{center}
+\begin{tikzpicture}[node distance=20mm]
+\node[dnode] (Z) at (0,0) {$Z$};
+\node[dnode] (D) at (3.0,0) {$D$};
+\node[dnode] (Y) at (6.0,0) {$Y$};
+\draw[de] (Z) -- (D);
+\draw[de] (D) -- (Y);
+\draw[de,red,thick] (Z) to[bend right=38] node[below,font=\scriptsize,midway,black] {the problem} (Y);
+\node[below=1mm of Z, font=\scriptsize] {worked for Ramsay};
+\node[below=1mm of D, font=\scriptsize] {skill / hustle};
+\node[below=1mm of Y, font=\scriptsize] {restaurant succeeds};
+\end{tikzpicture}
+\end{center}
+
+- Cousin Jacob also became a chef. He was a line cook on one of **Gordon Ramsay's** shows, and credits his own hustle for everything since.
+- The table laughs. There is **nothing strange** about someone who worked with Ramsay going on to succeed --- his name alone brings investors, press, partnerships and early customers.
+- That red arrow is a direct path from instrument to outcome. It is a violation of the **exclusion restriction**, and it cannot be fixed by any estimator.
+- **The diagnostic:** if an intelligent layperson hears your reduced form and nods, you probably do not have an instrument. If they frown and ask "why would *those* two things be related?", you might.
+
+## Instruments are treatment assignment mechanisms
+
+- The deeper claim, and the one worth carrying out of this lecture: **a valid instrument corresponds to something in the real world that literally moves units into and out of treatment.** Coin flips. Draft numbers. Lotteries. Weather.
+- IV does **not** create exogenous variation. That variation either exists in the world or it does not. The model cannot summon it --- it can only exploit it.
+- So the best instruments come from **institutional knowledge** of how the treatment is actually assigned, not from searching a dataset for something correlated with $D$.
+- Cunningham's practical advice: talk to people. Ask them, in their own words, how some ended up treated and others did not. Do not ask them to name an instrument --- they have not read the book. Just listen.
+- You will notice this is the same discipline that §6.4 demanded of RD: *know the rule*. Here: *know the shock*.
+
+# 7.2 The Wald Estimator
+
+## When OLS is biased
+
+\begin{center}
+\begin{tikzpicture}[node distance=20mm]
+\node[dnode] (Z) at (0,0) {$Z$};
+\node[dnode] (D) at (2.8,0) {$D$};
+\node[dnode] (Y) at (5.6,0) {$Y$};
+\node[unode] (A) at (4.2,1.7) {$A$};
+\draw[de] (Z) -- (D);
+\draw[de] (D) -- (Y);
+\draw[dde] (A) -- (D);
+\draw[dde] (A) -- (Y);
+\node[below=1mm of Z, font=\scriptsize] {tuition / distance};
+\node[below=1mm of D, font=\scriptsize] {college};
+\node[below=1mm of Y, font=\scriptsize] {earnings};
+\node[right=1mm of A, font=\scriptsize] {ability (unobserved)};
+\end{tikzpicture}
+\end{center}
+
+Suppose the true model of earnings is
+$$
+Y_i = \alpha + \delta D_i + \gamma A_i + \varepsilon_i,
+$$
+but $A$ is not in your data, so you estimate $Y_i = \alpha + \delta D_i + \eta_i$ with $\eta_i = \gamma A_i + \varepsilon_i$.
+
+- What does OLS on the short regression actually give you?
+
+## The omitted variable bias formula
+
+Write $C(\cdot,\cdot)$ for covariance and $V(\cdot)$ for variance. OLS is a scaled covariance:
+$$
+\hat\delta = \frac{C(Y, D)}{V(D)}.
+$$
+Substitute the *long* model for $Y$ and expand:
+$$
+\begin{aligned}
+\hat\delta
+&= \frac{\delta V(D) + \gamma\,C(D,A) + C(D,\varepsilon)}{V(D)} \\[0.3em]
+&= \delta \;+\; \gamma\,\frac{C(A,D)}{V(D)}
+\qquad\text{since } C(D,\varepsilon) = 0 .
+\end{aligned}
+$$
+
+<!--
+- The second term is the bias. If ability raises earnings ($\gamma > 0$) and the able get more schooling ($C(A,D) > 0$), OLS is **biased upward**.
+- Nothing about this is fixed by more data: the bias does not shrink with $n$. It is a property of the population, not the sample.
+- You cannot condition your way out, because $A$ is unobserved. That is the whole problem.
+-->
+
+## The trick: take the covariance with $Z$ instead
+
+Keep the long model and compute $C(Y,Z)$ rather than $C(Y,D)$:
+$$
+C(Y,Z) \;=\; \delta\,C(D,Z) \;+\; \gamma\,C(A,Z) \;+\; C(\varepsilon,Z).
+$$
+
+- In the DAG, there is no open path from $Z$ to $A$: every route runs through a **collider** ($Z \to D \leftarrow A$, and $Z \to D \to Y \leftarrow A$). So $C(A,Z) = 0$. Likewise $C(\varepsilon, Z) = 0$.
+- Both of the troublesome terms vanish:
+$$
+C(Y,Z) = \delta\,C(D,Z).
+$$
+- It is a free country, so divide both sides by $C(D,Z)$:
+$$
+\boxed{\;\hat\delta_{\text{Wald}} \;=\; \frac{C(Y,Z)}{C(D,Z)} \;=\; \delta\;}
+$$
+- Two covariances. You could compute them with a pencil and a spreadsheet.
+
+## Reduced form and first stage
+
+$$
+\underbrace{\frac{C(Y,Z)}{C(D,Z)}}_{\textstyle \hat\delta_{\text{Wald}}}
+\qquad=\qquad
+\frac{\text{\textbf{Reduced form}}}{\text{\textbf{First stage}}}
+$$
+
+- The **reduced form**, $C(Y,Z)$, is the strange association itself --- the $Z$--$Y$ correlation that should not be there. Angrist--Evans: sex ratios and maternal labour supply.
+- The **first stage**, $C(D,Z)$, is the association between instrument and treatment. It is what *resolves* the strangeness.
+- You will hear this jargon constantly from now on. Learn it here.
+- **A nontrivial point.** The reduced form is *just a calculation*. It can always be computed, and computing it tells you nothing about whether the instrument is valid. Keep "I can compute it" and "it identifies something" firmly apart.
+
+## What makes it work, and what cannot be checked
+
+The Wald estimator recovers $\delta$ when:
+
+1. **Exclusion.** $Z$ does not cause $Y$ directly --- any effect runs through $D$.
+2. **Independence.** $Z$ is independent of the confounder $A$ and the error $\varepsilon$.
+3. **A nonzero first stage.** $C(D,Z) \neq 0$.
+
+\vspace{0.4em}
+
+- Under these, $\operatorname{plim} \hat\delta = \delta$: **consistency**. In finite samples it differs, and by how much depends largely on the strength of that denominator --- §7.4.
+- **The bad news.** Exclusion cannot be tested, at least not without extra assumptions you will not like. Arguments for it are *narrative*.
+- Good narratives rest on a realistic understanding of how treatment is actually assigned --- shoe-leather, not data mining. Bad ones rest on the word "exogenous."
+- This is why IV attracts scepticism: defeating an IV paper requires only creating doubt about exclusion.
+
+# 7.3 Two Stage Least Squares
+
+## Wald *is* 2SLS
+
+Start from the Wald ratio and multiply through by $V(Z)/V(Z)$:
+$$
+\hat\delta_{\text{Wald}}
+= \frac{C(Z,Y)}{C(Z,D)}
+= \frac{C(Z,Y)/V(Z)}{C(Z,D)/V(Z)}
+= \frac{\hat\beta\,C(Z,Y)}{\hat\beta^{2} V(Z)}
+= \frac{C(\hat\beta Z, Y)}{V(\hat\beta Z)},
+$$
+where $\hat\beta = C(Z,D)/V(Z)$ is the first-stage slope from $D = \gamma + \beta Z + \epsilon$.
+
+- But $\hat\beta Z$ is, up to the constant, the **fitted value** $\hat D$ from that first stage. So
+$$
+\hat\delta_{2SLS} = \frac{C(\hat D, Y)}{V(\hat D)} .
+$$
+- We are no longer using $D$. We are using the part of $D$ that the instrument explains --- the part that is, by assumption, unrelated to $A$.
+- **Without covariates, Wald and 2SLS are numerically identical.** Not approximately. Identically.
+
+## Four ways, one number
+
+```{r}
+#| echo: true
+suppressMessages({library(haven); library(AER)})
+card <- as.data.frame(read_dta("data/card.dta"))
+d <- card[!is.na(card$lwage) & !is.na(card$educ) & !is.na(card$nearc4), ]
+
+w1 <- cov(d$lwage, d$nearc4) / cov(d$educ, d$nearc4)        # ratio of covariances
+w2 <- coef(lm(lwage ~ nearc4, d))[2] / coef(lm(educ ~ nearc4, d))[2]  # ratio of OLS
+fs <- lm(educ ~ nearc4, d)
+w3 <- coef(lm(d$lwage ~ fitted(fs)))[2]                     # manual two stages
+w4 <- coef(ivreg(lwage ~ educ | nearc4, data = d))[2]       # one command
+setNames(unname(c(w1, w2, w3, w4)),
+         c("covariances", "OLS ratio", "manual 2SLS", "ivreg"))
+```
+
+\footnotesize
+Card (1995), $N = 3{,}010$. Identical to the last digit, because they are the same estimator written four ways. Compare OLS on the same data: `r round(coef(lm(lwage ~ educ, d))[2], 4)`.
+
+## One warning about doing it by hand
+
+- You may compute 2SLS in two manual steps to **see** what it does. Never *report* results that way.
+- The second-stage standard errors from a manual two-step regression are **wrong**. They treat $\hat D$ as if it were data, ignoring that it was estimated --- so they are too small.
+- Use `ivreg` (R, `AER` or `ivreg` package) or `ivregress 2sls` (Stata), which compute the correct variance.
+- With covariates $X$, the rule is: **every exogenous regressor is its own instrument.** $X$ appears in both stages; only $D$ is instrumented.
+- With more instruments than endogenous regressors the model is **over-identified**, and 2SLS uses a particular weighted combination of them. That is where §7.4's trouble begins.
+
+# 7.4 Weak Instruments
+
+## Quarter of birth and compulsory schooling
+
+- **Angrist and Krueger (1991).** Two institutional facts, combined:
+  1. Children start first grade based on a **31 December** cutoff. Two children born a day apart, 31 December and 1 January, start a year apart --- purely by chance.
+  2. Compulsory schooling laws let students leave at **16**.
+- A child born in the fourth quarter therefore reaches 16 having completed *more* schooling than one born in the first quarter. The law binds them differently through nothing but their birthday.
+- So quarter of birth shifts years of schooling --- a little, for some people --- and is otherwise, one hopes, unrelated to earnings.
+- **The strangeness test:** tell someone that people born in January earn less than people born in October. They will frown. Good.
+
+## Present the Wald estimator as two pictures
+
+- Angrist and Krueger show the **first stage** --- years of schooling by quarter of birth, cohort by cohort --- as a figure, not a coefficient. Fourth- and third-quarter births sit visibly higher.
+- They show the **reduced form** --- log weekly earnings by quarter of birth --- the same way. Jagged, but the 3s and 4s sit above the 1s and 2s.
+- Those two figures *are* the numerator and the denominator of the Wald estimator. The paper shows you the estimate before it ever runs 2SLS.
+- **The rule for your own work:** visualise the reduced form and the first stage separately, even if you will ultimately report 2SLS. A plot of $Y$ against $\hat D$ is opaque and invites suspicion, because the data have already been processed.
+- A second thing the figure reveals: the relationship **fades for later cohorts**. By the 1947 births it has nearly vanished. Hold that thought.
+
+## A falsification test built into the first stage
+
+\begin{center}
+\small
+\begin{tabular}{llrrr}
+\toprule
+Outcome & Cohort & QOB I & QOB II & QOB III \\
+\midrule
+Total schooling  & 1930--39 & $-0.124$ & $-0.086$ & $-0.015$ \\
+High school grad & 1930--39 & $-0.019$ & $-0.020$ & $-0.004$ \\
+\textbf{College grad} & 1930--39 & $-0.005$ & $\phantom{-}0.003$ & $\phantom{-}0.002$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Quarter of birth predicts **total schooling** and **high school graduation**, both negative and significant: born earlier in the year, less schooling. That is the first stage.
+- It does **not** predict **college graduation**. And that is the point.
+- Compulsory schooling binds only through high school. If quarter of birth predicted college completion, postgraduate degrees and total years alike, the instrument would clearly be picking up something *other* than the compulsory-schooling channel --- and exclusion would be in doubt.
+- **The general lesson.** Where your proposed mechanism implies the instrument should have *no* effect, show that it has no effect. Untestable assumptions have testable implications; go find them.
+
+## More instruments, more precision --- at what price?
+
+- Angrist and Krueger wanted more variation in predicted schooling, which should mean more precision. So they interacted the three quarter dummies with state and year of birth: **180 instruments**.
+- At the time this looked like a free lunch. It was not.
+- Many of the extra instruments are **nearly useless**: in some states quarter of birth explains almost nothing, and in later cohorts the effect had faded (that figure again).
+- **Bound, Jaeger and Baker (1995)** showed what this does. Writing the OLS bias as $\sigma_{\varepsilon\eta}/\sigma_\eta^2$, the finite-sample bias of 2SLS is approximately
+$$
+E[\hat\beta_{2SLS} - \beta] \;\approx\; \frac{\sigma_{\varepsilon\eta}}{\sigma_\eta^{2}} \cdot \frac{1}{F + 1},
+$$
+where $F$ is the population first-stage $F$-statistic.
+- Read it: as $F \to \infty$ the bias vanishes; as $F \to 0$ **2SLS converges on the OLS bias**. Adding weak instruments lowers $F$ and so moves you back toward the thing you were trying to escape.
+
+## What weak instruments actually do
+
+```{r}
+#| echo: false
+#| fig-width: 9
+#| fig-height: 2.7
+suppressMessages(library(AER))
+RED <- "#B2182B"; BLU <- "#2166AC"
+set.seed(975)
+TRUE_D <- 1.0; RHO <- 0.8; K <- 20; n <- 2000
+one <- function(pi) {
+  Z <- matrix(rnorm(n * K), n, K)
+  u <- rnorm(n); v <- RHO * u + sqrt(1 - RHO^2) * rnorm(n)
+  D <- pi * Z[, 1] + v
+  Y <- TRUE_D * D + u
+  c(unname(coef(ivreg(Y ~ D | Z))[2]), unname(coef(lm(Y ~ D))[2]),
+    unname(summary(lm(D ~ Z))$fstatistic[1]))
+}
+pis <- c(0.015, 0.03, 0.05, 0.08, 0.12, 0.18, 0.26, 0.40, 0.60, 0.90, 1.30)
+out <- t(sapply(pis, function(p) {
+  m <- t(replicate(200, one(p)))
+  c(F = median(m[, 3]), tsls = median(m[, 1]), ols = median(m[, 2]))
+}))
+par(mfrow = c(1, 2), mar = c(3.9, 4.2, 2.0, 0.8), cex = 0.8, mgp = c(2.4, 0.7, 0))
+plot(out[, "F"], out[, "tsls"], type = "n", log = "x", ylim = c(0.9, 1.9),
+     xlab = "first-stage F  (log scale)", ylab = "estimate",
+     main = "Weak instruments drag 2SLS onto OLS", font.main = 1, cex.main = 0.95)
+abline(h = TRUE_D, col = "grey35", lty = 2)
+abline(h = median(out[, "ols"]), col = RED, lty = 3)
+text(max(out[, "F"])*0.8, TRUE_D + 0.06, "truth", col = "grey35", adj = 1, cex = 0.72)
+text(max(out[, "F"])*0.8, median(out[, "ols"]) - 0.06, "OLS bias", col = RED, adj = 1, cex = 0.72)
+lines(out[, "F"], out[, "tsls"], col = BLU, lwd = 2.6)
+points(out[, "F"], out[, "tsls"], pch = 16, cex = 0.7, col = BLU)
+abline(v = 10, col = "grey60", lty = 3)
+text(9.2, 1.70, "F = 10", cex = 0.7, col = "grey40", adj = 1, srt = 90)
+text(1.15, 1.45, "median 2SLS", col = BLU, adj = 0, cex = 0.72)
+
+set.seed(975)
+u <- rnorm(5000); v <- RHO * u + sqrt(1 - RHO^2) * rnorm(5000)
+D <- v; Y <- TRUE_D * D + u
+ks <- c(5, 20, 60, 120, 180)
+est <- sapply(ks, function(k) {
+  Zf <- matrix(rnorm(5000 * k), 5000, k)
+  summary(ivreg(Y ~ D | Zf))$coefficients["D", 1:2]
+})
+plot(ks, est[1, ], type = "n", ylim = c(0.8, 2.1),
+     xlab = "number of PURE NOISE instruments", ylab = "2SLS estimate",
+     main = "...and noise alone looks convincing", font.main = 1, cex.main = 0.95)
+abline(h = TRUE_D, col = "grey35", lty = 2)
+abline(h = coef(lm(Y ~ D))[2], col = RED, lty = 3)
+arrows(ks, est[1, ] - 1.96*est[2, ], ks, est[1, ] + 1.96*est[2, ],
+       code = 3, angle = 90, length = 0.03, col = BLU, lwd = 1.6)
+points(ks, est[1, ], pch = 16, col = BLU, cex = 0.9)
+text(8, TRUE_D - 0.07, "truth", col = "grey35", adj = 0, cex = 0.72)
+text(8, coef(lm(Y ~ D))[2] + 0.07, "OLS bias", col = RED, adj = 0, cex = 0.72)
+text(100, 1.12, "every 95% CI excludes the truth", cex = 0.7, col = "grey25")
+```
+
+\vspace{-0.3em}
+\footnotesize
+True effect $= 1$; OLS is biased to about $1.8$. **Left:** as the first stage weakens, median 2SLS slides off the truth and onto the OLS bias --- and at the traditional threshold $F = 10$ it is still visibly biased. **Right:** $K$ instruments that are *pure random noise*, containing no information about $D$ whatsoever. The estimates are tight, confident, and wrong.
+
+## Krueger's own suggestion, and what it showed
+
+- Bound, Jaeger and Baker re-ran Angrist and Krueger's specifications using **randomly generated numbers** in place of actual quarter of birth. The idea was Alan Krueger's own.
+- Their finding, in their words: the second-stage results *"look quite reasonable even with no information about educational attainment in the simulated instruments. They give no indication that the instruments were randomly generated."*
+- But: *"the F statistics on the excluded instruments in the first-stage regressions are always near their expected value of essentially 1 and do give a clear indication"* of the problem.
+- That is the right panel above, reproduced. **The second stage cannot warn you. Only the first stage can.**
+- In the real data, adding controls drove Angrist and Krueger's first-stage $F$ from $13.5$ to $4.8$ to $1.6$ --- and the 2SLS estimate drifted back toward OLS, exactly as the formula predicts.
+
+## How should we measure weakness?
+
+- **The old rule.** Stock and Yogo (2005): first-stage $F > 10$. Based on Monte Carlo under homoskedasticity. For twenty years this was the standard.
+- **The number 10 is now considered too low**, especially with multiple endogenous regressors, heteroskedasticity, or non-normal errors. Lee et al. (2022) argue the relevant threshold can be above **100**.
+- Weak instruments do not merely bias point estimates. They **distort inference**: standard errors come out too small and $t$-tests mislead.
+- **What to report now**, following Andrews, Stock and Sun (2019):
+  1. The **effective $F$-statistic** of Montiel Olea and Pflueger (2013), which accounts for heteroskedasticity. In the just-identified case it reduces to the robust first-stage $F$.
+  2. **Anderson--Rubin confidence intervals** --- *regardless* of the value of $F$.
+
+## Anderson--Rubin intervals
+
+- A conventional 2SLS interval is built **around a point estimate**: $\hat\delta \pm 1.96\,\widehat{SE}$. That construction presumes $\hat\delta$ is well behaved, which under weak instruments it is not.
+- An AR interval instead **inverts a hypothesis test**. For each candidate value $\delta_0$, it asks: could this value plausibly have generated the data? Values that could not are excluded.
+- The payoff: AR intervals are valid **whether or not the instrument is strong**.
+  - Strong instrument $\Rightarrow$ the interval is tight.
+  - Weak instrument $\Rightarrow$ the interval expands, sometimes to include both large positive and large negative values.
+- That blow-up is not a failure of the method. It is the method **telling you the truth**: your instrument is not strong enough to learn anything from these data.
+- With multiple instruments the literature has not converged on one procedure. Report a robust one, and say which.
+
+## So what do you do with a weak instrument?
+
+- **Use a just-identified model with your single strongest instrument.** Fewer, stronger beats more, weaker --- the opposite of the 1991 intuition.
+- **Consider LIML** instead of 2SLS. It is approximately median-unbiased in over-identified constant-effects models and has better finite-sample behaviour, though the same asymptotics.
+- **Report AR intervals** and an effective $F$. Let the reader see the weakness rather than discover it.
+- **Cunningham's own view, bluntly:** if you have a weak instrument problem, the only real solutions are to get a stronger instrument or to stop doing IV. And since instruments are four-leaf clovers, you would already be using the stronger one if you had it --- so you are probably better off attacking the question another way.
+- The honest version of this lecture: most IV papers should have been something else.
+
+# 7.5 Local Average Treatment Effects
+
+## Heckman's objection
+
+- Everything so far assumed **homogeneous** treatment effects: one $\delta$, the same for everyone. Drop that and the picture changes completely.
+- In 1990 --- the same year Angrist published the draft-lottery paper --- **Heckman (1990)** showed that IV identifies an average causal effect only under very strong conditions, later called **identification at infinity**: the instrument would have to shift essentially the *entire* population into or out of treatment.
+- Real instruments do nothing of the sort. The draft lottery did not compel service for everyone with a low number, nor exempt everyone with a high one.
+- So Heckman's critique was **correct**, and it appeared to undercut the most natural reading of Angrist's results.
+- And yet: the US government was literally randomising young men into the military. How could that reveal *nothing* causal?
+- **Imbens and Angrist (1994)** worked backwards from that tension. If instruments cannot shift everyone, what exactly do they identify?
+
+## Potential treatment status
+
+The move is to apply potential outcomes to the **first stage** as well as the second:
+$$
+D_i^{1} = i\text{'s treatment status when } Z_i = 1,
+\qquad
+D_i^{0} = i\text{'s treatment status when } Z_i = 0 .
+$$
+
+- This is *not* the treatment and control group. It says person $i$ has **two hypothetical treatment statuses**, one for each value of the instrument --- only one of which is ever realised.
+- The switching equation now applies to treatment:
+$$
+D_i = D_i^{0} + \underbrace{(D_i^{1} - D_i^{0})}_{\pi_{1i}} Z_i ,
+$$
+where $\pi_{1i}$ is the **heterogeneous causal effect of the instrument on treatment** for person $i$.
+- Historical aside: the first draft of the LATE paper used index functions, not potential outcomes. Gary Chamberlain and Don Rubin pushed them to switch --- and to introduce potential treatment status. That change is most of why the result is comprehensible.
+
+## The five assumptions
+
+1. **SUTVA.** Person $i$'s potential treatment and potential outcomes depend only on *their own* instrument and treatment --- no spillovers. *Violation:* I had no intention of enlisting, but my best friend was drafted, so I joined too.
+2. **Independence.** $\{Y_i(D^1_i,1), Y_i(D^0_i,0), D^1_i, D^0_i\} \indep Z_i$. The instrument is as good as randomly assigned.
+3. **Exclusion.** $Y_i(D_i, 0) = Y_i(D_i, 1)$: the instrument affects $Y$ only through $D$.
+4. **Nonzero first stage.** $E[D^1_i - D^0_i] \neq 0$.
+5. **Monotonicity.** Either $\pi_{1i} \geq 0$ for all $i$, or $\pi_{1i} \leq 0$ for all $i$.
+
+\vspace{0.4em}
+
+- Only **one of these is testable** --- the first stage, because it involves $D$ and $Z$ alone, both of which you observe.
+- Compare RD, which rests on one assumption. This is why IV is harder to defend.
+
+## Independence is not exclusion
+
+This is the distinction students most often collapse. They are different assumptions.
+
+- **Independence** buys you a causal interpretation of the **reduced form**:
+$$
+E[Y_i \mid Z_i = 1] - E[Y_i \mid Z_i = 0] = E[Y_i(D^1_i, 1)] - E[Y_i(D^0_i, 0)].
+$$
+That is the average effect of **the instrument** on the outcome --- and it may have everything or nothing to do with the treatment.
+- **Example.** Regress career earnings on **draft eligibility**. A nonzero coefficient is a real causal effect --- of being draft *eligible*. But that is not Angrist's question.
+- Suppose most people responded to draft eligibility by *avoiding* service: enrolling in graduate school for a deferment, or moving to Canada. The reduced form would still be causal, and still be about something other than military service.
+- **Exclusion** is the extra assumption that pins the channel down. A random lottery number gives you independence. It does **not** give you exclusion --- that lottery number also affected schooling decisions, which is precisely the standard worry about Angrist (1990).
+- Randomisation is not enough. You must also argue there is only one channel.
+
+## Monotonicity, and the four types
+
+Monotonicity says the instrument pushes everyone the same way, or not at all. Given it, the population splits into **four groups**:
+
+\begin{center}
+\small
+\begin{tabular}{llcc}
+\toprule
+Type & In the draft example & $D^0_i$ & $D^1_i$ \\
+\midrule
+\textbf{Compliers}    & serve if drafted, not otherwise        & $0$ & $1$ \\
+Always-takers         & patriots: serve either way             & $1$ & $1$ \\
+Never-takers          & conscientious objectors; medically exempt & $0$ & $0$ \\
+\textit{Defiers}      & serve only if \emph{not} drafted        & $1$ & $0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **Monotonicity rules out defiers.** Without it, the compliers' effects and the defiers' effects enter with opposite signs and can cancel, so IV need not estimate a weighted average of anything.
+- A judge may be lenient in general but strict for drug offences. A policy may push some firms in and others out. Monotonicity is an **assumption about human behaviour**, not a technical nicety.
+- It was monotonicity that made Imbens and Angrist themselves sceptical of the administrative-screening design --- see §7.7.
+
+## The LATE theorem
+
+If all five assumptions hold, IV identifies
+$$
+\delta_{\text{LATE}}
+= \frac{\text{effect of } Z \text{ on } Y}{\text{effect of } Z \text{ on } D}
+= \frac{E[Y_i(D^1_i,1) - Y_i(D^0_i,0)]}{E[D^1_i - D^0_i]}
+= E\big[\,Y^1_i - Y^0_i \;\big|\; D^1_i - D^0_i = 1\,\big].
+$$
+
+- Read the last line carefully. The average is taken **only over compliers** --- the people whose treatment status the instrument actually changed.
+- It says nothing about always-takers: for patriots $D^1_i = D^0_i = 1$, so they never appear. Nothing about never-takers either.
+- Under homogeneous effects this distinction is empty, because compliers have the same effect as everybody else. Under heterogeneity it is the whole story.
+- **Angrist (1990) therefore estimated** the effect of military service on earnings *for men who served because their number was called* --- which is arguably exactly the right policy parameter for a question about conscription.
+- Whether the complier group is the group you care about varies entirely by application. You must argue it, not assume it.
+
+## Compliers are defined by the instrument
+
+- You cannot identify *which individuals* are compliers --- that would require seeing both $D^1_i$ and $D^0_i$. You can characterise the group, and you should.
+- **Change the instrument and you change the estimand.** Two valid instruments for the same treatment can give genuinely different, equally correct answers, because they move different people.
+- This dissolves a common confusion: "your IV estimate differs from theirs, so one of you is wrong." Not necessarily. Different compliers, different LATEs.
+- It also means a specification test of over-identifying restrictions can reject simply because effects are **heterogeneous**, not because an instrument is invalid.
+- **Practical advice.** Report what you can about who the compliers are: their size as a share of the sample, and their observable characteristics. A LATE for 3% of the sample is a different paper from a LATE for 60%.
+
+# 7.6 Card: College in the County
+
+## The design
+
+- **Card (1995)**, NLS Young Men, 5,525 men aged 14--24 followed from 1966. The model is the familiar one:
+$$
+Y_i = \alpha + \delta S_i + \gamma X_i + \varepsilon_i,
+$$
+with $Y$ log earnings, $S$ years of schooling, and $\varepsilon$ containing **ability**. If ability raises both schooling and wages, OLS is biased up.
+- **The instrument:** whether the respondent grew up in a county containing a **four-year college**.
+- **Why it moves schooling:** proximity lowers the cost of attendance, because you can live at home.
+- **Who are the compliers?** Not those who would always attend, nor those who never would. The compliers are people for whom the cost of leaving home is the binding constraint --- plausibly the **liquidity constrained**.
+- **The strangeness test:** why should the presence of a college in your childhood county affect your wages at 30? Only through schooling, one hopes. Is that believable? Hold the question.
+
+## The estimates
+
+```{r}
+#| echo: true
+suppressMessages({library(sandwich); library(lmtest)})
+ols <- lm(lwage ~ educ, data = d)
+iv  <- ivreg(lwage ~ educ | nearc4, data = d)
+fs  <- lm(educ ~ nearc4, data = d)
+fsr <- coeftest(fs, vcov = vcovHC(fs, type = "HC1"))["nearc4", ]
+round(setNames(unname(c(coef(ols)["educ"], coef(iv)["educ"],
+                        coeftest(iv, vcov = vcovHC(iv, "HC1"))["educ", 2],
+                        fsr[1], fsr[2], (fsr[1] / fsr[2])^2)),
+               c("OLS", "2SLS", "2SLS robust SE",
+                 "first stage", "first stage SE", "effective F")), 4)
+```
+
+\vspace{-0.2em}
+\footnotesize
+
+- First stage: living in a college county is associated with **0.83 of a year** more schooling. Under independence, that is a causal effect of the instrument.
+- Effective $F \approx 60$, comfortably strong. The Anderson--Rubin interval reported in the Remix is $[0.144,\ 0.248]$ --- it excludes zero.
+- **2SLS gives a return of about 18.8\% per year of schooling. OLS gives about 5.2\%.**
+
+## Why is 2SLS *larger* than OLS?
+
+- This should bother you. If the problem were **ability bias**, OLS would be biased *upward* --- able people get more schooling and earn more anyway --- so 2SLS should come in **lower**. It comes in three times higher.
+- **Explanation 1: measurement error.** Classical measurement error in schooling attenuates OLS toward zero, and IV repairs it. But people know their own years of schooling fairly well, so this cannot carry the whole gap.
+- **Explanation 2, the LATE reading: compliers genuinely have higher returns.** The compliers are people for whom the marginal cost of attending was the binding constraint. If they were **underinvesting** in education because of that constraint, the return to the schooling they were induced to get is high --- precisely because they had been held below the efficient level.
+- This is a case where LATE $\neq$ ATE is the *interesting* finding, not a nuisance: it says something about liquidity constraints in education.
+- It is also unfalsifiable from these data alone. Treat it as an interpretation, and say so.
+
+# 7.7 Five Common IV Designs
+
+## The five
+
+Over the years certain IV strategies have been used so often that they have become **designs**, with their own literatures and their own failure modes:
+
+\vspace{0.3em}
+
+1. **Lotteries** --- randomised offers with imperfect take-up.
+2. **Judge / examiner fixed effects** (the "leniency design").
+3. **Bartik, or shift-share, instruments.**
+4. **Fuzzy regression discontinuity** --- which you already know.
+5. **Supply shifters for the elasticity of demand** --- the original IV, from the 1920s.
+
+\vspace{0.5em}
+
+- For each, ask the same four questions: *what is the shock? what is the first stage? who are the compliers? where does exclusion break?*
+
+## Design 1: Lotteries
+
+- In many randomised trials, assignment to treatment is random but **take-up is voluntary**. Those who take it up are precisely those who expect to benefit --- positive selection.
+- Comparing the treated with the untreated is then biased **even in a randomised experiment**. The fix: instrument actual treatment with the **randomised offer**, and estimate the LATE.
+- **Oregon Health Insurance Experiment.** In 2008 Oregon expanded Medicaid for low-income adults and, facing excess demand, allocated places by **lottery**: roughly 30,000 drawn from a list of 85,000. Of those selected, about 10,000 enrolled.
+- First stage (Finkelstein et al. 2012): winning the lottery raised the probability of ever being on Medicaid by about **26 percentage points** --- large, but nowhere near one. Hence IV rather than a simple comparison.
+- Note what the design gives you: the effect of **having Medicaid** for those who enrolled *because* they won --- not for those who would have found coverage anyway.
+
+## Lotteries: what Oregon found
+
+\begin{center}
+\small
+\begin{tabular}{lrr}
+\toprule
+Outcome & ITT (reduced form) & LATE (2SLS) \\
+\midrule
+Has a usual place of care      & $9.9\%$  & $33.9\%$ \\
+Has a personal doctor          & $8.1\%$  & $28.0\%$ \\
+Got all needed healthcare      & $6.9\%$  & $23.9\%$ \\
+Any hospital admission         & $0.5\%$  & $2.1\%$  \\
+Had a medical collection       & $-1.6\%$ & $-6.4\%$ \\
+Owed on medical collection     & $-\$99$  & $-\$390$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- The **ITT column is the reduced form** --- the effect of winning the lottery. The **LATE column scales it by the first stage**. Roughly a factor of four, because about a quarter of winners actually enrolled.
+- Medicaid raised utilisation and sharply reduced financial strain. Effects on *health* were small, and on mortality absent.
+- **Which column should you report?** Both. The ITT is the policy effect of running the lottery; the LATE is the effect of coverage on those it reached.
+
+## Design 2: Judge and examiner fixed effects
+
+The recipe needs three ingredients:
+
+1. A **narrow pipeline** every unit must pass through;
+2. **Randomly assigned decision-makers** staffing it;
+3. **Discretion** among those decision-makers.
+
+\vspace{0.4em}
+
+- The canonical setting is American courts, where defendants are randomly assigned to judges --- in Harris County, Texas, historically with a bingo-ball machine.
+- The idea is old. **Gaudet, Harris and John (1933)** found one judge imprisoned in 34% of his cases and another in nearly 60%, with cases randomly rotated between them. Their conclusion: a sentence may indicate *"either the seriousness of his crime or the severity of the judge."*
+- **Stevenson (2018)**, Philadelphia bail magistrates: randomly assigned judges differ in how affordable they set bail, so some defendants are detained pre-trial purely by draw. She finds pre-trial detention raises conviction by about **13%**, mostly through guilty pleas, and raises sentence length and court fees.
+- The design has spread far beyond courts: patent examiners, disability examiners, loan officers, auditors.
+
+## Judge FE: where it breaks
+
+- **Independence** is usually the easy one --- assignment really is random. But watch for *strategic response*: Gaudet et al. already reported in 1933 that repeat offenders who recognised a severe judge would change their plea to force a reassignment.
+  - Use the **initial** assignment, not the final one, where you can.
+- **Exclusion** is the usual worry, and it must be argued case by case. If a defendant is assigned a severe judge, the *expected* penalty at trial rises --- so the defendant may accept a plea. That is a channel from instrument to outcome that does not run through the judge's sentence.
+- **Monotonicity** is often the hardest. The assumption requires that a judge who is stricter for one defendant is stricter for *all* of them. But a judge may be lenient in general and strict on drug charges. Imbens and Angrist flagged exactly this case in 1994 and concluded you **cannot** identify a LATE nonparametrically.
+  - Frandsen, Lefgren and Leslie (2023) propose a joint test of exclusion and monotonicity; a rejection does not tell you which failed.
+- **Econometric wrinkle.** Judge leniency looks like one instrument but is really **many** --- one per judge. Weak-instrument bias is therefore the default, not the exception, which is why this literature uses **JIVE** (leave-one-out) estimators.
+
+## Design 3: Bartik / shift-share instruments
+
+- **The problem.** Regress local wages on local immigration (or employment) flows and the regressor is simultaneously determined by local supply and demand. Everything is endogenous.
+- **The construction.** Combine *national* industry- or origin-specific growth with *local* initial shares:
+$$
+B_{l,t} \;=\; \sum_{k=1}^{K} z_{l,k,t_0}\, m_{k,t},
+$$
+where $z_{l,k,t_0}$ is location $l$'s **initial share** of group $k$ (the "share") and $m_{k,t}$ is the **national change** for group $k$ (the "shift").
+- The predicted local flow is a weighted average of national rates, with weights fixed by history.
+- **Two incompatible justifications**, and you must pick one:
+  - **Shares view** (Goldsmith-Pinkham, Sorkin and Swift 2020): the exogenous variation is in the *initial shares*; the shifts only supply first-stage power. The burden is to argue the shares are exogenous conditional on controls.
+  - **Shifts view** (Borusyak, Hull and Jaravel 2022): with many independent national shocks, identification can come from the *shocks*, whether or not the shares are exogenous.
+- **Rotemberg weights** (GPSS) decompose the estimator into the contribution of each share, telling you which few industries are actually identifying your result --- and therefore which ones to scrutinise.
+
+## Design 4: Fuzzy RD --- Lecture 4, revisited
+
+- In a **sharp** design, $D_i = \mathbf{1}\{X_i \geq c_0\}$ exactly. In a **fuzzy** design, crossing the cutoff raises the probability of treatment without forcing it:
+$$
+\lim_{x \downarrow c_0} \Pr(D_i = 1 \mid X_i = x) \;\neq\; \lim_{x \uparrow c_0} \Pr(D_i = 1 \mid X_i = x).
+$$
+- The estimator is a **Wald ratio** of two discontinuities:
+$$
+\delta_{\text{FRD}} = \frac{\lim_{x\downarrow c_0} E[Y|X=x] - \lim_{x\uparrow c_0} E[Y|X=x]}
+                           {\lim_{x\downarrow c_0} E[D|X=x] - \lim_{x\uparrow c_0} E[D|X=x]} .
+$$
+- In practice: let $Z_i = \mathbf{1}\{X_i \geq c_0\}$ and use it as an **instrument** for $D_i$, with the running-variable polynomial as covariates on both stages. Using $Z_i$ alone is just-identified, which has good finite-sample properties.
+- **The assumptions are now IV's assumptions**, not just continuity: exclusion, monotonicity, SUTVA, a strong first stage. Hahn, Todd and van der Klaauw (2001) made this precise.
+- **Who are the compliers?** Units whose treatment status flips as $x$ moves from just below $c_0$ to just above. This is why the "Design" column of the finance table in Lecture 4 mattered.
+
+## Design 5: The elasticity of demand
+
+- IV was **invented** for this, by Philip Wright in the 1920s. A demand curve is a causal object --- the effect of price on quantity --- but every price you observe is an **equilibrium** price, produced by supply *and* demand.
+- To trace demand you need something that shifts **supply only**. Economic theory even tells you where to look:
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+Demand shifters & Supply shifters \\
+\midrule
+Household income & Input prices \\
+Prices of complements / substitutes & Technology \\
+Preferences & Prices of other goods using the same technology \\
+Buyers' beliefs about future prices & Sellers' beliefs about future prices \\
+Number of buyers & Number of sellers \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- You need a variable in the **right** column that is emphatically **not** in the left one. Notice that this is the strangeness principle, stated as economics.
+
+## Fulton Fish Market
+
+```{r}
+#| echo: true
+fish <- as.data.frame(read_dta("data/Fulton.dta"))
+f_ols <- lm(q ~ p + Mon + Tue + Wed + Thu, data = fish)
+f_iv  <- ivreg(q ~ p + Mon + Tue + Wed + Thu | Stormy + Mon + Tue + Wed + Thu, data = fish)
+f_1st <- lm(p ~ Stormy + Mon + Tue + Wed + Thu, data = fish)
+c1 <- coeftest(f_1st, vcov = vcovHC(f_1st, "HC1"))["Stormy", ]
+round(setNames(unname(c(coef(f_ols)["p"], coef(f_iv)["p"], c1[1],
+                        (c1[1] / c1[2])^2, nrow(fish))),
+               c("OLS elasticity", "IV elasticity", "first stage",
+                 "effective F", "N")), 3)
+```
+
+\vspace{-0.2em}
+\footnotesize
+
+- **Graddy (2006)**, 111 days at the Fulton Fish Market. $Q$ = log pounds of whiting sold, $P$ = log average daily price. The instrument `Stormy` records bad weather at sea over the previous two days.
+- Stormy weather raises price by about **35%** --- a supply shock, not a demand shock. OLS says the elasticity is $-0.56$; IV says $-1.12$.
+- Why does OLS understate it? Because the observed price--quantity pairs are equilibria traced out by *both* curves moving.
+
+## Even here, it is only a LATE
+
+- The IV elasticity of $-1.12$ says: **for compliers**, a 10% storm-induced price rise cuts quantity by about 11%. Angrist, Graddy and Imbens (2000) made this precise.
+- Now suppose a seller wants to use this number to set a profit-maximising price. Demand looks elastic, so cut prices and sell more --- right?
+- **No.** That elasticity was identified by *storms*. When the firm lowers its price deliberately, it is not using a storm, and the relevant elasticity may be entirely different. Buyers may read a storm-driven price rise as temporary and a posted price cut as permanent.
+- This is the sobering version of LATE: **it does not tell you what you want to know; it tells you what you can learn given your instrument.**
+- The same warning applies to every design above. Before reporting a LATE, ask whether the policy you have in mind would move the same people, in the same way, as your instrument did.
+
+# IV in Finance
+
+## Where the shocks are
+
+Finance has fewer clean lotteries than labour economics. The recurring sources are:
+
+- **Regulatory and legal changes** that bind some firms and not others --- staggered state laws, index or listing rules, supervisory thresholds.
+- **Weather, geography and distance** --- historically popular, increasingly contested, because geography correlates with almost everything.
+- **Shift-share exposure** --- a firm's or region's pre-existing portfolio of industries, suppliers or customers, interacted with aggregate shocks.
+- **Randomly assigned decision-makers** --- bankruptcy judges, bank examiners, auditors, analysts, patent examiners. The judge FE design transplants directly.
+- **Lotteries and quasi-lotteries** --- oversubscribed allocations, IPO allocation rules, random audits.
+
+\vspace{0.4em}
+
+- The common failure is the same everywhere: in finance the agents are **sophisticated, well advised and highly motivated**, so the shock you think is exogenous is often anticipated, lobbied for, or selected into.
+
+## Three questions to ask of any finance IV
+
+1. **Is the shock really a shock to someone?** Name the units that were moved and the units that were not, and say why the difference was not their choice. If you cannot describe the assignment mechanism in a sentence a practitioner would recognise, you do not have one.
+2. **Is there exactly one channel?** This is where most finance instruments fail. A legal change that alters takeover exposure also alters managerial incentives, disclosure, and the composition of shareholders. Distance to a city affects financing *and* labour markets, customers and information.
+3. **Who are the compliers, and do you care about them?** A regulation that binds only small, constrained firms identifies an effect for small, constrained firms --- which may be the opposite of the effect for the firms the policy debate is about.
+
+\vspace{0.4em}
+
+- Wei Jiang (2017) surveys the use of IV in corporate finance and is worth reading before you use one.
+- **The most useful habit:** write down the exclusion restriction as a sentence, in words, and show it to someone who knows the institution and not the econometrics. If they can name a second channel in under a minute, you have your answer.
+
+# 7.8 Presenting Your IV Results
+
+## Know your assignment mechanism
+
+- The reason an RCT commands respect is not that its estimator is clever --- it is a difference in means. It is that the **treatment was randomised in the real world**, not by assumption.
+- If physical randomisation is what licenses a simple comparison, then an IV user has to work at least as hard as the lab did to establish that something equivalent happened.
+- So: spend the time. Call people. Ask them how units ended up treated. Be your own worst critic about why you think the instrument is random and why you think exclusion holds.
+- **And be willing to lose.** If your instrument is bad, finding that out early is a *good* outcome --- a bad instrument crowds out your time and creativity while taking you somewhere false.
+- The empirical crisis in 1970s labour economics came largely from assuming model conditions held rather than establishing that they did. That is the mistake to avoid.
+
+## Three figures, in this order
+
+The whole IV narrative can be told in three pictures, and the Wald estimator tells you which three.
+
+1. **The instrument itself.** Show the shock. In Cunningham and Finlay (2012), federal regulation of ephedrine and pseudoephedrine disrupted methamphetamine production; the figure plots the real price of meth *alongside cocaine and heroin*. Only meth moves --- which kills the "something else happened" story in a single image.
+2. **The first stage.** Not the treatment's effect on the outcome --- the **instrument's** effect on the treatment. For the same paper: meth treatment admissions falling exactly when meth prices spiked.
+3. **The reduced form.** The strange association. Children removed into foster care dropping from roughly 8,000 to 6,000 a month in the windows when meth prices spiked.
+
+\vspace{0.3em}
+
+- Why should a federal rule about a cold-medicine ingredient affect the foster-care system? It should not --- unless parental meth use harms children. **That is the whole paper, in one figure.**
+- What you should **not** plot is $Y$ against $\hat D$. It is already processed, and readers are right to distrust it.
+
+## What an IV table must contain
+
+1. **The OLS estimate**, so the reader can see what you are correcting and in which direction.
+2. **The 2SLS estimate** with standard errors clustered appropriately.
+3. **The first-stage coefficient on the excluded instrument**, with its standard error --- usually in a bottom panel.
+4. **The effective $F$-statistic** (Olea--Pflueger), not merely the classical one.
+5. **Anderson--Rubin confidence intervals**, whatever the $F$.
+6. **The number of observations** and, where the design implies it, the complier share.
+
+\vspace{0.4em}
+
+- If OLS and 2SLS differ sharply, say which direction the bias was supposed to go and whether what you found is consistent with that story. Card's returns to schooling is the model: the sign of the gap is the wrong way round, and the paper has to explain why.
+- A 2SLS coefficient reported without a first stage is not a result. It is a number.
+
+## A checklist for an IV paper
+
+\small
+
+1. **Name the shock.** What physically moved units into treatment? Who was moved, who was not, and why was that not their choice?
+2. **State the exclusion restriction in words**, as a sentence about the world, and then argue it. Expect to spend a page.
+3. **Run the falsification tests your mechanism implies.** Where the instrument should have no effect, show it has none --- Angrist and Krueger's college-graduation result is the template.
+4. **Plot all three**: the instrument, the first stage, the reduced form.
+5. **Report the effective $F$** and **Anderson--Rubin intervals**. Prefer one strong instrument to many weak ones.
+6. **Describe the compliers** --- their share, their characteristics, and whether they are the population the question is about.
+7. **Show the reduced form on its own.** If it is not there, no amount of scaling by a first stage will create it.
+8. **Address monotonicity explicitly** if your instrument is a decision-maker, a score, or anything with discretion behind it.
+9. **State the estimand as a LATE**, and resist calling it "the" effect.
+
+# 7.9 Concluding Remarks
+
+## What IV buys
+
+- It is the only design in this course that addresses **selection on unobservables** head-on. Matching conditions on what you measured; RD needs a rule; IV needs only a shock.
+- When the shock is real --- a lottery, a draft number, a randomly assigned judge --- the argument is as close to an experiment as observational data gets.
+- It generalises: the fuzzy RD you already know is an IV design, and so is any randomised trial with imperfect compliance. Learning IV retro-fits several things you have already seen.
+- And it reframes what you are looking for. The question stops being *"what should I control for?"* and becomes *"what, in the world, moved these units around?"* That is almost always the better question.
+
+## What it costs
+
+- **Five assumptions, four of them untestable.** RD has one. This is the honest reason many applied researchers now avoid IV --- not that it fails to identify something, but that it is hard to imagine an instrument satisfying all five.
+- **The estimand is a LATE** for a group you cannot name and did not choose. Its usefulness depends entirely on how close the compliers' effect is to everybody else's, which you cannot check.
+- **Weak instruments are worse than they look.** The second stage gives no warning; only the first stage does. And $F > 10$ is no longer a defensible standard.
+- **Exclusion is an argument, not a test.** That makes IV papers contestable in a way RD papers are not --- defeating a LATE requires only creating doubt.
+
+\vspace{0.3em}
+
+- **Where do good instruments come from?** Angrist and Krueger (2001): from deep knowledge of institutional detail. The things you spend your life studying will, in time, reveal them. You will rarely find one by downloading a dataset. There is no shortcut to intimate familiarity --- which is, in the end, the lesson of this entire course.
+
+## References
+
+\tiny
+
+- Andrews, I., J. Stock and L. Sun (2019). Weak Instruments in IV Regression: Theory and Practice. *Annual Review of Economics* 11, 727--753.
+- Angrist, J. (1990). Lifetime Earnings and the Vietnam Era Draft Lottery. *AER* 80, 313--336.
+- Angrist, J. and W. Evans (1998). Children and Their Parents' Labor Supply. *AER* 88, 450--477.
+- Angrist, J., K. Graddy and G. Imbens (2000). The Interpretation of IV Estimators in Simultaneous Equations Models. *ReStud* 67, 499--527.
+- Angrist, J., G. Imbens and A. Krueger (1999). Jackknife Instrumental Variables Estimation. *Journal of Applied Econometrics* 14, 57--67.
+- Angrist, J. and A. Krueger (1991). Does Compulsory School Attendance Affect Schooling and Earnings? *QJE* 106, 979--1014.
+- Angrist, J. and A. Krueger (2001). Instrumental Variables and the Search for Identification. *JEP* 15, 69--85.
+- Baicker, K. et al. (2013). The Oregon Experiment --- Effects of Medicaid on Clinical Outcomes. *NEJM* 368, 1713--1722.
+- Bartik, T. (1991). *Who Benefits from State and Local Economic Development Policies?* Upjohn Institute.
+- Borusyak, K., P. Hull and X. Jaravel (2022). Quasi-Experimental Shift-Share Research Designs. *ReStud* 89, 181--213.
+- Bound, J., D. Jaeger and R. Baker (1995). Problems with Instrumental Variables Estimation. *JASA* 90, 443--450.
+- Card, D. (1995). Using Geographic Variation in College Proximity to Estimate the Return to Schooling. In *Aspects of Labour Market Behaviour*.
+- Cunningham, S. *Causal Inference: The Remix*, Ch. 7 --- this lecture follows it closely.
+- Cunningham, S. and K. Finlay (2012). Parental Substance Use and Foster Care. *Journal of Health Economics* 32, 263--280.
+- Finkelstein, A. et al. (2012). The Oregon Health Insurance Experiment: Evidence from the First Year. *QJE* 127, 1057--1106.
+- Frandsen, B., L. Lefgren and E. Leslie (2023). Judging Judge Fixed Effects. *AER* 113, 253--277.
+- Gaudet, F., G. Harris and C. John (1933). Individual Differences in the Sentencing Tendencies of Judges. *Journal of Criminal Law and Criminology* 23, 811--818.
+- Goldsmith-Pinkham, P., I. Sorkin and H. Swift (2020). Bartik Instruments: What, When, Why, and How. *AER* 110, 2586--2624.
+- Graddy, K. (2006). Markets: The Fulton Fish Market. *JEP* 20, 207--220.
+- Hahn, J., P. Todd and W. van der Klaauw (2001). Identification and Estimation of Treatment Effects with a RD Design. *Econometrica* 69, 201--209.
+- Heckman, J. (1990). Varieties of Selection Bias. *AER P\&P* 80, 313--318.
+- Imbens, G. and J. Angrist (1994). Identification and Estimation of Local Average Treatment Effects. *Econometrica* 62, 467--475.
+- Jiang, W. (2017). Have Instrumental Variables Brought Us Closer to the Truth? *Review of Corporate Finance Studies* 6, 127--140.
+- Lee, D., J. McCrary, M. Moreira and J. Porter (2022). Valid $t$-ratio Inference for IV. *AER* 112, 3260--3290.
+- Montiel Olea, J. and C. Pflueger (2013). A Robust Test for Weak Instruments. *JBES* 31, 358--369.
+- Stevenson, M. (2018). Distortion of Justice: How the Inability to Pay Bail Affects Case Outcomes. *Journal of Law, Economics, and Organization* 34, 511--542.
+- Stock, J. and M. Yogo (2005). Testing for Weak Instruments in Linear IV Regression. In *Identification and Inference for Econometric Models*.
+- Wald, A. (1940). The Fitting of Straight Lines if Both Variables Are Subject to Error. *Annals of Mathematical Statistics* 11, 284--300.

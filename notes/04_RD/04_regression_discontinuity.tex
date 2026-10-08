@@ -245,24 +245,24 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \begin{itemize}
 \tightlist
 \item
-  Lecture 3 ended on a trade. \textbf{Matching} needs common support;
-  \textbf{regression} needs a correctly specified outcome model and will
-  extrapolate where the data are silent.
+  Lecture 3 :\textbf{Matching} needs common support; \textbf{regression}
+  needs a correctly specified outcome model and will extrapolate where
+  the data are silent.
 \item
   In regression discontinuity, at any value of the running variable, you
   observe treated units \textbf{or} control units. Overlap is exactly
   zero.
 \item
   So extrapolation is the entire design. The question becomes: \emph{how
-  short a distance can we extrapolate, and how honestly?}
+  short a distance can we extrapolate?}
 \item
-  The answer --- extrapolate to a \textbf{point}, from both sides --- is
-  what makes RD a credible observational design we have.
+  The answer is what makes RD a credible observational design we have.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{The intuition: drinking at 21}
-\protect\phantomsection\label{the-intuition-drinking-at-21}
+\begin{frame}{The intuition: alcohol consumption on mortality - drinking
+at 21}
+\protect\phantomsection\label{the-intuition-alcohol-consumption-on-mortality---drinking-at-21}
 \pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-1-1.pdf}}
 
 \vspace{-0.3em}
@@ -281,28 +281,16 @@ Three elements, and every RD figure has all three:
 \tightlist
 \item
   \textbf{The dots.} Average outcomes within narrow bins of the running
-  variable --- here, one dot per month of age. Not raw observations.
+  variable --- here, one dot per month of age.
 \item
   \textbf{The lines.} Fitted values from a regression, estimated
   \textbf{separately on each side} of the cutoff. The curvature comes
   from a polynomial in age.
 \item
-  \textbf{The break.} That gap is the whole estimate.
+  \textbf{The break.} That gap is the estimate.
 \end{enumerate}
 
 \vspace{0.3em}
-
-\begin{itemize}
-\tightlist
-\item
-  The break exists only because two different models were fit. Nothing
-  forces them to meet --- so if they do meet, there is no effect.
-\item
-  \textbf{The magnitude.} Roughly \(5\) extra deaths per \(100{,}000\)
-  at age 21. With about \(4.3\) million 21-year-olds in the US, that is
-  \(5 \times 43 \approx \mathbf{215}\) additional deaths a year
-  attributable to legal drinking.
-\end{itemize}
 \end{frame}
 
 \begin{frame}{The jargon}
@@ -311,7 +299,6 @@ Three elements, and every RD figure has all three:
 \tightlist
 \item
   \textbf{Running variable} (\(X\)): the score that assigns treatment.
-  Age, a test score, a credit score, a vote share, a BAC reading.
   Ideally continuous; a fine enough grid will do.
 \item
   \textbf{Cutoff} or \textbf{threshold} (\(c_0\)): the known value where
@@ -322,11 +309,7 @@ Three elements, and every RD figure has all three:
   fall with age; that is an outcome trend.
 \item
   \textbf{Discontinuity} or \textbf{jump}: the break in the conditional
-  mean at \(c_0\). That break is the estimate.
-\item
-  The design is named for the discontinuity, but it lives or dies on the
-  \textbf{trends}. Strong trends make effects hard to detect and easy to
-  manufacture.
+  mean at \(c_0\).
 \end{itemize}
 \end{frame}
 
@@ -335,18 +318,15 @@ Three elements, and every RD figure has all three:
 \begin{itemize}
 \tightlist
 \item
-  They sound exotic. They are everywhere, because \textbf{humans write
-  rules}, and rules need thresholds.
+  They are everywhere, because \textbf{humans write rules}, and rules
+  need thresholds.
 \item
-  \textbf{Governments}: Medicare at 65, the drinking age at 21, adult
-  criminal liability at 18, income thresholds for transfer programs.
+  \textbf{Governments}: the drinking age at 21, adult criminal liability
+  at 18.
 \item
   \textbf{Firms and markets}: credit-score cutoffs in lending, index
-  membership rules, covenant thresholds, EPS targets in compensation
-  contracts, a \(50\%\) vote share.
-\item
-  \textbf{Algorithms}: surge pricing, credit limits, automated
-  underwriting.
+  membership rules, EPS targets in compensation contracts, a \(50\%\)
+  vote share.
 \item
   Finding one requires \textbf{institutional knowledge}, not
   econometrics. Knowing the rule exists, and exactly how it is applied,
@@ -360,10 +340,9 @@ Three elements, and every RD figure has all three:
 \tightlist
 \item
   The estimate comes from observations \textbf{near the cutoff}.
-  Everything else only helps pin down the two limits.
 \item
-  So the binding constraint is not the number of rows in your dataset.
-  It is the number of rows in a neighbourhood of one point.
+  So the binding constraint is the number of rows in a neighbourhood of
+  one point.
 \item
   Strong trends make this worse: the more steeply the outcome moves with
   \(X\), the more data you need to separate the jump from the slope.
@@ -372,7 +351,7 @@ Three elements, and every RD figure has all three:
   \textbf{administrative records} --- birth registries, school records,
   court records, credit bureaus.
 \item
-  It is also why RD in finance is often underpowered. We return to this.
+  It is also why RD in finance is often underpowered.
 \end{itemize}
 \end{frame}
 
@@ -430,8 +409,7 @@ D_i = \begin{cases} 1 & \text{if } X_i \geq c_0 \\ 0 & \text{if } X_i < c_0 \end
 \tightlist
 \item
   This is a selection-on-observables design: condition on \(X\) and
-  treatment is fully determined, so \textbf{unconfoundedness holds
-  trivially}.
+  treatment is fully determined.
 \item
   But the other assumption of Lecture 3 fails completely. At any value
   of \(X\) you see treated units or controls, never both: \[
@@ -458,11 +436,12 @@ D_i = \begin{cases} 1 & \text{if } X_i \geq c_0 \\ 0 & \text{if } X_i < c_0 \end
 \footnotesize
 
 Left: parallel potential outcomes, so the vertical gap is the same at
-every age and the number at the cutoff describes everyone. Right: the
-functions curve and \textbf{cross at 23} --- the effect is \(5.5\) at
-age 19, \(2.35\) at the cutoff, zero at 23, and \emph{negative} beyond.
-RD returns the gap \textbf{at the dashed line} in both panels, and
-nothing else.
+every age and the number at the cutoff describes everyone.
+
+Right: the functions curve and \textbf{cross at 23} --- the effect is
+\(5.5\) at age 19, \(2.35\) at the cutoff, zero at 23, and
+\emph{negative} beyond. RD returns the gap \textbf{at the dashed line}
+in both panels.
 \end{frame}
 
 \begin{frame}{The estimand is a limit}
@@ -483,9 +462,6 @@ nothing else.
   which is why it is often called a \textbf{local} average treatment
   effect.
 \item
-  Note what it is \textbf{not}: not the \(ATE\), not the \(ATT\). It is
-  an average at one point of one covariate.
-\item
   Data from a wide range of \(X\) are used only to estimate those two
   limits precisely. The estimand still lives at \(c_0\).
 \end{itemize}
@@ -502,9 +478,8 @@ nothing else.
   E[Y^0_i \mid X_i = x] \quad\text{and}\quad E[Y^1_i \mid X_i = x] \quad\text{are continuous at } x = c_0 .
   \]
 \item
-  This is the RD version of ``nature does not jump.'' The null is
-  continuity; a jump is evidence that \emph{something} happened, and the
-  design's job is to make treatment the only candidate.
+  A jump is evidence that \emph{something} happened, and the design's
+  job is to make treatment the only candidate.
 \end{itemize}
 \end{frame}
 
@@ -517,10 +492,9 @@ nothing else.
 
 \(Y^1 = 100 + 1.25X + \varepsilon\) and
 \(Y^0 = 50 + 0.75X + \varepsilon\). Neither jumps at \(X = 250\) ---
-\textbf{nothing happens at the cutoff} in the potential outcomes. Apply
-the switching equation and the \emph{observed} outcome jumps anyway, by
-exactly the vertical distance between the two functions there. That
-distance is \(\tau\).
+\textbf{nothing happens at the cutoff} in the potential outcomes. The
+\emph{observed} outcome jumps anyway, by exactly the vertical distance
+between the two functions there. That distance is \(\tau\).
 \end{frame}
 
 \begin{frame}{The price of the design}
@@ -538,9 +512,6 @@ distance is \(\tau\).
   often large. A study of a drinking age of 21 says nothing about a
   drinking age of 18.
 \item
-  \textbf{Extrapolating away from the cutoff} requires extra assumptions
-  (Angrist and Rokkanen 2015). Most papers do not, and should say so.
-\item
   State the estimand as what it is: \emph{``the average effect for units
   at the threshold.''} Not ``the effect.''
 \end{itemize}
@@ -552,9 +523,7 @@ distance is \(\tau\).
 \protect\phantomsection\label{two-steps}
 \textbf{Step 1. Recentre the running variable} at the cutoff: \[
 \tilde X_i = X_i - c_0 .
-\] Once centred, the running variable is zero at the cutoff, so the
-coefficient on \(D\) is the jump \textbf{there} rather than at
-\(X = 0\).
+\]
 
 \textbf{Step 2. Regress the outcome on treatment, the running variable,
 and their interaction:} \[
@@ -568,10 +537,9 @@ Y_i = \alpha + \tau D_i + \beta_1 \tilde X_i + \beta_2\, D_i \cdot \tilde X_i + 
   \(\beta_1 + \beta_2\) the slope \textbf{above}, and \(\hat\tau\)
   estimates the jump.
 \item
-  The interaction is not optional. It lets the two expected
-  potential-outcome functions have different slopes --- which is to say,
-  it allows heterogeneous treatment effects. Drop it and any difference
-  in trend is loaded onto \(\hat\tau\).
+  The interaction lets the two expected potential-outcome functions have
+  different slopes. Drop it and any difference in trend is loaded onto
+  \(\hat\tau\).
 \end{itemize}
 \end{frame}
 
@@ -714,7 +682,7 @@ K\!\left(\frac{X_i - c_0}{h}\right) \mathbf{1}\{X_i > c_0\}
 \tightlist
 \item
   Think of kernel regression as a weighted regression restricted to a
-  window. Two distinct choices, often confused:
+  window.
 
   \begin{itemize}
   \tightlist
@@ -725,9 +693,6 @@ K\!\left(\frac{X_i - c_0}{h}\right) \mathbf{1}\{X_i > c_0\}
     The \textbf{bandwidth} \(h\) is the \emph{width} of the window ---
     how far from the cutoff you are willing to look.
   \end{itemize}
-\item
-  Averaging within a bin \textbf{is} a rectangular kernel: equal weight
-  to every unit inside. That is exactly the biased case above.
 \end{itemize}
 \end{frame}
 
@@ -741,18 +706,7 @@ K\!\left(\frac{X_i - c_0}{h}\right) \mathbf{1}\{X_i > c_0\}
   included units depart from the true function. This choice matters
   most.
 \item
-  \textbf{The kernel \(K(\cdot)\).}
-
-  \begin{itemize}
-  \tightlist
-  \item
-    \emph{Rectangular}: equal weight inside the window, zero outside ---
-    a plain window.
-  \item
-    \emph{Triangular}: weight declines linearly to zero at the edge.
-  \item
-    \emph{Epanechnikov}: parabolic weighting.
-  \end{itemize}
+  \textbf{The kernel \(K(\cdot)\).} Next slide.
 \item
   \textbf{The polynomial order \(p\).} \(p = 0\) is a difference in
   means --- intuitive, but it \emph{is} the boundary problem. \(p > 1\)
@@ -789,17 +743,6 @@ Epanechnikov          & $K(u) = \tfrac{3}{4}(1 - u^2)\,\mathbf{1}\{|u| \leq 1\}$
 
 \vspace{-0.4em}
 \footnotesize
-
-\begin{itemize}
-\tightlist
-\item
-  All three have \textbf{compact support} --- \(K(u) = 0\) once
-  \(|u| > 1\).
-\item
-  The constants \(\tfrac12\) and \(\tfrac34\) make each integrate to
-  one, and are \textbf{irrelevant here}: scaling every weight equally
-  leaves the WLS solution unchanged.
-\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{The recipe}
@@ -858,7 +801,7 @@ minimise the \textbf{weighted} sum of squares: \[
 \protect\phantomsection\label{choosing-the-bandwidth}
 Bias grows with \(h\), variance falls with it. Writing each as a
 function of \(h\) and minimising: \[
-\mathrm{MSE}(h) \;\approx\; \underbrace{B^2 h^{2(p+1)}}_{\text{bias}^2} + \underbrace{\frac{V}{nh}}_{\text{variance}}
+MSE(h) \;\approx\; \underbrace{B^2 h^{2(p+1)}}_{\text{bias}^2} + \underbrace{\frac{V}{nh}}_{\text{variance}}
 \qquad\Longrightarrow\qquad
 h_{MSE} \;\propto\; \underbrace{V^{\frac{1}{2p+3}}}_{\text{noise}}\;
 \underbrace{B^{-\frac{2}{2p+3}}}_{\text{curvature}}\;
@@ -868,23 +811,17 @@ h_{MSE} \;\propto\; \underbrace{V^{\frac{1}{2p+3}}}_{\text{noise}}\;
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Noise \(V\): positive exponent.} Noisier data \(\Rightarrow\)
-  a \textbf{wider} window, to average the noise away. If \(V \to 0\),
-  then \(h \to 0\) --- use only points at the
-  cutoff.\footnote{*The Remix* states the $n$ and noise directions the other way round. }
+  \textbf{Noise \(V\): positive.} Noisier data \(\Rightarrow\) a
+  \textbf{wider} window, to average the noise away. If \(V \to 0\), then
+  \(h \to 0\) --- use only points at the
+  cutoff.\footnote{The Remix states the $n$ and noise directions the other way round. }
 \item
   \textbf{Curvature \(B\): negative.} More curvature \(\Rightarrow\) a
   \textbf{narrower} window. If \(B \to 0\) (a truly linear CEF),
   \(h \to \infty\) --- just run OLS on everything.
 \item
   \textbf{Sample size \(n\): negative.} More data \(\Rightarrow\) a
-  \textbf{narrower} window. The extra data buys \emph{less bias}, not a
-  wider window --- though the count inside it,
-  \(nh \propto n^{(2p+2)/(2p+3)}\), still grows.
-\item
-  Imbens and Kalyanaraman (2012) gave the first data-driven rule;
-  Calonico, Cattaneo and Titiunik (2014) is the standard. Bandwidths may
-  differ by side.
+  \textbf{narrower} window.
 \end{itemize}
 \end{frame}
 
@@ -905,12 +842,7 @@ h_{MSE} \;\propto\; \underbrace{V^{\frac{1}{2p+3}}}_{\text{noise}}\;
   \(B = 0\)} --- it centres the interval on a biased point estimate.
 \item
   The consequence is \textbf{over-rejection} of the null of no effect.
-  Cattaneo, Jansson and Ma discourage reporting these, and they are not
-  credible under even moderate bias.
-\item
-  Worse, there is an internal contradiction: the MSE-optimal bandwidth
-  is chosen \emph{to trade bias against variance}, so at that bandwidth
-  the bias is deliberately \textbf{not} negligible.
+  Cattaneo, Jansson and Ma (2019) discourage reporting these.
 \end{itemize}
 \end{frame}
 
@@ -940,54 +872,81 @@ Robust bias-corrected, $CI_{rbc}$ & $\hat\tau - \hat B$ & $\sqrt{\hat V_{bc}}$ &
   into the variance term. Intervals get somewhat wider for the same
   bandwidth --- that is the honest price of the correction.
 \item
-  This is what \texttt{rdrobust} reports by default. Report the robust
-  row, and say that you did.
+  This is what \texttt{rdrobust} reports by default. Report the robust,
+  and say that you did.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Do not take my word for it: a coverage experiment}
-\protect\phantomsection\label{do-not-take-my-word-for-it-a-coverage-experiment}
+\begin{frame}{Simulation}
+\protect\phantomsection\label{simulation}
 \pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-8-1.pdf}}
+
+\vspace{-0.3em}
+\footnotesize
+
+\begin{itemize}
+\tightlist
+\item
+  \(X_i \sim U(-1,1)\), \(n = 2{,}000\), noise \(N(0, 0.25^2)\), with
+  \(m_0(x) = 0.40 + 0.30x + 6.0x^2\) below the cutoff and
+  \(m_1(x) = 0.60 + 0.80x - 4.0x^2\) above it.
+\item
+  \(\tau = 0.20\) is the vertical gap between the two open circles at
+  \(X = 0\) --- and it is \emph{known}, which is the only reason we can
+  ask whether an interval covers it.
+\item
+  \textbf{The truth is quadratic; the estimator fits a straight line on
+  each side inside the shaded window.} That deliberate mismatch is the
+  approximation bias \(B\), and it grows as the window widens.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A coverage experiment}
+\protect\phantomsection\label{a-coverage-experiment}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-9-1.pdf}}
 
 \vspace{-0.4em}
 \footnotesize
 
-\(2{,}000\) simulated samples per bandwidth, \(n = 2{,}000\), known
-\(\tau = 0.20\), a curved \(E[Y|X]\) on both sides. For each sample we
-build all three intervals and ask a single question: \textbf{does it
-contain the true \(\tau\)?} A 95\% interval should say yes 95\% of the
-time.
+\(2{,}000\) samples drawn from the previous slide's design, at each of
+ten fixed bandwidths, with a local \textbf{linear} fit on each side. For
+each sample we build all three intervals and ask: \textbf{does it
+contain the true \(\tau = 0.20\)?} A 95\% interval should say yes 95\%
+of the time.
 \end{frame}
 
-\begin{frame}{Read that figure slowly}
-\protect\phantomsection\label{read-that-figure-slowly}
+\begin{frame}{Why RD researchers clustered on the running variable}
+\protect\phantomsection\label{why-rd-researchers-clustered-on-the-running-variable}
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Conventional (red).} Fine when \(h\) is small, because then
-  bias is genuinely negligible. It then falls off a cliff: \(74\%\) at
-  \(h=0.25\), \(48\%\) at \(h=0.30\), and \textbf{\(0\%\) at
-  \(h=0.50\)}. A ``95\% interval'' that never covers the truth. Nothing
-  warns you --- the output looks completely normal.
+  \textbf{Discrete running variables} create mass points where
+  polynomial smoothing leaves shared \textbf{specification error}.
 \item
-  \textbf{Bias-corrected (blue).} Flat at about \(81\%\)
-  \emph{everywhere}. Recentring fixed the location but the interval is
-  still too short, because \(\hat B\) is itself noisy and this interval
-  pretends it is not.
+  \textbf{Lee \& Card (2008)} treated this error as a group shock,
+  popularizing clustering standard errors on unique values of \(X\).
 \item
-  \textbf{Robust bias-corrected (green).} Flat at roughly \(95\%\)
-  across an eightfold range of bandwidths. That flatness \emph{is} the
-  property you are buying.
-\item
-  The lesson is not ``conventional intervals are a bit optimistic.'' It
-  is that their failure is \textbf{invisible and unbounded}, and it
-  grows precisely as you widen the window to buy precision.
+  This widely adopted practice is now recognized as methodologically
+  flawed.
 \end{itemize}
+\end{frame}
 
+\begin{frame}{What ``the same specification error'' means}
+\protect\phantomsection\label{what-the-same-specification-error-means}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-10-1.pdf}}
+
+\vspace{-0.4em}
 \footnotesize
 
-\emph{Teaching note: run it live with two bandwidths --- \(h = 0.10\)
-and \(h = 0.40\) --- and let the class predict before you reveal.}
+Let \(m(x) = \mathbb{E}[Y \mid X=x]\) and \(m^\ast(x)\) be the linear
+approximation: \[
+\underbrace{Y_i - m^\ast(X_i)}_{\text{Total residual}} = \underbrace{m(X_i) - m^\ast(X_i)}_{\text{Specification error } a_{g(i)}} + \underbrace{Y_i - m(X_i)}_{\text{Noise } u_i}
+\] \textbf{Shared error:} Specification error depends solely on \(X_i\),
+making it identical for all observations at a given mass point.
+\textbf{Group shock structure:} Because mass-point residuals do not
+average to zero, they share a systematic shock
+\(\varepsilon_i = a_{g(i)} + u_i\), where \(g\) = the distinct value of
+\(X\), which forms the basis for Lee--Card clustering.
 \end{frame}
 
 \begin{frame}{A short detour: what clustering a standard error does}
@@ -1013,123 +972,85 @@ and \(h = 0.40\) --- and let the class predict before you reveal.}
   \emph{within} each group while assuming independence \emph{across}
   groups. It normally makes standard errors \textbf{larger}.
 \item
-  The fine print, which is the whole story today: the formula's
-  justification is asymptotic \textbf{in the number of clusters \(G\)}.
-  With few clusters it is unreliable, and there is no warning message.
-\end{itemize}
-
-\footnotesize
-
-\emph{We return to clustering properly in the panel-data lecture. Today
-you need only the idea: a cluster is a set of observations that share
-something, and the fix needs many such sets.}
-\end{frame}
-
-\begin{frame}{Why RD researchers clustered on the running variable}
-\protect\phantomsection\label{why-rd-researchers-clustered-on-the-running-variable}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{The problem it was meant to solve.} Most running variables are
-  not continuous but \textbf{multi-valued}: BAC to \(0.001\), test
-  scores in whole points, age in months. Many observations share each
-  value --- call these \textbf{mass points}.
-\item
-  With mass points you cannot literally take a limit at \(c_0\). You fit
-  a polynomial across the mass points instead, and that polynomial will
-  not pass exactly through \(E[Y \mid X = x]\) at every one of them. The
-  gap is \textbf{specification error}.
-\item
-  \textbf{Lee and Card's (2008) insight:} every observation sitting at
-  the same mass point shares \emph{exactly the same} specification
-  error. That is precisely the structure of a group shock.
-\item
-  So they proposed treating \textbf{each distinct value of the running
-  variable as one cluster.} That is the answer to ``clustering at what
-  level?'' --- not individuals, not counties, not years. One cluster per
-  unique value of \(X\).
-
-  \begin{itemize}
-  \tightlist
-  \item
-    In Hansen's data: one cluster per BAC reading. In a test-score RD:
-    one cluster per integer score.
-  \end{itemize}
-\item
-  The logic is genuinely clever, the recommendation spread through most
-  subsequent RD papers, and it is now understood to be \textbf{wrong}.
+  The formula's justification is asymptotic \textbf{in the number of
+  clusters \(G\)}. With few clusters it is unreliable, and there is no
+  warning message.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Why it fails --- and it fails in a surprising direction}
-\protect\phantomsection\label{why-it-fails-and-it-fails-in-a-surprising-direction}
-\begin{center}
-\small
-\begin{tabular}{lrrrrr}
-\toprule
-Bandwidth $h$ & $N$ & Clusters $G$ & Robust SE & Clustered SE & Ratio \\
-\midrule
-$0.050$ (Hansen's) & $90{,}074$ & $101$ & $0.00450$ & $0.00333$ & $0.74$ \\
-$0.020$            & $38{,}349$ & $41$  & $0.00657$ & $0.00421$ & $0.64$ \\
-$0.010$            & $20{,}154$ & $21$  & $0.00911$ & $0.00476$ & $\mathbf{0.52}$ \\
-$0.005$            & $10{,}567$ & $11$  & $0.01303$ & $0.00740$ & $0.57$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{-0.2em}
+\begin{frame}{Why RD Clustering Fails}
+\protect\phantomsection\label{why-rd-clustering-fails}
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}
+  >{\centering\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\centering\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\centering\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\centering\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\centering\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}
+  >{\centering\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1667}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\centering
+Bandwidth (\(h\))
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+\(N\)
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Clusters (\(G\))
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Robust SE
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Clustered SE
+\end{minipage} & \begin{minipage}[b]{\linewidth}\centering
+Ratio
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\(0.050\) & \(90{,}074\) & \(101\) & \(0.00450\) & \(0.00333\) &
+\(0.74\) \\
+\(0.020\) & \(38{,}349\) & \(41\) & \(0.00657\) & \(0.00421\) &
+\(0.64\) \\
+\(0.010\) & \(20{,}154\) & \(21\) & \(0.00911\) & \(0.00476\) &
+\textbf{\(0.52\)} \\
+\(0.005\) & \(10{,}567\) & \(11\) & \(0.01303\) & \(0.00740\) &
+\(0.57\) \\
+\bottomrule\noalign{}
+\end{longtable}
+}
 
 \begin{itemize}
 \tightlist
 \item
-  Hansen's recidivism regression, clustered on the distinct BAC
-  readings. \textbf{Clustering makes the standard error \emph{smaller}
-  --- by up to half.} Every instinct you just built says it should get
-  bigger.
+  \textbf{Counterintuitive Shrinking:} In Hansen's BAC data, clustering
+  \emph{shrinks} standard errors by up to 48\%, inflating Type I error
+  rates (Kolesár \& Rothe).
 \item
-  Smaller standard errors mean larger \(t\)-statistics and \textbf{more
-  rejections of a true null}. That is Kolesár and Rothe's inflated Type
-  I error, in one column.
+  \textbf{Cluster Deficit:} Narrowing bandwidth \(h\) severely depletes
+  cluster count \(G\) (down to \(11\)), violating cluster-asymptotic
+  assumptions.
 \item
-  Two things are going wrong. First, look at \(G\): shrinking the
-  bandwidth to reduce bias destroys clusters. At \(h = 0.005\) there are
-  \(20{,}000\) observations but \textbf{\(11\) clusters}. The formula's
-  asymptotics are nowhere in sight.
-\item
-  Second, and deeper: specification error is a \textbf{fixed function of
-  \(x\)}, not a random draw. It does not average out over repeated
-  samples, because it is the same every time. Clustering prices a
-  randomness that is not there.
+  \textbf{Deterministic Error:} Specification error is a fixed function
+  of \(x\), not a random group shock; clustering incorrectly treats
+  deterministic bias as sampling variability.
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{What to do instead}
-\protect\phantomsection\label{what-to-do-instead}
+\begin{frame}[fragile]{Recommended Alternatives}
+\protect\phantomsection\label{recommended-alternatives}
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Use heteroskedasticity-robust standard errors} --- what
-  \texttt{rdrobust} reports by default. They do not pretend to solve the
-  approximation problem, which is the honest position.
+  \textbf{Heteroskedasticity-Robust SEs:} Default in \texttt{rdrobust};
+  avoids modeling deterministic specification error as random shocks.
 \item
-  \textbf{Or use honest confidence intervals} (\texttt{RDHonest},
-  Armstrong--Kolesár). You state a bound on the curvature of \(E[Y|X]\)
-  and the interval is guaranteed to cover at the stated rate given that
-  bound. The assumption is explicit rather than buried.
+  \textbf{Honest Confidence Intervals:} \texttt{RDHonest}, Armstrong \&
+  Kolesár
 \item
-  \textbf{Sparse data near the cutoff} is the recurring practical
-  problem. When observations are thin, or the running variable is
-  coarse, even robust intervals may fail to centre properly.
+  \textbf{Local Randomization Inference:} (\texttt{rdlocrand}, Cattaneo
+  et al.) Ideal for sparse/coarse data; treats a narrow window around
+  the cutoff as a randomized experiment.
 \item
-  \textbf{Randomization inference} (Cattaneo, Jansson and Ma;
-  \texttt{rdlocrand}): assume that within a \textbf{small window} around
-  the cutoff treatment is effectively randomly assigned, then analyse
-  that window as an experiment. Weaker assumptions than local
-  polynomials, and better behaved when data are sparse.
-\item
-  \textbf{Reading an older RD paper} that clusters on the running
-  variable? That is not fraud --- it was the recommended practice. Ask
-  whether the result survives robust standard errors.
+  \textbf{Evaluating Legacy Papers:} Check whether older RD results
+  clustered on \(X\) remain statistically significant under robust
+  standard errors.
 \end{itemize}
 \end{frame}
 
@@ -1149,27 +1070,19 @@ Continuity is the whole design. It breaks when:
 \item
   Agents \textbf{have time} to adjust;
 \item
-  The \textbf{cutoff is endogenous} --- something else changes at
-  \(c_0\) too;
+  The \textbf{cutoff is endogenous} to factors that cause potential
+  outcomes to shift;
 \item
   There is \textbf{nonrandom heaping} along the running variable.
 \end{enumerate}
 
-\vspace{0.3em}
+\vspace{0.6em}
 
 \begin{itemize}
 \tightlist
 \item
-  Conditions 1--3 together are the recipe for \textbf{sorting}: retaking
-  an exam, reporting income just below a threshold, delaying a birth.
-  All three are needed --- an agent with an incentive \emph{and} an
-  opportunity.
-\item
-  Condition 4 is different, and often overlooked. Turning 18 brings
-  adult criminal penalties --- and also voting rights, high-school
-  graduation, and much else. The cutoff is real but not clean.
-\item
-  Condition 5 is gets its own treatment below.
+  \emph{``Does anything else change at the cutoff?''}: You answer it by
+  knowing the institution.
 \end{itemize}
 \end{frame}
 
@@ -1191,14 +1104,14 @@ Continuity is the whole design. It breaks when:
   correlates with potential outcomes, the comparison at the cutoff is
   contaminated.
 \item
-  Behavioural theory yields a \textbf{testable prediction}: a
-  discontinuity in the \emph{density} of the running variable.
+  A \textbf{testable prediction}: a discontinuity in the \emph{density}
+  of the running variable.
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{The McCrary density test}
-\protect\phantomsection\label{the-mccrary-density-test}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-9-1.pdf}}
+\begin{frame}[fragile]{The McCrary density test (2008)}
+\protect\phantomsection\label{the-mccrary-density-test-2008}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-11-1.pdf}}
 
 \vspace{-0.4em}
 
@@ -1213,9 +1126,7 @@ Continuity is the whole design. It breaks when:
   observations per bin, treat the counts as an outcome, fit a local
   linear regression on each side, and test whether the limits agree.
 \item
-  Use \texttt{rddensity} (Cattaneo, Jansson and Ma) --- local
-  polynomials with less bias at the border than the original. \textbf{It
-  needs a lot of data at \(c_0\)} to separate a real jump from noise.
+  Use \texttt{rddensity} (Cattaneo, Jansson and Ma)
 \end{itemize}
 \end{frame}
 
@@ -1228,7 +1139,7 @@ data}
 \NormalTok{dwi }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"data/hansen\_dwi.csv"}\NormalTok{)}
 \NormalTok{bac }\OtherTok{\textless{}{-}}\NormalTok{ dwi}\SpecialCharTok{$}\NormalTok{bac1[dwi}\SpecialCharTok{$}\NormalTok{bac1 }\SpecialCharTok{\textgreater{}} \DecValTok{0}\NormalTok{]}
 
-\NormalTok{out }\OtherTok{\textless{}{-}} \FunctionTok{rddensity}\NormalTok{(bac, }\AttributeTok{c =} \FloatTok{0.08}\NormalTok{)     }\CommentTok{\# X and the cutoff. That is the whole call.}
+\NormalTok{out }\OtherTok{\textless{}{-}} \FunctionTok{rddensity}\NormalTok{(bac, }\AttributeTok{c =} \FloatTok{0.08}\NormalTok{)     }\CommentTok{\# X and the cutoff. }
 \FunctionTok{summary}\NormalTok{(out)                        }\CommentTok{\# T = {-}0.14, p = 0.89}
 
 \FunctionTok{rdplotdensity}\NormalTok{(out, bac)             }\CommentTok{\# the picture that belongs in the paper}
@@ -1240,64 +1151,14 @@ data}
 \begin{itemize}
 \tightlist
 \item
-  The call takes the \textbf{running variable only} --- no outcome, no
-  covariates. You are testing the distribution of \(X\), nothing else.
+  Take the \textbf{running variable only}. You are testing the
+  distribution of \(X\), nothing else.
 \item
-  What to read in the output: the \textbf{robust bias-corrected} \(T\)
-  statistic and its \(p\)-value. Same three-interval logic as before;
-  \texttt{rddensity} is running a local polynomial too.
+  Read the \textbf{robust bias-corrected} \(T\) statistic and its
+  \(p\)-value.
 \item
-  On Hansen's stops: \(T = -0.14\), \(p = 0.89\). \textbf{Fail to
-  reject.} The sign is negative --- marginally \emph{fewer} stops just
-  above \(0.08\) --- the opposite of what sorting would produce.
-\item
-  Always run \texttt{rdplotdensity} as well. The test is one number;
-  manipulation is a shape.
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Making the test fail, on purpose}
-\protect\phantomsection\label{making-the-test-fail-on-purpose}
-\begin{Shaded}
-\begin{Highlighting}[]
-\CommentTok{\# sabotage: a fraction of drivers just below 0.08 talk their way out of a reading}
-\NormalTok{zone }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(bac }\SpecialCharTok{\textgreater{}=} \FloatTok{0.078} \SpecialCharTok{\&}\NormalTok{ bac }\SpecialCharTok{\textless{}} \FloatTok{0.080}\NormalTok{)           }\CommentTok{\# 2,786 stops}
-\NormalTok{drop }\OtherTok{\textless{}{-}} \FunctionTok{sample}\NormalTok{(zone, }\FunctionTok{floor}\NormalTok{(}\FloatTok{0.20} \SpecialCharTok{*} \FunctionTok{length}\NormalTok{(zone)))}
-\FunctionTok{rddensity}\NormalTok{(bac[}\SpecialCharTok{{-}}\NormalTok{drop], }\AttributeTok{c =} \FloatTok{0.08}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{center}
-\small
-\begin{tabular}{lrrrl}
-\toprule
-Data & Stops deleted & $T$ & $p$ & Verdict \\
-\midrule
-Hansen's actual stops   & ---     & $-0.14$ & $0.89$    & no evidence \\
-Delete 10\% just below  & $278$   & $2.25$  & $0.025$   & rejects, barely \\
-Delete 20\% just below  & $557$   & $4.69$  & $<0.0001$ & rejects decisively \\
-Delete 40\% just below  & $1{,}114$ & $9.35$ & $<0.0001$ & overwhelming \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\vspace{-0.2em}
-
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Worth ten minutes of class.} A test students only ever see
-  \emph{pass} teaches nothing about what it detects. Break the data
-  yourself and it becomes legible.
-\item
-  Read the table as a \textbf{power curve}: with \(213{,}000\) stops,
-  deleting \(10\%\) of a narrow strip sits at the edge of detection and
-  \(20\%\) is caught easily. At a tenth the sample, none of it would be.
-\item
-  \textbf{The real lesson.} ``The density test passed'' means little
-  without knowing what it \emph{could} have detected --- Almond et
-  al.~passed it too. Set a placebo cutoff at \(0.10\) as a second
-  exercise.
+  Always run \texttt{rdplotdensity} as well. Examine the entire
+  distribution.
 \end{itemize}
 \end{frame}
 
@@ -1331,116 +1192,59 @@ Delete 40\% just below  & $1{,}114$ & $9.35$ & $<0.0001$ & overwhelming \\
 \tightlist
 \item
   \textbf{Almond, Doyle, Kowalski and Williams (2010)} wanted the
-  returns to medical care --- hard, because doctors assign care by
-  expected outcome, which is selection bias by construction. The Perfect
-  Doctor problem again.
+  returns to medical care --- which OLS cannot give you, because doctors
+  assign care by expected outcome. The Perfect Doctor problem again.
 \item
-  Their insight: babies below \(1{,}500\)g are classified \textbf{``very
-  low birth weight''} and receive heightened attention. Birth weight is
-  the running variable, \(1{,}500\)g the cutoff, and the rule is written
-  down.
+  Their cutoff: babies below \(1{,}500\)g are \textbf{``very low birth
+  weight''} and receive heightened attention. Birth weight is the
+  running variable, \(1{,}500\)g the threshold.
 \item
-  Using hospital records linked to mortality, they found one-year
-  mortality about \textbf{one percentage point lower} just below the
-  threshold, against a mean of \(5.5\%\). A large effect, and one that
-  appeared to far exceed the cost of the care.
+  One-year mortality came out about \textbf{one percentage point lower}
+  just below it, against a mean of \(5.5\%\).
 \item
-  They ran the \textbf{McCrary test at \(1{,}500\)g and found nothing.}
-  Density continuous, no evidence of manipulation. Satisfied, they
-  proceeded.
+  They ran the \textbf{McCrary test at \(1{,}500\)g and found nothing}
+  --- density continuous, no evidence of manipulation.
 \item
-  Everything about this is the textbook procedure, done competently.
-  Hold that thought.
+  Everything about this is the textbook procedure.
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Then look at the whole distribution}
 \protect\phantomsection\label{then-look-at-the-whole-distribution}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-10-1.pdf}}
+\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-12-1.pdf}}
 
 \vspace{-0.4em}
 \footnotesize
 
-\textbf{Barreca, Guldi, Lindo and Waddell} looked at the \emph{shape} of
-the whole distribution rather than at one point in it, and found
-\textbf{heaping}: excess mass at every round \(100\)g mark, and at
-whole-ounce values, from hospitals rounding. Nature does not produce
-piles of babies every hundred grams. Heaping is either rounding or
-manipulation. \emph{(Stylised reproduction.)}
+\textbf{Barreca, Guldi, Lindo and Waddell (2011)} looked at the
+\emph{shape} of the recorded distribution rather than its density at one
+point. Enormous piles at whole \textbf{ounces} (\(\approx 28.35\)g
+apart) and smaller ones at every round \(100\)g. Nature does not pile
+babies at \(1{,}417\)g --- and note where the rule falls:
+\textbf{\(1{,}500\) is itself a heap point.}
 \end{frame}
 
 \begin{frame}{Why heaping fakes an effect at \emph{every} cutoff}
 \protect\phantomsection\label{why-heaping-fakes-an-effect-at-every-cutoff}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-11-1.pdf}}
-
-\vspace{-0.4em}
-\footnotesize
-
-The window is narrow enough that \textbf{one} heap falls inside it, and
-it sits on the \(\geq c_0\) side --- the control side. That single pile
-of frail babies lifts the right-hand limit, so being \emph{below} the
-cutoff looks protective. The right panel runs the identical exercise at
-\(1{,}600\)g, where \textbf{nothing happens to anyone}.
-\end{frame}
-
-\begin{frame}{Unpacking that figure --- the composition effect}
-\protect\phantomsection\label{unpacking-that-figure-the-composition-effect}
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Step 1. Heaped babies are different babies.} Rounding is not
-  random --- it happens in rushed deliveries and less-equipped
-  hospitals. Barreca et al.~show heaped births have less-educated
-  mothers, less prenatal care, and \textbf{higher mortality} than their
-  unheaped neighbours.
+  \textbf{Heaped babies are different babies.} Rounding is not random
+  --- it happens in rushed deliveries and less-equipped hospitals. They
+  have less-educated mothers, less prenatal care, and \textbf{higher
+  mortality} than their unheaped neighbours.
 \item
-  \textbf{Step 2. Which side of the rule does the heap fall on?} VLBW
-  means \(< 1{,}500\)g, so a baby recorded at \emph{exactly}
-  \(1{,}500\)g is \textbf{not} treated. The whole heap sits in the
-  \textbf{control} group, at the boundary.
+  \textbf{The heap lands on the control side.} VLBW means
+  \(< 1{,}500\)g, so a baby recorded at \emph{exactly} \(1{,}500\)g is
+  untreated. The pile sits in the control group at the boundary and
+  drags its limit \textbf{up}, which makes being \emph{below} the cutoff
+  look protective.
 \item
-  \textbf{Step 3. That drags the control limit up.} The right-hand limit
-  is computed from data beginning with a pile of unusually frail babies,
-  so it is biased upward. Subtracting an inflated control mean makes
-  being \emph{below} the cutoff look protective.
+  The same spurious benefit is waiting at \(1{,}400\)g, \(1{,}600\)g,
+  \(1{,}700\)g.
 \item
-  \textbf{Step 4. Step 3 never used the number \(1{,}500\).} It needs
-  only ``\emph{a heap sits at the cutoff}.'' So the same apparent
-  benefit appears at \textbf{any} \(100\)g mark from \(1{,}000\) to
-  \(3{,}000\)g --- the right panel above.
-\item
-  \textbf{Step 5. Conclude.} Nothing changes at \(1{,}600\)g, and no
-  effect can be present at twenty placebo cutoffs. What jumps is not the
-  care these babies receive but \textbf{who is recorded there}:
-  composition, not treatment.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{What passing the density test does \emph{not} prove}
-\protect\phantomsection\label{what-passing-the-density-test-does-not-prove}
-\begin{itemize}
-\tightlist
-\item
-  The McCrary test asks exactly one question --- \emph{is the density
-  continuous at \(c_0\)?} --- and at \(1{,}500\)g the honest answer was
-  \textbf{yes}. Heaping does not make the density jump; it makes it
-  \textbf{spiky}, and a spike sitting \emph{on} the cutoff is not a step
-  \emph{across} it.
-\item
-  The problem lived in a different feature of the same distribution. The
-  test was not wrong. It was answering a different question from the one
-  that mattered.
-\item
-  \textbf{The general lesson.} A test on one feature cannot clear a
-  problem living in another. In the matching lecture, means passed while
-  variances failed. Here, the density passed while the composition
-  failed.
-\item
-  \textbf{Plot the raw distribution.} Every time. A histogram would have
-  shown this in five seconds; the test statistic never would.
-\item
-  Barreca et al.'s remedy --- drop the suspect observations and
-  re-estimate --- is the \textbf{donut hole}, next.
+  So what jumps is not the care these babies receive but \textbf{who is
+  recorded there}: composition, not treatment.
 \end{itemize}
 \end{frame}
 
@@ -1453,332 +1257,52 @@ cutoff looks protective. The right panel runs the identical exercise at
   manipulated --- but units nearby are fine, drop the suspect ones and
   re-estimate. That is the \textbf{donut hole}.
 \item
-  The justification is clean: RD compares means \emph{as we approach}
-  the threshold, so the estimate should not be sensitive to observations
-  exactly at it.
-\item
   In Almond et al.'s data, dropping about \textbf{\(2\%\)} of
   observations cut the estimated one-year mortality effect roughly
   \textbf{in half}.
 \item
-  The costs are real:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    You lose observations you often cannot afford to lose, so it may be
-    infeasible when the heap is large relative to the sample.
-  \item
-    The estimand changes. It is now local to a population defined by a
-    hole in its middle --- harder to describe, and further still from
-    anything a policymaker asked about.
-  \end{itemize}
+  ou lose observations you often cannot spare, and the estimand changes:
+  it is now local to a population with a hole in its middle --- harder
+  to describe, and further still from anything a policymaker asked
+  about.
 \item
   Heaping is not fatal. But report both, with and without the donut, and
   let the reader see the difference.
 \end{itemize}
 \end{frame}
 
-\section{6.5 Medicare and Universal
-Healthcare}\label{medicare-and-universal-healthcare}
+\section{\texorpdfstring{6.6 DUI and Recidivism \emph{(replication
+exercise)}}{6.6 DUI and Recidivism (replication exercise)}}\label{dui-and-recidivism-replication-exercise}
 
-\begin{frame}{The question}
-\protect\phantomsection\label{the-question}
+\begin{frame}{The question: can we see deterrence?}
+\protect\phantomsection\label{the-question-can-we-see-deterrence}
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Card, Dobkin and Maestas (2008)}: what does universal health
-  insurance do to healthcare use? Medicare arrives sharply at age
-  \textbf{65}.
+  \textbf{Becker (1968).} Crime is deterred through two channels:
+  raising the \textbf{probability of arrest}, or raising the
+  \textbf{punishment} conditional on conviction.
 \item
-  The stakes are large. In 2014 Medicare was \(14\%\) of the US federal
-  budget --- \(\$505\) billion.
+  \textbf{Why aggregate data cannot answer this.} Harsher penalties do
+  two things at once. They may \textbf{deter}, as offenders rationally
+  reoffend less; they certainly \textbf{incapacitate}, by removing
+  offenders from the population at risk.
 \item
-  Around \(20\%\) of non-elderly US adults were uninsured in 2005,
-  mostly from lower-income families, nearly half Black or Hispanic.
-  Unequal coverage is a leading explanation for disparities in
-  healthcare use and health outcomes.
-\item
-  \textbf{Why observational comparisons fail.} Both the supply of and
-  the demand for insurance depend on health status, so
-  \(\mathrm{cov}(u, C) \neq 0\). Comparing the insured with the
-  uninsured measures selection as much as treatment --- and even among
-  the insured, copays and deductibles vary with health.
-\item
-  For the elderly the picture inverts: \textbf{under \(1\%\) are
-  uninsured}, most on fee-for-service Medicare, and the transition
-  happens at one known age.
+  \textbf{Hansen (2015)} Imagine flipping a coin over two near-identical
+  groups who have all drunk and driven, and punishing one group harder.
+  If deterrence is real, that group reoffends less.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{The empirical design}
-\protect\phantomsection\label{the-empirical-design}
-Healthcare use \(y\) depends on characteristics \(C^k\) of coverage
-(copayments, generosity), for individual \(i\), group \(j\), age \(a\).
-\textbf{\(C\) is endogenous}, so OLS does not identify \(\pi_k\): \[
-y_{ija} = X_{ija}\beta + f_j(a) + \textstyle\sum_k \pi_k C^k_{ija} + u_{ija}
-\]
+\begin{frame}{The design}
+\protect\phantomsection\label{the-design}
+\small
 
-Model two coverage dummies --- any coverage, and generous coverage ---
-as jumping at 65, with \(D_a = \mathbf{1}\{a \geq 65\}\): \[
-C^k_{ija} = X_{ija}\beta^k_j + g^k_j(a) + D_a\,\delta^k_j + v^k_{ija}, \qquad k = 1, 2
-\]
+\textbf{Hansen (2015).} A driver stopped on suspicion in Washington
+State blows into a breathalyzer. At \textbf{\(0.08\)} or above they are
+charged with DUI; \(0.15\) marks ``aggravated'' DUI. Use \(0.08\).
 
-Substituting, the jump in \(y\) at 65 is a \textbf{combination} of the
-two coverage jumps:
-\(\;\delta^y_j = \pi_1 \delta^1_j + \pi_2 \delta^2_j\).
-
-\begin{itemize}
-\tightlist
-\item
-  If \(f_j\), \(g^1_j\) and \(g^2_j\) are all \textbf{continuous at 65}
-  --- the identifying assumption --- any discontinuity in \(y\) is due
-  to insurance.
-\item
-  One group gives one equation in two unknowns. With \textbf{several
-  groups}, regressing \(\delta^y_j\) on \(\delta^1_j\) and
-  \(\delta^2_j\) across \(j\) separates \(\pi_1\) from \(\pi_2\).
-\end{itemize}
-\end{frame}
-
-\begin{frame}{The data}
-\protect\phantomsection\label{the-data}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{NHIS, 1992--2003.} Reports birth year, birth month, and
-  calendar quarter of interview --- enough to construct \textbf{age in
-  quarters}. Someone reaching 65 in the interview quarter is coded 65
-  and 0 quarters; assuming uniform interview dates, half of them are up
-  to six weeks younger than 65 and half up to six weeks older.
-\item
-  Restricted to ages 55--75. Final sample: \textbf{\(160{,}821\)}
-  observations.
-\item
-  \textbf{Hospital discharge records} for California, Florida and New
-  York --- a complete census of discharges, with \textbf{age in months}
-  at admission. Transfers dropped, ages 60--70 kept. Sample sizes
-  \(4{,}017{,}325\), \(2{,}793{,}547\) and \(3{,}121{,}721\).
-\item
-  \textbf{The institution is genuinely sharp.} Coverage begins on the
-  first day of the month you turn 65. Individuals are notified shortly
-  before their birthday, and must enrol and choose whether to take Part
-  B. Part A is free; Part B costs a modest premium.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{What jumps at 65: insurance}
-\protect\phantomsection\label{what-jumps-at-65-insurance}
-\begin{center}
-\scriptsize
-\begin{tabular}{lrrrrr}
-\toprule
- & On Medicare & Any insurance & Private & 2+ forms & Managed care \\
-\midrule
-Overall sample        & $59.7$ & $9.5$  & $-2.9$ & $44.1$ & $-28.4$ \\
-                      & $(4.1)$ & $(0.6)$ & $(1.1)$ & $(2.8)$ & $(2.1)$ \\[0.3em]
-White, some college   & $68.4$ & $4.4$  & $-2.3$ & $55.1$ & $-40.1$ \\
-                      & $(4.7)$ & $(0.5)$ & $(1.8)$ & $(4.0)$ & $(2.6)$ \\[0.3em]
-Minority, HS dropout  & $44.5$ & $21.5$ & $-1.2$ & $19.4$ & $-8.3$ \\
-                      & $(3.1)$ & $(2.1)$ & $(2.5)$ & $(1.9)$ & $(3.1)$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\footnotesize
-
-Percentage-point discontinuities at 65, from quadratics in age fully
-interacted with the post-65 dummy, plus controls for gender, education,
-race, region and year. Pooled 1999--2003 NHIS. \normalsize
-
-\begin{itemize}
-\tightlist
-\item
-  The \textbf{first stage is enormous}: Medicare coverage jumps about
-  \(60\) points, and holding two or more forms of coverage jumps \(44\).
-\item
-  Who \emph{gains} insurance and who merely \textbf{swaps} it differs
-  sharply. Minority dropouts gain coverage (\(+21.5\)); white
-  college-goers were already insured and mostly change its form
-  (\(+4.4\), with managed care down \(40\) points).
-\end{itemize}
-\end{frame}
-
-\begin{frame}{The confounder: what else happens at 65?}
-\protect\phantomsection\label{the-confounder-what-else-happens-at-65}
-\begin{itemize}
-\tightlist
-\item
-  Continuity requires that \textbf{everything else} trends smoothly
-  through 65 --- observed and unobserved. But 65 is also the traditional
-  retirement age, and non-workers have more time to visit a doctor.
-\item
-  If employment fell discontinuously at 65, part of any jump in
-  healthcare use would be leisure, not insurance.
-\item
-  So the authors bring in a \textbf{third dataset}, the March CPS
-  1996--2004, and run the same RD with employment as the outcome. They
-  find \textbf{no discontinuity at 65}.
-\item
-  This is the covariate-balance logic of §6.4, aimed at the one
-  confounder that institutional knowledge flags as dangerous.
-\item
-  \textbf{The general lesson.} ``Does anything else change at the
-  cutoff?'' is not a statistical question first. You answer it by
-  knowing the institution, and then testing what that knowledge
-  suggests. \hfill \emph{(added)}
-\end{itemize}
-\end{frame}
-
-\begin{frame}{What jumps at 65: access and use}
-\protect\phantomsection\label{what-jumps-at-65-access-and-use}
-\begin{center}
-\scriptsize
-\begin{tabular}{lrrrr}
-\toprule
- & Delayed care & Did not get care & Saw a doctor & Hospital stay \\
-\midrule
-Overall sample        & $-1.8$ & $-1.3$ & $1.3$ & $1.2$ \\
-                      & $(0.4)$ & $(0.3)$ & $(0.7)$ & $(0.4)$ \\[0.3em]
-White non-Hispanic    & $-1.6$ & $-1.2$ & $0.6$ & $1.3$ \\
-                      & $(0.4)$ & $(0.3)$ & $(0.8)$ & $(0.5)$ \\[0.3em]
-Hispanic              & $-4.9$ & $-3.8$ & $8.2$ & $11.8$ \\
-                      & $(0.8)$ & $(0.7)$ & $(0.8)$ & $(1.6)$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\footnotesize
-
-Percentage-point discontinuities at 65. First two columns from the
-1997--2003 NHIS, last two from 1992--2003. \normalsize
-
-\begin{itemize}
-\tightlist
-\item
-  Overall the effects are \textbf{small but precisely estimated}: care
-  delayed over cost falls \(1.8\) points, unmet need \(1.3\), doctor
-  visits rise \(1.3\), hospital stays \(1.2\).
-\item
-  The averages hide the story. For \textbf{Hispanics} the effects are
-  three to ten times larger --- an \(11.8\)-point rise in hospital
-  stays. Coverage matters most for those who had least.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{And mortality}
-\protect\phantomsection\label{and-mortality}
-\begin{center}
-\scriptsize
-\begin{tabular}{lrrrrrr}
-\toprule
-Death rate within & 7 days & 14 days & 28 days & 90 days & 180 days & 365 days \\
-\midrule
-Quadratic + controls & $-1.0$ & $-0.8$ & $-0.9$ & $-0.9$ & $-0.8$ & $-0.7$ \\
-                     & $(0.2)$ & $(0.2)$ & $(0.3)$ & $(0.3)$ & $(0.3)$ & $(0.4)$ \\[0.3em]
-Cubic + controls     & $-0.7$ & $-0.7$ & $-0.6$ & $-0.9$ & $-0.9$ & $-0.4$ \\
-                     & $(0.3)$ & $(0.2)$ & $(0.4)$ & $(0.4)$ & $(0.5)$ & $(0.5)$ \\[0.3em]
-Local OLS, ad hoc bandwidths & $-0.8$ & $-0.8$ & $-0.8$ & $-0.9$ & $-1.1$ & $-0.8$ \\
-                     & $(0.2)$ & $(0.2)$ & $(0.2)$ & $(0.2)$ & $(0.3)$ & $(0.3)$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\footnotesize
-
-From Card, Dobkin and Maestas (2009), a follow-up study.
-Percentage-point discontinuities at 65. The chapter's fourth row --- a
-quadratic with no controls --- is omitted here. \normalsize
-
-\begin{itemize}
-\tightlist
-\item
-  Roughly a \textbf{one-percentage-point} reduction in death rates,
-  stable from 7 days out to a year.
-\item
-  Note what the table is really doing: reporting the same estimate under
-  a quadratic, a cubic, and local OLS. \textbf{Answers that barely move
-  across specifications} are the point of the exercise --- compare the
-  §6.3 simulation, where they moved by five orders of magnitude.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{What to take from Card, Dobkin and Maestas}
-\protect\phantomsection\label{what-to-take-from-card-dobkin-and-maestas}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{The design is textbook sharp.} A statutory age, a first stage
-  of \(60\) percentage points, and an institution that gives individuals
-  no way to move their birthday.
-\item
-  \textbf{The chain is explicit.} Coverage jumps \(\rightarrow\) access
-  improves \(\rightarrow\) utilisation rises \(\rightarrow\) mortality
-  falls slightly. Every link is estimated at the same cutoff, in the
-  same design.
-\item
-  \textbf{The confounder was named before it was tested.} Retirement at
-  65 is the obvious threat, and they went to a third dataset to rule it
-  out.
-\item
-  \textbf{Heterogeneity is where the economics is.} On average Medicare
-  mostly \emph{swaps} one form of coverage for another, and the average
-  effect on access is small. Both averages conceal large gains for the
-  previously uninsured.
-\item
-  Contrast with Hansen, coming next: there the estimate is large and the
-  \emph{mechanism} stays ambiguous. Here the mechanism is clear and the
-  average effect is small. \hfill \emph{(added)}
-\end{itemize}
-\end{frame}
-
-\section{6.6 DUI and Recidivism: A Data
-Exercise}\label{dui-and-recidivism-a-data-exercise}
-
-\begin{frame}{Why deterrence is hard to identify}
-\protect\phantomsection\label{why-deterrence-is-hard-to-identify}
-\begin{itemize}
-\tightlist
-\item
-  Becker (1968): crime is deterred either by raising the
-  \textbf{probability of arrest} or by raising the \textbf{punishment}
-  conditional on conviction. Both are policy levers, and the ``scared
-  straight'' reading says the mere communication of a severe penalty may
-  be enough.
-\item
-  The empirical problem is that harsher penalties do two things at once.
-  They may \textbf{deter} --- offenders rationally reoffend less --- and
-  they certainly \textbf{incapacitate}, by removing offenders from the
-  population at risk.
-\item
-  Longer sentences are the leading example, and the main driver of US
-  mass incarceration. Crime falls, but is that rational deterrence or
-  simply that more people are behind bars? Aggregate data cannot
-  separate the two.
-\item
-  Two designs that can: \textbf{Drago, Galbiati and Vertova (2009)}
-  exploit an Italian collective pardon that left otherwise-identical
-  offenders with different residual sentences. \textbf{Lee and McCrary
-  (2017)} use exact birth dates and the jump in penalties at 18. Both
-  find small deterrence effects.
-\item
-  \textbf{Hansen (2015)} found a third: something close to a coin flip
-  inside a breathalyzer.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{The setting}
-\protect\phantomsection\label{the-setting}
-\begin{itemize}
-\tightlist
-\item
-  In Washington State, a driver stopped on suspicion blows into a
-  breathalyzer, which records \textbf{blood alcohol content}. At
-  \(\mathbf{0.08}\) or above they are charged with DUI. Punishments
-  \textbf{escalate with prior offences}, and a second threshold at
-  \(0.15\) marks ``aggravated'' DUI --- we use \(0.08\) only.
-\end{itemize}
-
+\vspace{-0.4em}
 \begin{center}
 \scriptsize
 \begin{tabular}{lrrrr}
@@ -1793,498 +1317,23 @@ Licence suspension  & 90 days & 365 days & 2 years & 900 days \\
 \bottomrule
 \end{tabular}
 \end{center}
+\vspace{-0.4em}
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{The design:} compare drivers who blew \(0.079\) with drivers
-  who blew \(0.081\). If those just above reoffend less, the escalated
-  punishment deterred them.
+  Treatment is assigned by \(\mathbf{1}\{\mathrm{BAC} \geq 0.08\}\), so
+  BAC is the running variable. Compare drivers who blew \(0.079\) with
+  those who blew \(0.081\): if those just above reoffend less, the
+  escalated punishment deterred them.
 \item
-  \textbf{The outcome:} recidivism --- the same person stopped again and
-  blowing above \(0.08\), measurable because the records carry
-  persistent personal identifiers.
+  \textbf{The outcome is recidivism} --- the same person stopped again
+  above \(0.08\). Measurable only because the administrative records
+  carry persistent personal identifiers.
 \item
-  Our extract has \(214{,}558\) stops against Hansen's \(512{,}694\), so
-  we \textbf{copy} his steps rather than replicate his numbers.
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Continuous, or merely fine-grained?}
-\protect\phantomsection\label{continuous-or-merely-fine-grained}
-\begin{itemize}
-\tightlist
+  \textbf{Manipulation is implausible.}
 \item
-  Washington's breathalyzers reported to \(0.001\). That is precise ---
-  but it is not continuous, and the distinction matters.
-\item
-  \textbf{Truly continuous} running variable: the probability that any
-  two units share a value is zero.
-\item
-  \textbf{Multi-valued} running variable: the scale is coarsened, so
-  many units share values. Nobody can sit \emph{between} two \(0.001\)
-  bins.
-\item
-  Consequences, both practical:
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Density tests ``can be a little funky'' when the running variable is
-    not continuous --- there is mass \emph{at} points, not merely near
-    them.
-  \item
-    \texttt{rdrobust} warns \emph{``Mass points detected in the running
-    variable''} on these data, and \textbf{Kolesár and Rothe (2018)} was
-    written for exactly this case.
-  \end{itemize}
-\item
-  It rarely invalidates the design. But it is the kind of institutional
-  detail that belongs in the paper rather than in a footnote.
-  \hfill \emph{(added)}
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Step 1: is the running variable manipulated?}
-\protect\phantomsection\label{step-1-is-the-running-variable-manipulated}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-12-1.pdf}}
-
-\vspace{-0.3em}
-\footnotesize
-
-No bunching at \(0.08\), and --- unlike the birth-weight data --- no
-heaping at round numbers. \texttt{rddensity} gives \(T = -0.14\),
-\(p = 0.89\). That is what the institution predicts. \textbf{Recall the
-five conditions:} the rule is known and drivers would dearly like to
-adjust, but the officer operates the machine and they have no
-opportunity. Two of three conditions are not enough.
-\end{frame}
-
-\begin{frame}{Step 2: do covariates jump at the cutoff?}
-\protect\phantomsection\label{step-2-do-covariates-jump-at-the-cutoff}
-\begin{center}
-\small
-\begin{tabular}{lrrrr}
-\toprule
- & white & male & age & accident \\
-\midrule
-Effect of DUI & $0.0057$ & $0.0062$ & $-0.1405$ & $-0.0034$ \\
-              & $(0.0050)$ & $(0.0057)$ & $(0.1644)$ & $(0.0041)$ \\
-Mean of outcome & $0.853$ & $0.792$ & $34.17$ & $0.101$ \\
-$N$ & $89{,}967$ & $89{,}967$ & $89{,}967$ & $89{,}967$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{itemize}
-\tightlist
-\item
-  Hansen's specification:
-  \(Y_i = \alpha + \tau\, \mathrm{DUI}_i + \beta_1 \mathrm{BAC}_i + \beta_2 \mathrm{BAC}_i \cdot \mathrm{DUI}_i + X_i\gamma + \varepsilon_i\),
-  on \(0.03 \leq \mathrm{BAC} \leq 0.13\) --- a \textbf{rectangular}
-  kernel with bandwidth \(0.05\) on each side, robust standard errors.
-  Unweighted OLS \emph{is} a rectangular kernel.
-\item
-  Nothing is significant, and the point estimates are tiny against the
-  means: \(0.6\) percentage points on an \(85\%\) base, a tenth of a
-  year on a mean age of \(34\).
-\item
-  These are \textbf{precise nulls}, which is the useful kind. A null
-  with enormous standard errors would tell you nothing at all.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Step 2, in pictures}
-\protect\phantomsection\label{step-2-in-pictures}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-13-1.pdf}}
-
-\vspace{-0.3em}
-\footnotesize
-
-Means in \(0.002\)-wide BAC bins, with a line fitted on each side. The
-lines \textbf{meet} at \(0.08\) in all four panels --- which is what the
-regression table said, now visible. Note how much more convincing the
-picture is than the coefficients were.
-\end{frame}
-
-\begin{frame}{Step 3: look at the outcome}
-\protect\phantomsection\label{step-3-look-at-the-outcome}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-14-1.pdf}}
-
-\vspace{-0.3em}
-\footnotesize
-
-Now the lines \textbf{do not} meet. Recidivism runs between \(8\%\) and
-\(14\%\) --- not common, so the estimated effect will be large in
-relative terms --- and it falls discontinuously for drivers who blew
-just over the limit. Eyeballing the left panel: about \(11.5\%\) drops
-to about \(9.75\%\), so roughly \(1.75\) points. The quadratic gives a
-slightly smaller gap, nearer \(1.25\)--\(1.5\).
-\end{frame}
-
-\begin{frame}{Step 4: the regressions}
-\protect\phantomsection\label{step-4-the-regressions}
-\begin{center}
-\small
-\begin{tabular}{lcc}
-\toprule
-Outcome: recidivism & (1) & (2) \\
-\midrule
-Effect of DUI & $-0.0236$ & $-0.0143$ \\
-              & $(0.0044)$ & $(0.0062)$ \\
-\midrule
-Polynomial & BAC & BAC, BAC$^2$ \\
-Mean of outcome & $0.107$ & $0.107$ \\
-$N$ & $89{,}967$ & $89{,}967$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{itemize}
-\tightlist
-\item
-  Same window and kernel as the balance table; column (2) interacts DUI
-  with BAC \textbf{and} BAC\(^2\), modelling the potential-outcome
-  functions more flexibly. Coefficients and standard errors reproduce
-  Hansen's Table 6.7 exactly.
-\item
-  Column (1): a \(2.4\) percentage-point fall against a base of
-  \(10.7\%\) --- a drop of more than a fifth, taking recidivism at the
-  cutoff to about \(9.3\%\). Column (2) allows curvature and gives
-  \(1.4\) points.
-\item
-  Both match the eyeballed figures. But \textbf{the specification moves
-  the answer by 40\%} --- §6.3's misspecification problem in a real
-  dataset. Which is why the next step is not optional.
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Step 5: data-driven bandwidths}
-\protect\phantomsection\label{step-5-data-driven-bandwidths}
-\begin{center}
-\small
-\begin{tabular}{lccc}
-\toprule
- & $p = 0$ & $p = 1$ & $p = 2$ \\
-\midrule
-Effect of DUI & $-0.0189$ & $-0.0195$ & $-0.0209$ \\
-              & $(0.0051)$ & $(0.0061)$ & $(0.0071)$ \\
-\midrule
-Bandwidth (left)  & $0.020$ & $0.033$ & $0.038$ \\
-Bandwidth (right) & $0.014$ & $0.054$ & $0.094$ \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{itemize}
-\tightlist
-\item
-  \texttt{rdrobust} with a \textbf{triangular} kernel, MSE-optimal
-  bandwidths allowed to differ by side, and robust bias-corrected
-  inference. This goes beyond what Hansen himself did.
-\item
-  The estimates sit in a tight band, \(-1.9\) to \(-2.1\) points, and
-  are \textbf{far more stable across \(p\)} than the fixed-bandwidth
-  regressions were --- and not far from them either.
-\item
-  Bandwidths \textbf{widen} as \(p\) rises. That is the
-  \(n^{-1/(2p+3)}\) formula at work, not a judgement call: more
-  polynomial terms mechanically buy a wider window.
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{The code}
-\protect\phantomsection\label{the-code}
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{library}\NormalTok{(rdrobust); }\FunctionTok{library}\NormalTok{(rddensity)}
-\NormalTok{d }\OtherTok{\textless{}{-}} \FunctionTok{read.csv}\NormalTok{(}\StringTok{"hansen\_dwi.csv"}\NormalTok{)}
-
-\CommentTok{\# 1. manipulation}
-\FunctionTok{rddensity}\NormalTok{(}\AttributeTok{X =}\NormalTok{ d}\SpecialCharTok{$}\NormalTok{bac1, }\AttributeTok{c =} \FloatTok{0.08}\NormalTok{)                       }\CommentTok{\# T = {-}0.14, p = 0.89}
-
-\CommentTok{\# 2. covariate balance, Hansen\textquotesingle{}s window and kernel}
-\NormalTok{d}\SpecialCharTok{$}\NormalTok{dui }\OtherTok{\textless{}{-}} \FunctionTok{as.integer}\NormalTok{(d}\SpecialCharTok{$}\NormalTok{bac1 }\SpecialCharTok{\textgreater{}=} \FloatTok{0.08}\NormalTok{); d}\SpecialCharTok{$}\NormalTok{bacc }\OtherTok{\textless{}{-}}\NormalTok{ d}\SpecialCharTok{$}\NormalTok{bac1 }\SpecialCharTok{{-}} \FloatTok{0.08}
-\NormalTok{w }\OtherTok{\textless{}{-}} \FunctionTok{subset}\NormalTok{(d, bac1 }\SpecialCharTok{\textgreater{}=} \FloatTok{0.03} \SpecialCharTok{\&}\NormalTok{ bac1 }\SpecialCharTok{\textless{}=} \FloatTok{0.13}\NormalTok{)}
-\FunctionTok{lm}\NormalTok{(white }\SpecialCharTok{\textasciitilde{}}\NormalTok{ dui }\SpecialCharTok{*}\NormalTok{ bacc, }\AttributeTok{data =}\NormalTok{ w)                      }\CommentTok{\# repeat for male, aged, acc}
-
-\CommentTok{\# 3. the main regressions}
-\FunctionTok{lm}\NormalTok{(recidivism }\SpecialCharTok{\textasciitilde{}}\NormalTok{ dui }\SpecialCharTok{*}\NormalTok{ bacc, }\AttributeTok{data =}\NormalTok{ w)                 }\CommentTok{\# {-}0.0236}
-\FunctionTok{lm}\NormalTok{(recidivism }\SpecialCharTok{\textasciitilde{}}\NormalTok{ dui }\SpecialCharTok{*}\NormalTok{ (bacc }\SpecialCharTok{+} \FunctionTok{I}\NormalTok{(bacc}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{)), }\AttributeTok{data =}\NormalTok{ w)   }\CommentTok{\# {-}0.0143}
-\CommentTok{\# 4. data{-}driven bandwidths}
-\FunctionTok{rdrobust}\NormalTok{(}\AttributeTok{y =}\NormalTok{ d}\SpecialCharTok{$}\NormalTok{recidivism, }\AttributeTok{x =}\NormalTok{ d}\SpecialCharTok{$}\NormalTok{bac1, }\AttributeTok{c =} \FloatTok{0.08}\NormalTok{, }\AttributeTok{p =} \DecValTok{1}\NormalTok{,}
-         \AttributeTok{kernel =} \StringTok{"triangular"}\NormalTok{, }\AttributeTok{bwselect =} \StringTok{"msetwo"}\NormalTok{)  }\CommentTok{\# {-}0.0195}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{itemize}
-\tightlist
-\item
-  \texttt{bwselect\ =\ "msetwo"} allows the bandwidth to differ by side.
-  With a common bandwidth (\texttt{"mserd"}, the default) the estimate
-  is \(-0.0168\): a default is still a choice.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{What the replication shows}
-\protect\phantomsection\label{what-the-replication-shows}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{The evidence is coherent.} A continuous density, four flat
-  covariates, a visible break in the picture, and estimates between
-  \(-1.4\) and \(-2.4\) percentage points across every specification we
-  tried.
-\item
-  \textbf{The steps are the general recipe}, not something specific to
-  drunk driving: density of the running variable, covariate balance,
-  pictures, parametric regressions, then optimal bandwidths.
-\item
-  \textbf{The interpretation is less clean than the identification.}
-  Getting a DUI charge reduces the chance of another. But is that
-  deterrence from the escalated penalty, the shock of the arrest itself,
-  or being scared into getting help? RD identifies the effect of
-  \emph{crossing the threshold}, not of any single mechanism that
-  crossing sets off.
-\item
-  That gap between a well-identified effect and a well-understood
-  mechanism is not a flaw in the design. It is a limit on what any
-  threshold can tell you, and it should be stated rather than glossed.
-\item
-  \textbf{The estimand, precisely:} the average effect of being charged
-  with a DUI, for drivers whose BAC was almost exactly \(0.08\). Not for
-  drivers at \(0.15\), and not for drivers never stopped.
-\end{itemize}
-\end{frame}
-
-\section{\texorpdfstring{RD in Finance \emph{(added
-section)}}{RD in Finance (added section)}}\label{rd-in-finance-added-section}
-
-\begin{frame}{Where the cutoffs are}
-\protect\phantomsection\label{where-the-cutoffs-are}
-\begin{itemize}
-\tightlist
-\item
-  Finance is full of rules with thresholds, which is why RD has spread
-  quickly in the field.
-\end{itemize}
-
-\begin{center}
-\small
-\begin{tabular}{llll}
-\toprule
-Paper & Running variable & Cutoff & Design \\
-\midrule
-Keys et al.\ (2010)       & FICO credit score  & $620$   & sharp-ish \\
-Malenko and Shen (2016)   & ISS voting-policy score & policy threshold & sharp \\
-Almeida et al.\ (2016)    & EPS relative to consensus & $0$ & sharp \\
-Cu\~nat et al.\ (2012)    & shareholder vote share & $50\%$ & fuzzy \\
-\bottomrule
-\end{tabular}
-\end{center}
-
-\begin{itemize}
-\tightlist
-\item
-  Index membership rules, covenant thresholds, credit ratings at the
-  investment-grade boundary, regulatory size thresholds --- all
-  candidates.
-\item
-  The econometrics is identical to Hansen's. What differs is how
-  plausible \textbf{no manipulation} is: in finance the agents are
-  sophisticated, well advised, and highly motivated. Conditions 1--3 of
-  §6.4 are routinely all satisfied.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Three finance applications}
-\protect\phantomsection\label{three-finance-applications}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Keys, Mukherjee, Seru and Vig (2010).} Securitisation rules of
-  thumb made loans just above a FICO of \(620\) substantially easier to
-  securitise. Loans just above the cutoff default more --- evidence that
-  securitisation weakened screening incentives. The running variable is
-  a credit score the lender observes and the borrower cannot easily
-  move.
-\item
-  \textbf{Malenko and Shen (2016).} ISS issues a negative say-on-pay
-  recommendation when a firm crosses a threshold in its scoring policy.
-  Firms just past it see a large drop in voting support, identifying the
-  causal influence of proxy advisers rather than merely their
-  information.
-\item
-  \textbf{Almeida, Fos and Kronlund (2016).} Firms that would just miss
-  the consensus EPS forecast repurchase shares to push EPS above it.
-  Running variable: EPS before repurchases, relative to consensus.
-  Cutoff: zero.
-\item
-  Notice the last one. The whole point of the paper is that firms
-  \textbf{manipulate their position} relative to the threshold. That is
-  a design where the running variable is endogenous by construction ---
-  the assumption violation, studied as the finding.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Close votes: the most-used and most-questioned design}
-\protect\phantomsection\label{close-votes-the-most-used-and-most-questioned-design}
-\begin{itemize}
-\tightlist
-\item
-  A shareholder proposal passing at \(50\%\) looks like the ideal RD.
-  Vote shares are near-continuous, the threshold is a legal rule, and
-  outcomes are observable. Governance research uses this design heavily.
-\item
-  \textbf{But are close votes as good as random?} In political science,
-  Caughey and Sekhon (2011) found that US House candidates who
-  \emph{barely won} differed systematically from those who barely lost
-  --- in incumbency, spending, and experience. Density and covariates
-  both failed near \(50\%\).
-\item
-  Eggers, Fowler, Hainmueller, Hall and Snyder (2015) then examined some
-  \(40{,}000\) close elections across many settings and found the
-  sorting was largely \textbf{specific to the post-war US House}, not a
-  general feature of close elections.
-\item
-  For \textbf{shareholder} votes the concern is sharper than for
-  elections. Management sees preliminary tallies, can lobby large
-  holders, and can adjourn a meeting. Nudging \(49\%\) to \(51\%\) is
-  precisely the sorting McCrary tests for.
-\item
-  So: run the density test, check covariate balance, and read the
-  institutional detail. And note that vote-share designs are usually
-  \textbf{fuzzy} --- passing is not implementing.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{How much data do you actually have?}
-\protect\phantomsection\label{how-much-data-do-you-actually-have}
-\begin{itemize}
-\tightlist
-\item
-  RD estimates come from a \textbf{neighbourhood}, not a sample. What
-  matters is how many observations sit inside the bandwidth, not how
-  many rows the dataset has.
-\item
-  Hansen's data have \(214{,}558\) stops, and the MSE-optimal bandwidths
-  still discard most of the range --- with the triangular kernel
-  down-weighting even what survives.
-\item
-  Now consider a typical governance study: a few hundred close votes in
-  total, perhaps forty within a few percentage points of \(50\%\). That
-  is a very small experiment.
-\item
-  This is the same idea as the effective sample size from Lecture 3.
-  Weighting concentrates influence; RD concentrates it at a point.
-\item
-  \textbf{Practical consequence:} in finance, RD is often badly
-  underpowered, and an underpowered RD produces large, noisy,
-  occasionally significant estimates. If you cannot see it in the
-  picture, it probably is not there.
-\end{itemize}
-\end{frame}
-
-\section{6.7 Practical Advice}\label{practical-advice}
-
-\begin{frame}{Visualising the outcome}
-\protect\phantomsection\label{visualising-the-outcome}
-\begin{itemize}
-\tightlist
-\item
-  RD is an \textbf{unusually visualisation-intensive} method. Get ready
-  to make a lot of pictures.
-\item
-  The rule of thumb: \emph{if you cannot see the effect in the data, you
-  are probably underpowered, or it is not there.} A regression that
-  finds what the picture does not show deserves suspicion, not a
-  footnote.
-\item
-  What is universal in practice: outcomes plotted as \textbf{means
-  within bins} of the running variable. Whether to overlay the fitted
-  lines is a matter of taste --- some readers want the raw data alone,
-  others want the fit that the regression implies. Both are common.
-\item
-  Either make the bins yourself, or use automated software.
-  \textbf{Binscatter} (Cattaneo, Crump, Farrell and Feng 2024) is the
-  popular alternative, and chooses bin widths on a principled basis
-  rather than by eye.
-\item
-  Show \textbf{more than one fit} --- linear and quadratic at least. If
-  the discontinuity is visible under both, that is evidence; if it
-  appears under only one, that is a specification, not a finding.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Show that the answer does not depend on the bandwidth}
-\protect\phantomsection\label{show-that-the-answer-does-not-depend-on-the-bandwidth}
-\pandocbounded{\includegraphics[keepaspectratio]{04_regression_discontinuity_files/figure-beamer/unnamed-chunk-15-1.pdf}}
-
-\vspace{-0.3em}
-\footnotesize
-
-Hansen's data, local linear with a triangular kernel, robust
-bias-corrected intervals. The point estimate moves only between
-\(-0.016\) and \(-0.021\) across a six-fold range of bandwidths.
-\textbf{This is what a robust result looks like.} A plot that swings
-across zero, or that is significant only in a narrow window, is telling
-you something --- and it is not good news. \hfill \emph{(added)}
-\end{frame}
-
-\begin{frame}{Checking the probability of treatment}
-\protect\phantomsection\label{checking-the-probability-of-treatment}
-\begin{itemize}
-\tightlist
-\item
-  When assignment is \textbf{not} sharp, plot \(\Pr(D = 1)\) against the
-  running variable. This is the \textbf{first stage}, and without a
-  clear jump --- without ``bite'' --- there is nothing to estimate.
-\item
-  \textbf{Hoekstra (2009)} is the model. Before estimating the returns
-  to attending a state flagship university, he shows that admission at
-  the test-score cutoff produces a sharp jump in \emph{attendance}. The
-  effect on earnings comes second.
-\item
-  Two things this picture does for you:
-
-  \begin{enumerate}
-  \tightlist
-  \item
-    It shows the rule is real and enforced, in the data rather than in
-    the statute.
-  \item
-    Its \textbf{size} determines your precision. A first stage of
-    \(0.6\) means the reduced form must be scaled up by \(1/0.6\), and
-    so must its standard error.
-  \end{enumerate}
-\item
-  Report the first-stage plot even in a design you believe is sharp. If
-  the jump is not to one, you have a fuzzy design whether you wanted one
-  or not.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Checking density and covariate balance}
-\protect\phantomsection\label{checking-density-and-covariate-balance}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Density.} Run the McCrary test --- but plot the distribution
-  first. A test statistic summarises one feature; the picture shows
-  heaping, gaps, mass points, and coarseness that the statistic will
-  miss. Almond et al.~is the cautionary case.
-\item
-  \textbf{Covariate balance.} Plot each covariate against the running
-  variable, with the same bins and the same fits as the main result.
-  Lee, Moretti and Butler (2004) is the template.
-\item
-  A jump in a covariate is a real problem: it says the two sides differ
-  in something other than treatment, and if an \emph{observed}
-  characteristic jumps, unobserved ones probably do too.
-\item
-  Use the \textbf{same specification} for the balance tests as for the
-  main estimate. A balance test at a different bandwidth, or a different
-  polynomial order, is not testing the design you actually ran.
+  Your task: replicate it!
 \end{itemize}
 \end{frame}
 
@@ -2318,9 +1367,46 @@ you something --- and it is not good news. \hfill \emph{(added)}
   \textbf{State the estimand} as a local effect at the threshold, and
   resist calling it ``the'' effect.
 \item
-  If the running variable is coarse or heaped, show a
-  \textbf{donut-hole} estimate too. \hfill \emph{(added)}
+  If the running variable is heaped, consider a \textbf{donut-hole}
+  estimate too.
 \end{enumerate}
+\end{frame}
+
+\section{RD in Finance}\label{rd-in-finance}
+
+\begin{frame}{Where the cutoffs are}
+\protect\phantomsection\label{where-the-cutoffs-are}
+\begin{itemize}
+\tightlist
+\item
+  Finance is full of rules with thresholds, which is why RD has spread
+  quickly in the field.
+\end{itemize}
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+Paper & Running variable & Cutoff & Design  \\
+\midrule
+Keys et al.\ (2010)       & FICO credit score  & $620$   & sharp-ish \\
+Malenko and Shen (2016)   & ISS voting-policy score & policy threshold & sharp \\
+Almeida et al.\ (2016)    & EPS relative to consensus & $0$ & sharp \\
+Cu\~nat et al.\ (2012)    & shareholder vote share & $50\%$ & fuzzy \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Index membership rules, covenant thresholds, credit ratings at the
+  investment-grade boundary, regulatory size thresholds --- all
+  candidates.
+\item
+  Ask how plausible \textbf{no manipulation} is: in finance the agents
+  are sophisticated, well advised, and highly motivated.
+\end{itemize}
 \end{frame}
 
 \section{6.8 Concluding Remarks}\label{concluding-remarks}
@@ -2364,8 +1450,7 @@ you something --- and it is not good news. \hfill \emph{(added)}
 \item
   \textbf{Overlap is zero}, so everything rests on extrapolating to a
   boundary --- and boundary estimation is exactly where misspecification
-  does the most damage. Our cubic example returned \(-170{,}165\)
-  against a truth of zero.
+  does the most damage.
 \item
   \textbf{The design is data-hungry}, because it estimates effects at
   the boundary of a cutoff. In finance that often means a few dozen
@@ -2374,10 +1459,6 @@ you something --- and it is not good news. \hfill \emph{(added)}
   \textbf{Diagnostics are necessary, not sufficient.} Almond et
   al.~passed the density test, and the donut hole still moved their
   answer by half.
-\item
-  Acquiring the right data has nothing to do with the econometrics ---
-  but if you do not know the econometrics when the opportunity appears,
-  you will not recognise it. \textbf{Luck favours the prepared.}
 \item
   Next: the fuzzy design, where the cutoff shifts the \emph{probability}
   of treatment --- which makes it an instrument, and takes us to
@@ -2426,9 +1507,6 @@ you something --- and it is not good news. \hfill \emph{(added)}
   Card, D., C. Dobkin and N. Maestas (2008). The Impact of Nearly
   Universal Insurance Coverage on Health Care Utilization. \emph{AER}
   98, 2242--2258.
-\item
-  Card, D., C. Dobkin and N. Maestas (2009). Does Medicare Save Lives?
-  \emph{QJE} 124, 597--636.
 \item
   Carpenter, C. and C. Dobkin (2009). The Effect of Alcohol Consumption
   on Mortality. \emph{AEJ: Applied} 1, 164--182.

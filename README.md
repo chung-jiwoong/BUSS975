@@ -16,7 +16,7 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 2. Directed Acyclic Graphs | [Slides][dag-pdf] | [Problem][dag-ps] |
 | 3a. Unconfoundedness: Subclassification and Matching | [Slides][unc-a-pdf] |  |
 | 3b. Unconfoundedness: Propensity Scores and Regression | [Slides][unc-b-pdf] | |
-| 4. Regression Discontinuity | [Slides] | |
+| 4. Regression Discontinuity | [Slides][rd-pdf] | |
 
 ---
 

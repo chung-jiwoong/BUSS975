@@ -1,0 +1,314 @@
+---
+title: "Solutions --- Problem Set: Regression Discontinuity"
+subtitle: "BUSS975 --- covering Lecture 4"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+*Solution key. Every numerical result in Problem 3 is produced by the code shown --- the document recomputes it at render time, so the printed numbers and the code cannot drift apart. Simulation figures will move by a point or two across seeds; grade the pattern, not the digits.*
+
+*For the written parts, what follows is a model answer, not the only acceptable one. Grade on whether the mechanism is identified correctly, not on wording.*
+
+## Problem 1 (What RD assumes, and what it gives you)
+
+**(a)** Sharp:
+$$
+\tau_{SRD} = \lim_{x \downarrow c_0} E[Y \mid X = x] \;-\; \lim_{x \uparrow c_0} E[Y \mid X = x] \;=\; E[Y^1 - Y^0 \mid X = c_0].
+$$
+Fuzzy:
+$$
+\tau_{FRD} = \frac{\lim_{x \downarrow c_0} E[Y \mid X = x] - \lim_{x \uparrow c_0} E[Y \mid X = x]}
+                  {\lim_{x \downarrow c_0} E[D \mid X = x] - \lim_{x \uparrow c_0} E[D \mid X = x]}.
+$$
+The numerator is the jump in the **outcome** --- the reduced form, or intention-to-treat. The denominator is the jump in the **probability of treatment** --- the first stage. The sharp design is the case where crossing $c_0$ moves $\Pr(D=1)$ from $0$ to $1$, so the denominator is exactly $1$ and the ratio collapses to the numerator. The fuzzy estimand is a LATE: the effect for units whose treatment status is switched by crossing the threshold.
+
+**(b)** Identification does not come from comparing like with like at the same $X$; it comes from **continuity**. We assume $E[Y^0 \mid X = x]$ and $E[Y^1 \mid X = x]$ are continuous at $c_0$, so the limit from one side is a valid counterfactual for the other side at the boundary. What replaces common support is **extrapolation over an arbitrarily small distance**: we never observe $Y^0$ for a treated unit, but we observe $Y^0$ arbitrarily close by, and continuity says the gap closes. This is why RD is credible *and* why it identifies an effect at a single point.
+
+**(c)** $\tau$ is the average effect **at the threshold** --- for units with $X = c_0$ --- not for the population, and not for any unit far from the cutoff. A policymaker almost never asks about the threshold: they ask what happens if the threshold **moves**, which is an effect at a different point of $X$ and is not identified.
+
+Finance example: a regulator with a \$50bn asset threshold for enhanced supervision wants to know the effect of lowering it to \$10bn. An RD at \$50bn estimates the effect for banks at \$50bn, which tells you nothing about \$10bn banks unless you are willing to assume the effect is constant in size --- exactly the assumption the design was supposed to avoid. (Angrist and Rokkanen (2015) is the literature on extrapolating away from the cutoff, and it requires extra assumptions.)
+
+**(d)** The student is **wrong**, and the confusion is between the identifying assumption and the estimation method.
+
+Continuity requires only that $E[Y^d \mid X = x]$ be **continuous at $c_0$** --- not linear, not any particular functional form, anywhere. A quadratic CEF is perfectly continuous, so the design is valid and $\tau = 0.20$ is identified.
+
+The polynomial order $p$ is not a model of the truth. It is a **local approximation device**: inside a shrinking window, a smooth function is approximately linear, and the approximation error vanishes as $h \to 0$. Fitting $p = 1$ to a quadratic truth creates **approximation bias** $B$ --- a finite-sample problem that the bias correction and the bandwidth choice are designed to manage --- not an identification failure. The mismatch is precisely what the robust bias-corrected interval exists to price.
+
+**(e)** You give up **external validity**: unconfoundedness on covariates, if you believe it, identifies the ATE or ATT for the whole sample, while RD identifies one number at one point, usually with a fraction of the data. You also give up power --- see Problem 5(f).
+
+Prefer unconfoundedness when the selection story is genuinely well understood and richly measured (so the conditional independence assumption is plausible), when you need an effect for the whole population rather than at a threshold, or when there is no threshold to exploit. Prefer RD when you have a hard rule and no confidence that you have measured what drives selection.
+
+\newpage
+
+## Problem 2 (Choosing $p$, $h$ and $K$)
+
+**(a)** Differentiate $MSE(h) = B^2 h^{2p+2} + V n^{-1} h^{-1}$:
+$$
+\frac{d}{dh} MSE(h) = (2p+2) B^2 h^{2p+1} - \frac{V}{n h^{2}} = 0.
+$$
+Multiply through by $h^2$ and rearrange:
+$$
+(2p+2) B^2 h^{2p+3} = \frac{V}{n}
+\qquad\Longrightarrow\qquad
+h_{MSE} = \left[\frac{V}{(2p+2) B^2 n}\right]^{\frac{1}{2p+3}}.
+$$
+Dropping the constant $(2p+2)^{-1/(2p+3)}$,
+$$
+h_{MSE} \;\propto\; V^{\frac{1}{2p+3}} \; B^{-\frac{2}{2p+3}} \; n^{-\frac{1}{2p+3}},
+$$
+as claimed. (The second derivative is positive at this point, so it is a minimum.)
+
+**(b)**
+
+- **Noise $V$: positive exponent.** Noisier data $\Rightarrow$ a **wider** window. You need more observations to average the noise away, and you are willing to pay for them in bias. In the limit $V \to 0$ you would use only the points at the cutoff.
+- **Curvature $B$: negative exponent.** More curvature $\Rightarrow$ a **narrower** window, because a straight line tracks a sharply bending function only over a short stretch. If $B \to 0$ (a genuinely linear CEF), $h \to \infty$ --- just run OLS on everything.
+- **Sample size $n$: negative exponent.** More data $\Rightarrow$ a **narrower** window. This is the counterintuitive one. Extra data is not spent on widening the window; it is spent on **reducing bias**, because now you can afford to look only very close to the cutoff and still have enough observations. What grows with $n$ is the **count inside the window**: $n h \propto n^{(2p+2)/(2p+3)}$, which $\to \infty$ even though $h \to 0$. So precision improves while bias falls --- you get both, which is the point.
+
+**(c)** With a rectangular kernel every observation in $[c_0, c_0+h]$ gets equal weight, so the fitted value at the boundary is essentially the **mean of the bin**, and a bin mean estimates $E[Y \mid X]$ at the **centre** of the bin, roughly $c_0 + h/2$, not at $c_0$. If the CEF is sloped, that is biased by approximately (slope) $\times\, h/2$, and the bias does not vanish relative to the variance at the optimal rate. This is the classic boundary problem of kernel regression.
+
+A triangular kernel puts **maximum weight at $c_0$ and zero at the edge**, so the estimate is anchored where the estimand is. Combined with a local linear fit (which also corrects for slope), it is boundary-optimal in the minimax sense --- which is why Calonico, Cattaneo and Titiunik recommend it.
+
+**(d)** Two reasons:
+
+1. **Gelman and Imbens (2019):** high-order global polynomials put large, erratic weights on observations **far from the cutoff**, so the estimate at $c_0$ ends up driven by data that have nothing to do with the comparison you want. The implied weights can even be negative. The estimates are also wildly sensitive to the order chosen.
+2. It is answering the wrong question. The identifying content of RD is **local**; a global polynomial is a device for fitting the whole curve, and improving global fit can easily worsen fit at the boundary.
+
+Instead: stay **local**, keep $p \leq 2$, choose $h$ by an MSE-optimal rule, and show that the answer survives a range of bandwidths and both $p = 1$ and $p = 2$.
+
+**(e)** In your econometrics course, weights implement **GLS**: they are proportional to $1/\sigma_i^2$ and their purpose is **efficiency** under heteroskedasticity. In local polynomial RD the weights are the kernel $K((X_i - c_0)/h)$ --- a function of $X_i$ alone, knowing nothing about $\sigma_i^2$. Their purpose is **locality**, bought deliberately at the cost of efficiency: informative distant observations are downweighted on purpose, to cut bias.
+
+Two consequences:
+
+1. The weights do **not** correct heteroskedasticity. You still need heteroskedasticity-robust standard errors --- and, by Problem 3(f), you must not cluster on the running variable.
+2. The reported $N$ is misleading. `rdrobust` prints an **effective** sample size for this reason: with a triangular kernel a unit at the edge of the window contributes almost nothing. Read the effective $N$, not the number of rows.
+
+\newpage
+
+## Problem 3 (Inference: three intervals, and one bad habit)
+
+**(a)**
+
+```{r}
+#| cache: false
+suppressMessages(library(rdrobust))
+tau <- 0.20
+m0 <- function(x) 0.40       + 0.30*x + 6.0*x^2
+m1 <- function(x) 0.40 + tau + 0.80*x - 4.0*x^2
+one <- function(h, n = 2000) {
+  x <- runif(n, -1, 1)
+  y <- ifelse(x < 0, m0(x), m1(x)) + rnorm(n, 0, 0.25)
+  r <- try(rdrobust(y = y, x = x, c = 0, p = 1, kernel = "triangular", h = h),
+           silent = TRUE)
+  if (inherits(r, "try-error")) return(rep(NA, 3))
+  as.integer(r$ci[, 1] <= tau & tau <= r$ci[, 2])   # conventional, bc, robust
+}
+set.seed(975); R <- 500
+cov_tab <- sapply(c(0.10, 0.40), function(h) rowMeans(replicate(R, one(h)), na.rm = TRUE))
+dimnames(cov_tab) <- list(c("Conventional", "Bias-corrected", "Robust BC"),
+                          c("h = 0.10", "h = 0.40"))
+round(100 * cov_tab, 1)
+```
+
+**(b)** The MSE decomposition is $B^2h^{2(p+1)} + V/(nh)$. At $h = 0.10$ the window is narrow, so the local linear approximation to a quadratic truth is good: $B h^2$ is negligible next to the standard error, and an interval centred on $\hat\tau$ as if $B = 0$ is approximately correctly centred. At $h = 0.40$ the bias term has grown by a factor of roughly $(0.40/0.10)^2 = 16$ while the standard error has **shrunk** by roughly $\sqrt{0.10/0.40} = 1/2$. The interval is now both badly off-centre and narrow, so it almost never covers.
+
+Nothing warns you because the bias is a property of the **unknown true function**, not of the residuals. The point estimate looks reasonable, the standard error is small, the $t$-statistic is large, and the regression output is indistinguishable from a healthy one. The failure mode is invisible and, as $h$ grows, unbounded.
+
+**(c)** Bias correction replaces $\hat\tau$ with $\hat\tau - \hat B$, which fixes the **centring**. But $\hat B$ is itself estimated --- typically from a higher-order local fit --- and the bias-corrected interval uses the **same** $\sqrt{\hat V}$ as before, as though $\hat B$ were known. It therefore understates the true sampling variability of $\hat\tau - \hat B$, and the interval is systematically too short. Hence coverage that is flat (the centring is right at every bandwidth) but stuck well below $95\%$.
+
+**Robust** bias correction folds $\operatorname{Var}(\hat B)$ and $\operatorname{Cov}(\hat\tau, \hat B)$ into the variance term. The intervals are wider at the same bandwidth --- that is the honest price --- and coverage is close to nominal across a wide range of $h$. That flatness is the property you are buying.
+
+**(d)** With a multi-valued running variable, write $m^\ast$ for the straight line the local fit targets. Then
+$$
+Y_i - m^\ast(X_i) \;=\; \underbrace{m(X_i) - m^\ast(X_i)}_{\text{specification error}} \;+\; \underbrace{Y_i - m(X_i)}_{\text{idiosyncratic noise}},
+$$
+and the first term is a function of $X_i$ **alone**. Every unit recorded at the same mass point therefore carries an identical component, which is exactly the form $\varepsilon_i = a_{g(i)} + u_i$ of a group shock. Lee and Card concluded that you should cluster on $g$ --- **the distinct value of the running variable**, one cluster per unique $X$.
+
+**(e)** *Prediction before running:* everything in a first course says clustering **raises** standard errors, because it allows within-group correlation and cuts the effective sample size. That prediction is wrong here.
+
+```{r}
+suppressMessages({library(sandwich); library(lmtest)})
+d <- read.csv("data/hansen_dwi.csv")
+d$dui <- as.integer(d$bac1 >= 0.08); d$bacc <- d$bac1 - 0.08
+res <- t(sapply(c(0.05, 0.02, 0.01), function(h) {
+  w  <- subset(d, abs(bacc) <= h)
+  m  <- lm(recidivism ~ dui * bacc, data = w)
+  g  <- round(w$bac1, 3)
+  c(h = h, N = nrow(w), G = length(unique(g)), coef = coef(m)["dui"],
+    robust = sqrt(vcovHC(m, type = "HC1")["dui", "dui"]),
+    clustered = sqrt(vcovCL(m, cluster = g, type = "HC1")["dui", "dui"]))
+}))
+res <- cbind(res, ratio = res[, "clustered"] / res[, "robust"])
+round(res, 5)
+```
+
+**(f)** Two separate things are going wrong.
+
+1. **The asymptotics are absent.** The cluster-robust formula is justified as the **number of clusters $G \to \infty$**. Shrinking the bandwidth to reduce bias destroys clusters: at $h = 0.01$ there are roughly twenty thousand observations but only about twenty distinct BAC readings. With $G$ that small the estimator of the clustered variance is severely downward-biased, and nothing in the output warns you.
+
+2. **There is no random group shock to price.** The specification error is a **fixed function of $x$** --- the same in every hypothetical sample, because it is the gap between the true CEF and the best local linear approximation at that mass point. A cluster-robust variance estimator exists to price a shock that is **redrawn** each sample. Here there is nothing to redraw, so clustering is not merely imprecise, it is answering a question that does not arise. The right response to approximation error is to correct the bias (robust bias-corrected intervals) or to bound the curvature (honest intervals, Armstrong--Kolesár), not to inflate a variance.
+
+The practical consequence is the dangerous direction: smaller standard errors, larger $t$-statistics, and **over-rejection of a true null** --- Kolesár and Rothe's point exactly.
+
+\newpage
+
+## Problem 4 (Manipulation, heaping, and what a test can clear)
+
+**(a)**
+
+| | Rule known? | Interest in adjusting? | Opportunity? | Sorting expected? |
+|---|---|---|---|---|
+| i. Roadside breathalyzer | Yes | Strongly | **No** --- the officer operates the machine | **No** |
+| ii. EPS vs consensus | Yes | Strongly | **Yes** --- buybacks, accruals, guidance | **Yes** |
+| iii. Entrance exam | Yes | Strongly | Partly --- retakes, not same-sitting | **Yes**, at the retake margin |
+| iv. Bank assets vs threshold | Yes | Strongly | **Yes** --- asset sales, timing, structure | **Yes** |
+
+The lesson is that all three conditions are needed. In (i) two of three hold and the design survives, which is exactly why Hansen's setting is such a good teaching case. In (ii)--(iv) the agents are sophisticated, well advised and highly motivated, which is the general condition of finance.
+
+**(b)** The test asks **one** question: is the density $f(x)$ of the running variable **continuous at $c_0$**? It compares $\lim_{x \uparrow c_0} f(x)$ with $\lim_{x \downarrow c_0} f(x)$. It is a test of manipulation only because manipulation **moves mass across** the threshold, depressing one side and raising the other.
+
+*At the level of the estimand:* a point mass sitting exactly **at** $c_0$ contributes to **neither** one-sided limit. Approach from the left through $c_0 - 1, c_0 - 2, \dots$ and from the right through $c_0 + 1, c_0 + 2, \dots$ and you meet the same smooth function. So the two limits agree and there is **no discontinuity to find**. Heaping piles mass at a point; manipulation moves it across a boundary. A spike *on* the cutoff is not a step *across* it.
+
+*At the level of implementation:* any estimator must assign that pile to one side. If treatment is $X < c_0$, a unit recorded at exactly $c_0$ is on the right, and the first right-hand bin --- which carries the most weight in a boundary local-linear fit --- is inflated. So the heap **does** leak into the statistic, and whether it shows up depends on the bin width and bandwidth. In the lecture's simulated birth-weight distribution the verdict also flips with the arbitrary position of the nearest ounce mark, and a density test run at placebo cutoffs rejects almost everywhere.
+
+*Which to worry about:* **both, but not symmetrically.** The estimand-level point tells you a **passing** test is uninformative --- it cannot clear heaping, so do not treat it as a clean bill of health. The implementation-level point tells you a **failing** test may be an artefact of coarseness rather than evidence of sorting. The correct response to either is the same: **plot the distribution** and look.
+
+**(c)** Three steps:
+
+1. **Heaped babies are different babies.** Rounding is not random --- it occurs in rushed deliveries and less-equipped hospitals. Heaped births have less-educated mothers, less prenatal care, and higher mortality than their unheaped neighbours.
+2. **The heap lands on the control side.** VLBW means $< 1{,}500$g, so a baby recorded at *exactly* $1{,}500$g is **untreated**. The whole pile sits in the control group, at the boundary, carrying the weight of thousands of births.
+3. **That drags the control limit up.** The right-hand limit is computed from data beginning with a pile of unusually frail babies, so it is biased upward. Subtracting an inflated control mean makes being *below* the cutoff look protective.
+
+Step 3 never used the number $1{,}500$. It needs only "*a heap sits at the cutoff*" --- and **every** $100$g mark is a heap, so the same artefact is waiting at $1{,}400$g and $1{,}600$g, where nothing happens to anyone.
+
+**(d)** It is composition because what changes discontinuously at the threshold is **who is recorded there**, not what is done to them. The potential outcomes of a given baby are unaffected by crossing $1{,}500$g; what jumps is the *mix* of babies in the comparison, because the heap contains a non-random subpopulation.
+
+To the colleague: the babies at exactly $1{,}500$g do have higher mortality, but that is a fact about **their characteristics**, not an effect of treatment --- and they are in the **control** group, so their frailty cannot be an effect of the extra care given below $1{,}500$g. Attributing it to the threshold reverses the direction of the inference. The decisive evidence is that the same "effect" appears at placebo cutoffs where no treatment exists.
+
+**(e)** *Justification:* RD identifies a limit --- it compares means **as we approach** $c_0$ --- so the estimate should not depend on observations sitting exactly at the threshold. If those observations are suspect (heaped, rounded, manipulated) but their neighbours are fine, dropping them removes the contamination while leaving the estimand in principle intact.
+
+*What happens to the estimand:* it is now local to a population **with a hole in its middle**. You are estimating the limit as you approach $c_0$ from outside the donut, for a subpopulation defined by not being at the threshold. That is harder to describe and further still from anything a policymaker asked about --- and if the donut is wide, you are extrapolating across it.
+
+*Why the halving is not itself evidence:* dropping observations changes the estimate for two reasons at once --- removing contamination **and** changing the estimand and the effective window. A change is consistent with the original being biased, but also with the donut discarding genuinely informative units, or simply with noise once the sample shrinks. The halving is a **diagnostic that something at the threshold is doing a lot of work**, which is a reason to investigate, not a verdict. Report both, with and without, and let the reader see the difference.
+
+\newpage
+
+## Problem 5 (RD in finance: how is each study performed?)
+
+*Grading note: the point of this problem is that the lecture's one-line table is an advertisement, and three of its four "Design" entries do not survive contact with the papers. Reward students who discovered that. Numbers below are as the published articles state them; where a figure comes only from a working-paper version it is marked.*
+
+### (a) The four studies
+
+**Keys, Mukherjee, Seru and Vig (2010), QJE 125(1):307--362.**
+
+- *Question.* Did securitisation weaken lenders' incentive to screen borrowers? The confound is that loans that get securitised differ from those that do not in ways the lender observes and the econometrician does not, so a simple comparison of securitised and portfolio loans is selection, not treatment.
+- *Rule.* A FICO score of **620** as an **industry rule of thumb**, originating in Fannie Mae and Freddie Mac eligibility guidance from the mid-1990s and hardening into a convention among secondary-market purchasers. Nothing legally changes at 620. (For full-documentation loans the authors use **600** instead, which students should note.) Lenders learn the rule through the purchasing practices of securitisers and through automated underwriting software.
+- *Design.* Running variable: borrower FICO. Cutoff: 620 (low-doc). The intended treatment is **ease of securitisation**, which plainly does not jump to one --- so this is conceptually fuzzy. But their dataset (LoanPerformance) contains **only securitised loans**, so they **cannot and do not estimate a first stage**. What they report is a reduced form: default rates jump at 620, together with the observation that roughly twice as many securitised loans sit just above as just below.
+- *Finding.* "Conditional on being securitized, the portfolio with greater ease of securitization defaults by around **10\%--25\% more** than a similar risk profile group with a lesser ease of securitization."
+
+**Malenko and Shen (2016), RFS 29(12):3394--3427.**
+
+- *Question.* Do proxy advisers **cause** shareholder votes, or do they merely aggregate information shareholders would have used anyway? Recommendations and votes are correlated, but both may simply reflect proposal quality.
+- *Rule.* **ISS's own published voting policy** --- private firm policy, not law. (The say-on-pay vote exists because of Dodd--Frank §951; the *screen* is ISS's.) Under the 2010--2011 guidelines ISS flagged a company for in-depth review when **both** its 1-year **and** its 3-year total shareholder return fell below the median of Russell 3000 peers in the same 4-digit GICS group. Only flagged firms could receive a negative recommendation. Firms learn the rule because ISS publishes it --- and ISS **abandoned it in 2012**, which the authors use as a falsification test.
+- *Design.* Because the screen requires *both* returns below median, the binding margin is the better of the two. Running variable: $\mathrm{MaxTSR} = \max(\mathrm{TSR}_{1yr} - \mathrm{Median}_{1yr},\; \mathrm{TSR}_{3yr} - \mathrm{Median}_{3yr})$, cutoff **0**. **Fuzzy**: crossing the cutoff triggers a review, not a recommendation. The first stage is a jump in $\Pr(\text{negative recommendation})$ from about $10\%$ to about $25\%$ --- roughly **15 percentage points** --- against a base rate of $12.7\%$. Estimated by 2SLS.
+- *Finding.* A negative ISS say-on-pay recommendation reduces voting support by about **25 percentage points**.
+
+**Almeida, Fos and Kronlund (2016), JFE 119(1):168--185.**
+
+- *Question.* Do EPS-motivated share repurchases have **real** effects on employment and investment? The confound is that repurchases and low investment are both driven by poor growth opportunities, so their correlation is not causal.
+- *Rule.* **There is no institutional rule.** The threshold is a **behavioural and market convention**: managers' strong incentive to meet or beat the analyst consensus, combined with the arithmetic by which a buyback cuts the share count and lifts EPS. Nobody --- no statute, regulator, firm or industry body --- sets it. Students should flag this as the design's softest institutional leg: the usual RD defence "an outsider set the cutoff, so it is arbitrary" is unavailable here.
+- *Design.* See (d) for the construction of the running variable. Cutoff **0**. **Fuzzy**, with a notably small first stage: the probability of an accretive repurchase rises from under $1.5\%$ to about $3.5\%$ across the threshold, a jump of roughly **3--5 percentage points** full-sample and **5--10** in the narrow window $|\mathrm{Sue}_{adj}| \leq 0.003$. Estimated by 2SLS, so the estimand is a LATE for a small complier group and the scaling factor is large.
+- *Finding.* Cuts over the following four quarters of roughly **10\% of mean capital expenditure, 3\% of mean R\&D, and 5\% of mean employment**.
+
+**Cuñat, Giné and Guadalupe (2012), JF 67(5):1943--1977.**
+
+- *Question.* Does better corporate governance raise shareholder value? Governance is endogenous, and because markets price expectations, a naive event study around the vote understates the effect.
+- *Rule.* Passage of a **shareholder-sponsored** governance proposal at the majority threshold, under **corporate law and the firm's own charter/bylaws**. SEC Rule 14a-8 governs only eligibility to *submit*. Most proposals use $50\%$ (a handful use $66.7\%$, $70\%$ or $80\%$, and the vote base differs by firm, so the authors use the firm-specific threshold). Crucially, **most shareholder proposals are precatory** --- a recommendation to the board, not binding.
+- *Design.* Running variable: vote share relative to the firm-specific majority threshold, normalised to $50\%$. Passage is a deterministic function of the vote, so passage is mechanically sharp --- but passage is **not** the economically relevant treatment. **Implementation** is, and it is probabilistic, so the design is **fuzzy**: the authors estimate a jump of roughly **31 percentage points** in the probability of implementation (consistent with Ertimur, Ferri and Stubben: $31.1\%$ of passing proposals implemented versus $3.2\%$ of failing ones). Sample: 3,984 governance proposals, 1997--2007. Outcome: abnormal return on the day of the vote.
+- *Finding.* "Passing a corporate governance provision generates a **1.3\% abnormal return on the day of the vote** with an **implied market value per provision of 2.8\%**." The $1.3\%$ is the reduced form at the discontinuity; the $2.8\%$ is the structural value after dividing out the implementation probability and accounting for the raised probability of passing future proposals.
+
+### (b) Audit of the table
+
+**All four designs are fuzzy.** The corrected column:
+
+\begin{center}
+\small
+\begin{tabular}{llll}
+\toprule
+Paper & Lecture says & Actually & First stage \\
+\midrule
+Keys et al.\ (2010)     & sharp-ish & fuzzy & \textbf{never estimated} \\
+Malenko and Shen (2016) & sharp     & fuzzy & $\approx 15$ pp \\
+Almeida et al.\ (2016)  & sharp     & fuzzy & $3$--$10$ pp \\
+Cu\~nat et al.\ (2012)  & fuzzy     & fuzzy & $\approx 31$ pp \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The paper with **no first stage** is Keys et al., and the omission is the hinge of the whole debate. Their claim is that ease of **securitisation** jumps at 620, but their data contain only securitised loans, so they cannot show $\Pr(\text{securitised})$ jumping.
+
+**Bubb and Kaufman (JME 2014)** supplied the missing test using Lender Processing Services data, which include portfolio, GSE and privately securitised loans. They find jumps in the **number of loans** and in the **default rate** at both 620 and 660, but **no corresponding jump in the securitisation rate**. In IV language: a large reduced form with **no first stage**, which is direct evidence that the exclusion restriction fails. Their alternative explanation is an **origination** rule of thumb --- the GSEs required *originators* to adopt credit-score cutoffs in their own screening, so 620 is a threshold in how carefully lenders screen, not in who will buy the loan. Keys, Seru and Vig (RFS 2012) replied that Bubb and Kaufman pool the agency and non-agency markets and that the 620 rule operated only in the latter. Treat the dispute as live.
+
+*A student who writes "all four are fuzzy, and the interesting variation is in the size and verifiability of the first stage" has understood the problem.*
+
+### (c) Who sets the rule, and the ranking
+
+Who sets the rule matters because the no-manipulation assumption is an assumption about **whether the agents being studied can position themselves relative to a threshold they know about**. A rule set by a disinterested third party, on a variable the agent cannot target, is the strongest case; a rule the agent's own behaviour defines is the weakest.
+
+Ranking, most to least credible:
+
+1. **Malenko and Shen.** A published third-party screen on *relative* TSR --- a firm cannot easily move its own stock return on a specific date, and the cutoff depends on **all other firms' returns** in its industry, so it is hard even to predict. Density test passes ($|T| = 0.84$), covariates balance, and voting support is continuous at the cutoff in 2012 when ISS dropped the rule.
+2. **Keys et al.** FICO is computed by third-party bureaus from borrower history and takes months to move deliberately; the authors argue targeted manipulation is close to impossible. The design's problem is the *exclusion restriction*, not sorting.
+3. **Cuñat et al.** A real legal/bylaw threshold, but the treatment is one that interested parties can and do contest --- see (e).
+4. **Almeida et al.** No institutional rule at all, and the running variable is a firm-chosen reporting outcome. It ranks last on *rule* strength, and is rescued only by the construction in (d).
+
+### (d) Manipulation as the finding
+
+The paper is **Almeida, Fos and Kronlund (2016)**. The whole point is that firms just short of consensus repurchase shares to push EPS over the line --- so the *actual* EPS surprise is manipulated by the treatment, and using it as a running variable would be circular: the treatment would mechanically move firms across the cutoff.
+
+The trick is to construct the **counterfactual** surprise --- what the firm would have reported had it not repurchased:
+$$
+\mathrm{Sue}_{adj} = \frac{\text{pre-repurchase EPS} - \text{median analyst forecast}}{\text{end-of-quarter price}},
+$$
+$$
+\text{pre-repurchase EPS} = \frac{\text{reported earnings} + \text{forgone interest}}{\text{shares outstanding} + \text{estimated shares repurchased}}.
+$$
+The **numerator** adds back the after-tax interest the firm would have earned on the cash it spent (undoing the repurchase's drag on earnings); the **denominator** adds back the shares it bought (undoing the share-count effect). By construction $\mathrm{Sue}_{adj}$ is invariant to the repurchase, so the running variable is clean even though the outcome it is measured against is manipulated.
+
+*The assumption this requires:* that the repurchase is the **only** channel through which the firm moves actual EPS relative to consensus --- or, more precisely, that no *other* earnings-management lever is deployed discontinuously at zero. *How it could fail:* accrual management, R\&D or SG\&A cuts, real activities manipulation, or walking analyst guidance down are all alternative ways to beat the consensus, and a firm choosing among them is still choosing which side of the cutoff to be on. The authors control for total and discretionary accruals and for guidance, and the results survive --- but note they run **no density test**, which given that EPS and forecasts are reported in whole cents (so $\mathrm{Sue}_{adj}$ has heavy mass points near zero) is a genuine gap, and one that connects directly to Problem 4(b).
+
+### (e) Close votes
+
+Two institutional reasons sorting is plausible:
+
+1. **Management observes preliminary tallies** from the proxy solicitor in the days before the meeting and can **lobby large holders** to switch, so a vote heading for $51\%$ can be pushed to $49\%$.
+2. **Management controls the meeting's procedure** --- it can adjourn to continue soliciting, keep the polls open, or negotiate withdrawal of a proposal that looks likely to pass.
+
+Cuñat, Giné and Guadalupe ran a McCrary test and could not reject smoothness, and they exclude management-sponsored proposals following Listokin (2008), who found a sharp discontinuity for those but not for shareholder-sponsored ones.
+
+The later paper is **Bach and Metzger (2019), "How Close Are Close Shareholder Votes?", RFS 32(8):3183--3214.** Using 2003--2016 they find a **large and discontinuous drop in the density of voting results at $50\%$** for shareholder proposals --- roughly $75\%$ more proposals rejected by a margin of one percent of shares outstanding than approved by similarly narrow margins --- and estimate that about $11\%$ of closely contested rejected proposals would have passed absent management influence. Their abstract concludes that "one cannot routinely use an RDD to identify the causal effects of changes in corporate governance generated by shareholder votes."
+
+*What it implies:* the key validity test on which the design rested does **not** hold in the longer sample, so the firms that just-failed are a selected group and the comparison is contaminated. *What it does not imply:* it does not directly overturn the $1.3\%$ estimate, which was computed on an earlier sample (1997--2007) in which the density did appear smooth. The honest reading is that the design's central assumption is **unresolved**, and that a reader should want to see the density test re-run on the original sample with modern tools before relying on the number. Treat Bach--Metzger as a serious challenge, not a settled refutation.
+
+### (f) Power
+
+RD estimates come from a **neighbourhood**, not a sample. What matters is the number of observations inside the bandwidth, weighted by the kernel --- the same effective-sample-size idea as the weighting discussion in Lecture 3, except that RD concentrates influence at a point rather than across a distribution. Hansen's $214{,}558$ stops shrink to roughly $17{,}000$ effective observations at the MSE-optimal bandwidth. A governance study with forty proposals within a few points of $50\%$ is a very small experiment, and the standard errors should reflect that.
+
+An underpowered RD looks like this in a table: a **large point estimate**, a **large standard error**, significance that appears in some bandwidths and specifications and not others, and an effect that is not visible in the binned picture. That pattern is dangerous rather than merely disappointing because of the **winner's curse**: conditional on clearing the $5\%$ bar, a low-powered estimate must be large, so the published estimates are systematically inflated --- and with researcher discretion over $h$, $p$ and the kernel, there are many chances to clear it. This is why the checklist insists on plotting the estimate against the bandwidth, and why "if you cannot see it in the picture, it probably is not there" is the right default.

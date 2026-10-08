@@ -320,8 +320,8 @@ Collider          & $D \to C \leftarrow Y$ & No                   & \textbf{open
 
 ## Backdoor paths
 
-- A **backdoor path** is a path connecting $D$ and $Y$ that begins with an arrow pointing *into* $D$.
-- Compare: $D \to Y$ leaves $D$ through an arrow pointing *out*, so it is a front-door --- the causal path.
+- A **backdoor path** is a path connecting $D$ and $Y$ with an arrow pointing *into* $D$.
+- $D \to Y$ leaves $D$ through an arrow pointing *out*, so it is a front-door --- the causal path.
 - Backdoor paths generate correlation without causation --- "back doors" through which association leaks.
 - Identification strategy in one sentence:
 
@@ -333,7 +333,7 @@ Close every backdoor path.}
 - The **backdoor criterion**: a set of variables $\mathbf{Z}$ identifies the causal effect of $D$ on $Y$ if
   1. $\mathbf{Z}$ blocks every backdoor path from $D$ to $Y$, and
   2. $\mathbf{Z}$ contains no descendant of $D$.
-- Condition 2 is what rules out mediators and post-treatment colliders.
+- Condition 2 is what rules out mediators and effects caused by the treatment.
 
 ## A DAG: Example
 

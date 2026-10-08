@@ -816,11 +816,11 @@ Criterion}\label{backdoor-paths-and-the-backdoor-criterion}
 \begin{itemize}
 \tightlist
 \item
-  A \textbf{backdoor path} is a path connecting \(D\) and \(Y\) that
-  begins with an arrow pointing \emph{into} \(D\).
+  A \textbf{backdoor path} is a path connecting \(D\) and \(Y\) with an
+  arrow pointing \emph{into} \(D\).
 \item
-  Compare: \(D \to Y\) leaves \(D\) through an arrow pointing
-  \emph{out}, so it is a front-door --- the causal path.
+  \(D \to Y\) leaves \(D\) through an arrow pointing \emph{out}, so it
+  is a front-door --- the causal path.
 \item
   Backdoor paths generate correlation without causation --- ``back
   doors'' through which association leaks.
@@ -847,7 +847,8 @@ Close every backdoor path.}
     \(\mathbf{Z}\) contains no descendant of \(D\).
   \end{enumerate}
 \item
-  Condition 2 is what rules out mediators and post-treatment colliders.
+  Condition 2 is what rules out mediators and effects caused by the
+  treatment.
 \end{itemize}
 \end{frame}
 
