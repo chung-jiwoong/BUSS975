@@ -44,20 +44,20 @@ execute:
   cache: false
 ---
 
-# 7.1 The Strangeness Principle
-
 ## Where we left off
 
 - **Lecture 4 (RD).** Identification came from a *rule*: a known threshold in a running variable. One assumption --- continuity --- and an estimand at one point.
 - **Today (IV).** Identification comes from a *shock*: something in the world that pushes units into and out of treatment for reasons unrelated to their outcomes.
 - The problem IV addresses is the one matching and RD could not touch: **selection on unobservables**. You believe $D$ is correlated with something you cannot measure, and no amount of conditioning will fix it.
 - The price is steep. RD has one main identifying assumption. IV, under heterogeneous effects, has **five** --- and the most important one is untestable.
-- Cunningham's framing: IV is "unfairly maligned, poorly understood, very hard to imitate well." Finding a valid instrument is like finding a four-leaf clover.
+- Cunningham: "Finding a valid instrument is like finding a four-leaf clover.""
+
+# 7.1 The Strangeness Principle
 
 ## A strange thing happened at Thanksgiving
 
 - Your brother, four years into a PhD, produces a chart at dinner. Mothers whose **first two children are the same sex** --- two boys or two girls --- are about **one percentage point less likely** to work for pay than mothers whose first two are a boy and a girl.
-- Everyone at the table stares. Why on earth would the *sexes* of two children have anything to do with whether their mother holds a job? Two boys are no more burdensome than one of each.
+- Why on earth would the *sexes* of two children have anything to do with whether their mother holds a job? Two boys are no more burdensome than one of each.
 - Nobody can explain it. That baffled reaction is the point.
 - This is a real result: **Angrist and Evans (1998)**.
 
@@ -84,17 +84,18 @@ execute:
 \end{center}
 
 - You know the instrument, the outcome, and maybe the confounders. **You do not know the treatment** --- and that missing link is the source of the strangeness.
-- Fill the hole with **family size** and it evaporates: parents who want a mix of sexes and get two of a kind try for a third child, and a third child changes labour supply.
-- Sex ratios are valid *because* they move family size and are otherwise unrelated to the mother's labour supply.
+- Fill the hole with **family size**: parents who want a mix of sexes and get two of a kind try for a third child, and a third child changes labour supply.
+- Sex ratios are valid instruments for family size *because* they move family size and are otherwise unrelated to the mother's labour supply.
 
 ## The strangeness principle
 
 > A valid instrument neither directly causes the outcome, nor is correlated with anything else that does --- **except through the treatment.**
 
 - Because the treatment is absent from the raw $Z$--$Y$ correlation, any association you find *should not be there*. The feeling of strangeness is the informal smell test that it is not.
+<!-- 
 - **Aunt Linda.** She runs a celebrated restaurant. Asked how it started, she says: *"Jury duty."* You blink. Sequestered for three weeks, she helped the courthouse cook, who taught her everything; a year later they opened together.
 - Jury duty $\to$ apprenticeship $\to$ success. Once you learn about the apprenticeship, the strangeness disappears. Jury service has no direct path to culinary fame --- which is exactly what makes it a usable instrument.
-- Note what the strangeness is *not*: it is not evidence. It is a prompt to go looking for the mechanism.
+- Note what the strangeness is *not*: it is not evidence. It is a prompt to go looking for the mechanism. -->
 
 ## When nothing feels strange, be suspicious
 
@@ -115,7 +116,7 @@ execute:
 - Cousin Jacob also became a chef. He was a line cook on one of **Gordon Ramsay's** shows, and credits his own hustle for everything since.
 - The table laughs. There is **nothing strange** about someone who worked with Ramsay going on to succeed --- his name alone brings investors, press, partnerships and early customers.
 - That red arrow is a direct path from instrument to outcome. It is a violation of the **exclusion restriction**, and it cannot be fixed by any estimator.
-- **The diagnostic:** if an intelligent layperson hears your reduced form and nods, you probably do not have an instrument. If they frown and ask "why would *those* two things be related?", you might.
+<!-- - **The diagnostic:** if an intelligent layperson hears your reduced form and nods, you probably do not have an instrument. If they frown and ask "why would *those* two things be related?", you might. -->
 
 ## Instruments are treatment assignment mechanisms
 

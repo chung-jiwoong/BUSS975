@@ -244,8 +244,6 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \frame{\titlepage}
 
 
-\section{7.1 The Strangeness Principle}\label{the-strangeness-principle}
-
 \begin{frame}{Where we left off}
 \protect\phantomsection\label{where-we-left-off}
 \begin{itemize}
@@ -268,11 +266,12 @@ Research}{BUSS975: Causal Inference in Financial Research}}
   heterogeneous effects, has \textbf{five} --- and the most important
   one is untestable.
 \item
-  Cunningham's framing: IV is ``unfairly maligned, poorly understood,
-  very hard to imitate well.'' Finding a valid instrument is like
-  finding a four-leaf clover.
+  Cunningham: ``Finding a valid instrument is like finding a four-leaf
+  clover.''\,''
 \end{itemize}
 \end{frame}
+
+\section{7.1 The Strangeness Principle}\label{the-strangeness-principle}
 
 \begin{frame}{A strange thing happened at Thanksgiving}
 \protect\phantomsection\label{a-strange-thing-happened-at-thanksgiving}
@@ -285,9 +284,9 @@ Research}{BUSS975: Causal Inference in Financial Research}}
   likely} to work for pay than mothers whose first two are a boy and a
   girl.
 \item
-  Everyone at the table stares. Why on earth would the \emph{sexes} of
-  two children have anything to do with whether their mother holds a
-  job? Two boys are no more burdensome than one of each.
+  Why on earth would the \emph{sexes} of two children have anything to
+  do with whether their mother holds a job? Two boys are no more
+  burdensome than one of each.
 \item
   Nobody can explain it. That baffled reaction is the point.
 \item
@@ -328,12 +327,13 @@ Research}{BUSS975: Causal Inference in Financial Research}}
   \textbf{You do not know the treatment} --- and that missing link is
   the source of the strangeness.
 \item
-  Fill the hole with \textbf{family size} and it evaporates: parents who
-  want a mix of sexes and get two of a kind try for a third child, and a
-  third child changes labour supply.
+  Fill the hole with \textbf{family size}: parents who want a mix of
+  sexes and get two of a kind try for a third child, and a third child
+  changes labour supply.
 \item
-  Sex ratios are valid \emph{because} they move family size and are
-  otherwise unrelated to the mother's labour supply.
+  Sex ratios are valid instruments for family size \emph{because} they
+  move family size and are otherwise unrelated to the mother's labour
+  supply.
 \end{itemize}
 \end{frame}
 
@@ -350,7 +350,7 @@ treatment.}
 \item
   Because the treatment is absent from the raw \(Z\)--\(Y\) correlation,
   any association you find \emph{should not be there}. The feeling of
-  strangeness is the informal smell test that it is not.
+  strangeness is the informal smell test that it is not. \textless!--
 \item
   \textbf{Aunt Linda.} She runs a celebrated restaurant. Asked how it
   started, she says: \emph{``Jury duty.''} You blink. Sequestered for
@@ -363,7 +363,7 @@ treatment.}
   usable instrument.
 \item
   Note what the strangeness is \emph{not}: it is not evidence. It is a
-  prompt to go looking for the mechanism.
+  prompt to go looking for the mechanism. --\textgreater{}
 \end{itemize}
 \end{frame}
 
@@ -397,11 +397,6 @@ treatment.}
   That red arrow is a direct path from instrument to outcome. It is a
   violation of the \textbf{exclusion restriction}, and it cannot be
   fixed by any estimator.
-\item
-  \textbf{The diagnostic:} if an intelligent layperson hears your
-  reduced form and nods, you probably do not have an instrument. If they
-  frown and ask ``why would \emph{those} two things be related?'', you
-  might.
 \end{itemize}
 \end{frame}
 
@@ -462,8 +457,7 @@ Y_i = \alpha + \delta D_i + \gamma A_i + \varepsilon_i,
 \begin{itemize}
 \tightlist
 \item
-  \textbf{The question for this section:} what does OLS on the short
-  regression actually give you?
+  What does OLS on the short regression actually give you?
 \end{itemize}
 \end{frame}
 
@@ -480,20 +474,6 @@ OLS is a scaled covariance: \[
 \qquad\text{since } C(D,\varepsilon) = 0 .
 \end{aligned}
 \]
-
-\begin{itemize}
-\tightlist
-\item
-  The second term is the bias. If ability raises earnings
-  (\(\gamma > 0\)) and the able get more schooling (\(C(A,D) > 0\)), OLS
-  is \textbf{biased upward}.
-\item
-  Nothing about this is fixed by more data: the bias does not shrink
-  with \(n\). It is a property of the population, not the sample.
-\item
-  You cannot condition your way out, because \(A\) is unobserved. That
-  is the whole problem.
-\end{itemize}
 \end{frame}
 
 \begin{frame}{The trick: take the covariance with \(Z\) instead}

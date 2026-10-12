@@ -19,3 +19,8 @@ render.log
 # Private instructor material (never publish to GitHub Pages)
 *_teaching_note.qmd
 *_teaching_note.pdf
+
+# Problem set solutions
+*_solutions.qmd
+*_solutions.pdf
+*_solutions.tex
