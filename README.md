@@ -17,6 +17,8 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 3a. Unconfoundedness: Subclassification and Matching | [Slides][unc-a-pdf] |  |
 | 3b. Unconfoundedness: Propensity Scores and Regression | [Slides][unc-b-pdf] | |
 | 4. Regression Discontinuity | [Slides][rd-pdf] | |
+| 5a. Instrumental Variables | [Slides][iv-a-pdf] | |
+
 
 ---
 
@@ -37,12 +39,13 @@ Course materials for BUSS975, including lecture slides and problem sets.
 
 [rd-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/04_RD/04_regression_discontinuity.pdf
 
+[iv-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05a_instrumental_variables.pdf
+[iv-b-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05b_iv_designs.pdf
+
 <!--
 
 Upcoming topics -- uncomment each row as the material is published.
 
-| 4. Instrumental Variables | [View][iv-pdf] | [Problems][iv-ps] |
-| 5. Regression Discontinuity | [View][rdd-pdf] | [Problems][rdd-ps] |
 | 6. Difference-in-Differences | [View][did-pdf] | [Problems][did-ps] |
 
 

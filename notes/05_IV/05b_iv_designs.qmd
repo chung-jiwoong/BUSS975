@@ -1,0 +1,294 @@
+---
+title: "Five Common IV Designs"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+author: "Professor Ji-Woong Chung"
+institute: "Korea University"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    slide-level: 2
+    toc: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \setbeamertemplate{navigation symbols}{}
+        \setbeamertemplate{footline}[frame number]
+        \setbeamertemplate{itemize items}[circle]
+        \setbeamertemplate{itemize subitem}[triangle]
+        \setbeamercolor{frametitle}{fg=black}
+        \setbeamerfont{frametitle}{series=\bfseries}
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+        \usepackage{tikz}
+        \usetikzlibrary{arrows.meta,positioning,calc}
+        \tikzset{
+          dnode/.style={circle,draw,thick,minimum size=9mm,inner sep=1pt,font=\small},
+          unode/.style={circle,draw,thick,dashed,minimum size=9mm,inner sep=1pt,font=\small},
+          qnode/.style={circle,draw,thick,dotted,minimum size=9mm,inner sep=1pt,font=\small},
+          de/.style={-{Stealth[length=2.2mm]},thick},
+          dde/.style={-{Stealth[length=2.2mm]},thick,dashed}
+        }
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\scriptsize}
+        \makeatletter
+        \def\verbatim@font{\scriptsize\ttfamily}
+        \makeatother
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+---
+
+## Where we left off
+
+- The previous deck built the machinery: the Wald ratio, 2SLS, weak instruments, and the five LATE assumptions. This one is about **where IVs actually come from**.
+- IV is a general-purpose strategy: it works wherever a credible shock turns up. But over the years certain strategies have been used so often that they have become **designs** --- each with its own literature, its own conventions, and its own characteristic failure mode.
+- Knowing the designs is useful in two directions. It tells you where to look for an IV in your own work, and it tells you what to interrogate when you referee someone else's.
+- This deck follows **Remix §7.7**, and closes with where these shocks turn up in **finance**.
+
+## The five
+
+\vspace{0.3em}
+
+1. **Lotteries** --- randomised offers with imperfect take-up.
+2. **Judge / examiner fixed effects** (the "leniency design").
+3. **Bartik, or shift-share, IVs.**
+4. **Fuzzy regression discontinuity** --- which you already know.
+5. **Supply shifters for the elasticity of demand** --- the original IV, from the 1920s.
+
+\vspace{0.6em}
+
+- For each one, ask the same four questions:
+
+\vspace{0.2em}
+
+\begin{center}
+\emph{What is the shock? \quad What is the first stage? \quad Who are the compliers? \quad Where does exclusion break?}
+\end{center}
+
+\vspace{0.3em}
+
+- The last question is the one that decides whether the paper survives refereeing.
+
+# 1. Lotteries
+
+## The design
+
+- In many randomised trials, assignment to treatment is random but **take-up is voluntary**. Those who take it up are precisely those who expect to benefit --- positive selection.
+- Comparing the treated with the untreated is then biased **even in a randomised experiment**. The fix: IV actual treatment with the **randomised offer**, and estimate the LATE.
+- **Oregon Health Insurance Experiment.** In 2008 Oregon expanded Medicaid for low-income adults and, facing excess demand, allocated places by **lottery**: roughly 30,000 drawn from a list of 85,000. Of those selected, about 10,000 enrolled.
+- First stage (Finkelstein et al. 2012): winning the lottery raised the probability of ever being on Medicaid by about **26 percentage points** --- large, but nowhere near one. Hence IV rather than a simple comparison.
+- Note what the design gives you: the effect of **having Medicaid** for those who enrolled *because* they won --- not for those who would have found coverage anyway.
+
+## What Oregon found
+
+\begin{center}
+\small
+\begin{tabular}{lrr}
+\toprule
+Outcome & ITT (reduced form) & LATE (2SLS) \\
+\midrule
+Has a usual place of care      & $9.9\%$  & $33.9\%$ \\
+Has a personal doctor          & $8.1\%$  & $28.0\%$ \\
+Got all needed healthcare      & $6.9\%$  & $23.9\%$ \\
+Any hospital admission         & $0.5\%$  & $2.1\%$  \\
+Had a medical collection       & $-1.6\%$ & $-6.4\%$ \\
+Owed on medical collection     & $-\$99$  & $-\$390$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- The **ITT column is the reduced form** --- the effect of winning the lottery. The **LATE column scales it by the first stage**. Roughly a factor of four, because about a quarter of winners actually enrolled.
+- Medicaid raised utilisation and sharply reduced financial strain. Effects on *health* were small, and on mortality absent.
+- **Which column should you report?** Both. The ITT is the policy effect of running the lottery; the LATE is the effect of coverage on those it reached.
+
+# 2. Judge and Examiner Fixed Effects
+
+## The recipe
+
+The design needs three ingredients:
+
+1. A **narrow pipeline** every unit must pass through;
+2. **Randomly assigned decision-makers** staffing it;
+3. **Discretion** among those decision-makers.
+
+\vspace{0.4em}
+
+- The canonical setting is American courts, where defendants are randomly assigned to judges --- in Harris County, Texas, historically with a bingo-ball machine.
+- The idea is old. **Gaudet, Harris and John (1933)** found one judge imprisoned in 34% of his cases and another in nearly 60%, with cases randomly rotated between them. Their conclusion: a sentence may indicate *"either the seriousness of his crime or the severity of the judge."*
+- **Stevenson (2018)**, Philadelphia bail magistrates: randomly assigned judges differ in how affordable they set bail, so some defendants are detained pre-trial purely by draw. She finds pre-trial detention raises conviction by about **13%**, mostly through guilty pleas, and raises sentence length and court fees.
+- The design has spread far beyond courts: patent examiners, disability examiners, loan officers, auditors.
+
+## Where it breaks
+
+- **Independence** is usually the easy one --- assignment really is random. But watch for *strategic response*: Gaudet et al. already reported in 1933 that repeat offenders who recognised a severe judge would change their plea to force a reassignment.
+  - Use the **initial** assignment, not the final one, where you can.
+- **Exclusion** is the usual worry, and it must be argued case by case. If a defendant is assigned a severe judge, the *expected* penalty at trial rises --- so the defendant may accept a plea. That is a channel from IV to outcome that does not run through the judge's sentence.
+- **Monotonicity** is often the hardest. The assumption requires that a judge who is stricter for one defendant is stricter for *all* of them. But a judge may be lenient in general and strict on drug charges. Imbens and Angrist flagged exactly this case in 1994 and concluded you **cannot** identify a LATE nonparametrically.
+  - Frandsen, Lefgren and Leslie (2023) propose a joint test of exclusion and monotonicity; a rejection does not tell you which failed.
+- **Econometric wrinkle.** Judge leniency looks like one IV but is really **many** --- one per judge. Weak-instrument bias is therefore the default, not the exception, which is why this literature uses **JIVE** (leave-one-out) estimators.
+
+# 3. Bartik / Shift-Share IVs
+
+## The construction
+
+- **The problem.** Regress local wages on local immigration (or employment) flows and the regressor is simultaneously determined by local supply and demand. Everything is endogenous.
+- **The construction.** Combine *national* industry- or origin-specific growth with *local* initial shares:
+$$
+B_{l,t} \;=\; \sum_{k=1}^{K} z_{l,k,t_0}\, m_{k,t},
+$$
+where $z_{l,k,t_0}$ is location $l$'s **initial share** of group $k$ (the "share") and $m_{k,t}$ is the **national change** for group $k$ (the "shift").
+- The predicted local flow is a weighted average of national rates, with weights fixed by history.
+- **Two incompatible justifications**, and you must pick one:
+  - **Shares view** (Goldsmith-Pinkham, Sorkin and Swift 2020): the exogenous variation is in the *initial shares*; the shifts only supply first-stage power. The burden is to argue the shares are exogenous conditional on controls.
+  - **Shifts view** (Borusyak, Hull and Jaravel 2022): with many independent national shocks, identification can come from the *shocks*, whether or not the shares are exogenous.
+- **Rotemberg weights** (GPSS) decompose the estimator into the contribution of each share, telling you which few industries are actually identifying your result --- and therefore which ones to scrutinise.
+
+# 4. Fuzzy Regression Discontinuity
+
+## Lecture 4, revisited
+
+- In a **sharp** design, $D_i = \mathbf{1}\{X_i \geq c_0\}$ exactly. In a **fuzzy** design, crossing the cutoff raises the probability of treatment without forcing it:
+$$
+\lim_{x \downarrow c_0} \Pr(D_i = 1 \mid X_i = x) \;\neq\; \lim_{x \uparrow c_0} \Pr(D_i = 1 \mid X_i = x).
+$$
+- The estimator is a **Wald ratio** of two discontinuities:
+$$
+\delta_{\text{FRD}} = \frac{\lim_{x\downarrow c_0} E[Y|X=x] - \lim_{x\uparrow c_0} E[Y|X=x]}
+                           {\lim_{x\downarrow c_0} E[D|X=x] - \lim_{x\uparrow c_0} E[D|X=x]} .
+$$
+- In practice: let $Z_i = \mathbf{1}\{X_i \geq c_0\}$ and use it as an **IV** for $D_i$, with the running-variable polynomial as covariates on both stages. Using $Z_i$ alone is just-identified, which has good finite-sample properties.
+- **The assumptions are now IV's assumptions**, not just continuity: exclusion, monotonicity, SUTVA, a strong first stage. Hahn, Todd and van der Klaauw (2001) made this precise.
+- **Who are the compliers?** Units whose treatment status flips as $x$ moves from just below $c_0$ to just above. This is why the "Design" column of the finance table in Lecture 4 mattered.
+
+# 5. The Elasticity of Demand
+
+## Supply shifters
+
+- IV was **invented** for this, by Philip Wright in the 1920s. A demand curve is a causal object --- the effect of price on quantity --- but every price you observe is an **equilibrium** price, produced by supply *and* demand.
+- To trace demand you need something that shifts **supply only**. Economic theory even tells you where to look:
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+Demand shifters & Supply shifters \\
+\midrule
+Household income & Input prices \\
+Prices of complements / substitutes & Technology \\
+Preferences & Prices of other goods using the same technology \\
+Buyers' beliefs about future prices & Sellers' beliefs about future prices \\
+Number of buyers & Number of sellers \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- You need a variable in the **right** column that is emphatically **not** in the left one. Notice that this is the strangeness principle, stated as economics.
+
+## Fulton Fish Market
+
+```{r}
+#| echo: true
+suppressMessages({library(haven); library(AER); library(sandwich); library(lmtest)})
+fish <- as.data.frame(read_dta("data/Fulton.dta"))
+f_ols <- lm(q ~ p + Mon + Tue + Wed + Thu, data = fish)
+f_iv  <- ivreg(q ~ p + Mon + Tue + Wed + Thu | Stormy + Mon + Tue + Wed + Thu, data = fish)
+f_1st <- lm(p ~ Stormy + Mon + Tue + Wed + Thu, data = fish)
+c1 <- coeftest(f_1st, vcov = vcovHC(f_1st, "HC1"))["Stormy", ]
+round(setNames(unname(c(coef(f_ols)["p"], coef(f_iv)["p"], c1[1],
+                        (c1[1] / c1[2])^2, nrow(fish))),
+               c("OLS elasticity", "IV elasticity", "first stage",
+                 "effective F", "N")), 3)
+```
+
+\vspace{-0.2em}
+\footnotesize
+
+- **Graddy (2006)**, 111 days at the Fulton Fish Market. $Q$ = log pounds of whiting sold, $P$ = log average daily price. The IV `Stormy` records bad weather at sea over the previous two days.
+- Stormy weather raises price by about **35%** --- a supply shock, not a demand shock. OLS says the elasticity is $-0.56$; IV says $-1.12$.
+- Why does OLS understate it? Because the observed price--quantity pairs are equilibria traced out by *both* curves moving.
+
+## Even here, it is only a LATE
+
+- The IV elasticity of $-1.12$ says: **for compliers**, a 10% storm-induced price rise cuts quantity by about 11%. Angrist, Graddy and Imbens (2000) made this precise.
+- Now suppose a seller wants to use this number to set a profit-maximising price. Demand looks elastic, so cut prices and sell more --- right?
+- **No.** That elasticity was identified by *storms*. When the firm lowers its price deliberately, it is not using a storm, and the relevant elasticity may be entirely different. Buyers may read a storm-driven price rise as temporary and a posted price cut as permanent.
+- This is the sobering version of LATE: **it does not tell you what you want to know; it tells you what you can learn given your IV.**
+- The same warning applies to every design in this deck. Before reporting a LATE, ask whether the policy you have in mind would move the same people, in the same way, as your IV did.
+
+## What the five have in common
+
+\small
+
+\begin{center}
+\begin{tabular}{llll}
+\toprule
+Design & The shock & Typical first stage & Hardest assumption \\
+\midrule
+Lotteries        & randomised offer        & strong, well below 1 & exclusion (usually fine) \\
+Judge FE         & assigned decision-maker & many weak instruments & \textbf{monotonicity} \\
+Bartik           & national shock $\times$ local share & varies & exclusion (shares or shifts) \\
+Fuzzy RD         & crossing the cutoff     & jump in $\Pr(D=1)$ & exclusion at the cutoff \\
+Elasticity       & supply shifter          & price response & exclusion (demand channel) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.4em}
+
+\normalsize
+
+- In every one, the IV is **something that physically happened in the world**: a draw, an assignment, a national shock, a threshold, the weather. That is not a coincidence --- it is the requirement.
+- And in every one, the estimand is a LATE for whoever that shock happened to move. Name them before you interpret the number.
+
+# IV in Finance
+
+## Where the shocks are
+
+Finance has fewer clean lotteries than labour economics. The recurring sources are:
+
+- **Regulatory and legal changes** that bind some firms and not others --- staggered state laws, index or listing rules, supervisory thresholds.
+- **Weather, geography and distance** --- historically popular, increasingly contested, because geography correlates with almost everything.
+- **Shift-share exposure** --- a firm's or region's pre-existing portfolio of industries, suppliers or customers, interacted with aggregate shocks.
+- **Randomly assigned decision-makers** --- bankruptcy judges, bank examiners, auditors, analysts, patent examiners. Design 2 transplants directly, monotonicity worry and all.
+- **Lotteries and quasi-lotteries** --- oversubscribed allocations, IPO allocation rules, random audits.
+
+\vspace{0.4em}
+
+- The common failure is the same everywhere: in finance the agents are **sophisticated, well advised and highly motivated**, so the shock you think is exogenous is often anticipated, lobbied for, or selected into.
+
+## Three questions to ask of any finance IV
+
+1. **Is the shock really a shock to someone?** Name the units that were moved and the units that were not, and say why the difference was not their choice. If you cannot describe the assignment mechanism in a sentence a practitioner would recognise, you do not have one.
+2. **Is there exactly one channel?** This is where most finance IVs fail. A legal change that alters takeover exposure also alters managerial incentives, disclosure, and the composition of shareholders. Distance to a city affects financing *and* labour markets, customers and information.
+3. **Who are the compliers, and do you care about them?** A regulation that binds only small, constrained firms identifies an effect for small, constrained firms --- which may be the opposite of the effect for the firms the policy debate is about.
+
+\vspace{0.4em}
+
+- Wei Jiang (2017) surveys the use of IV in corporate finance and is worth reading before you use one.
+- **The most useful habit:** write down the exclusion restriction as a sentence, in words, and show it to someone who knows the institution and not the econometrics. If they can name a second channel in under a minute, you have your answer.
+
+## References
+
+\tiny
+
+- Angrist, J., K. Graddy and G. Imbens (2000). The Interpretation of IV Estimators in Simultaneous Equations Models. *ReStud* 67, 499--527.
+- Angrist, J., G. Imbens and A. Krueger (1999). Jackknife Instrumental Variables Estimation. *Journal of Applied Econometrics* 14, 57--67.
+- Baicker, K. et al. (2013). The Oregon Experiment --- Effects of Medicaid on Clinical Outcomes. *NEJM* 368, 1713--1722.
+- Bartik, T. (1991). *Who Benefits from State and Local Economic Development Policies?* Upjohn Institute.
+- Borusyak, K., P. Hull and X. Jaravel (2022). Quasi-Experimental Shift-Share Research Designs. *ReStud* 89, 181--213.
+- Cunningham, S. *Causal Inference: The Remix*, §7.7 --- this deck follows it closely.
+- Finkelstein, A. et al. (2012). The Oregon Health Insurance Experiment: Evidence from the First Year. *QJE* 127, 1057--1106.
+- Frandsen, B., L. Lefgren and E. Leslie (2023). Judging Judge Fixed Effects. *AER* 113, 253--277.
+- Gaudet, F., G. Harris and C. John (1933). Individual Differences in the Sentencing Tendencies of Judges. *Journal of Criminal Law and Criminology* 23, 811--818.
+- Goldsmith-Pinkham, P., I. Sorkin and H. Swift (2020). Bartik Instruments: What, When, Why, and How. *AER* 110, 2586--2624.
+- Graddy, K. (2006). Markets: The Fulton Fish Market. *JEP* 20, 207--220.
+- Hahn, J., P. Todd and W. van der Klaauw (2001). Identification and Estimation of Treatment Effects with a RD Design. *Econometrica* 69, 201--209.
+- Imbens, G. and J. Angrist (1994). Identification and Estimation of Local Average Treatment Effects. *Econometrica* 62, 467--475.
+- Jiang, W. (2017). Have Instrumental Variables Brought Us Closer to the Truth? *Review of Corporate Finance Studies* 6, 127--140.
+- Stevenson, M. (2018). Distortion of Justice: How the Inability to Pay Bail Affects Case Outcomes. *Journal of Law, Economics, and Organization* 34, 511--542.
