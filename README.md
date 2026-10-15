@@ -12,7 +12,7 @@ Course materials for BUSS975, including lecture slides and problem sets.
 
 | Topic | Slides | Problem Set |
 |---|---|---|
-| 1. Causality and Potential Outcomes | [Slides][caus-pdf] \| [Updated][caus-upd-pdf] | [Problem][caus-ps]  |
+| 1. Causality and Potential Outcomes | [Slides][caus-upd-pdf] | [Problem][caus-ps]  |
 | 2. Directed Acyclic Graphs | [Slides][dag-pdf] | [Problem][dag-ps] |
 | 3a. Unconfoundedness: Subclassification and Matching | [Slides][unc-a-pdf] |  |
 | 3b. Unconfoundedness: Propensity Scores and Regression | [Slides][unc-b-pdf] | |
