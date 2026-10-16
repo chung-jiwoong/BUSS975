@@ -38,7 +38,7 @@ You want the effect of receiving a bank credit line ($D$) on a firm's capital ex
   iv. the number of analysts covering the firm in the year *after* the line was granted, which rises both with credit access and with investment;
   v. managerial quality, which drives both the bank's decision and the firm's investment, and which you cannot measure.
 
-(a) Classify each variable as a confounder, a collider, a precision covariate or a mediator, and say whether it belongs in the conditioning set for the *total* effect of the credit line. For the one variable whose treatment depends on the question being asked, state the question that conditioning on it would answer.
+(a) Classify each variable as a confounder, a collider, a precision covariate or a mediator, and say whether it belongs in the conditioning set for the *total* effect of the credit line. Exactly one of them is a variable you would **include for some research questions and exclude for others**. Identify it, and state the different question that conditioning on it would answer.
 
 (b) A banking regulator asks: "what would happen to investment if *every* firm had a credit line?" A bank's lending committee asks: "did the lines *we granted* raise investment at the firms that got them?" Name the estimand each question needs. Then state which version of unconfoundedness, and which version of common support, each estimand requires --- and explain in one sentence why one of them gets away with the weaker version of both.
 
@@ -57,7 +57,7 @@ and label each step as either the switching equation or the identifying assumpti
 
 ## Problem 2 (Subclassification, estimands, and common support)
 
-<!-- *What this is for: under unconfoundedness the estimand is a choice about weights --- and which cells of your data are empty decides which estimands you can still compute.* -->
+<!-- *What this is for: under unconfoundedness the estimand is a choice about weights --- and which groups of your data are empty decides which estimands you can still compute.* -->
 
 A regulator grants a supervisory waiver ($D$) to banks. The outcome $Y$ is loan growth (%). Banks fall into three observable strata, and within each stratum the waiver is as good as randomly assigned:
 
@@ -75,7 +75,7 @@ C & $200$ & $180$ & $\phantom{0}20$ & $31$ & $25$ \\
 
 (a) Compute $e(X)$ and the within-stratum effect in each stratum. Using the subclassification weight that defines each estimand, compute the $ATE$, the $ATT$ and the $ATU$, and verify that $ATE = \pi \cdot ATT + (1-\pi)\cdot ATU$, where $\pi$ is the share treated.
 
-(b) Compute the simple difference in outcomes, $SDO = E[Y \mid D{=}1] - E[Y \mid D{=}0]$, pooling across strata. Decompose the gap $SDO - ATE$ into selection on levels and selection on gains, and say which one dominates here.
+(b) Compute the simple difference in outcomes, $SDO = E[Y \mid D{=}1] - E[Y \mid D{=}0]$, pooling across strata. Decompose the gap $SDO - ATE$ into the **selection bias** term and the **heterogeneous treatment effect bias** term of Lecture 1, and say which dominates --- that is, whether the regulator was selecting on levels or on gains.
 
 (c) The $ATT$ exceeds the $ATE$. Explain why in one sentence, in terms of where the regulator's waivers went.
 
@@ -131,12 +131,12 @@ then report $SE(\widehat{ATT}) = \sqrt{\hat\sigma^2_{ATT}/N_T}$. By what factor 
 
 (b) In your data one covariate has a standardized mean difference of $0.01$ and a $t$-test $p$-value of $0.83$, but a variance ratio of $2.4$. What kind of selection produces this pattern? What single change to the score specification would you try, and what statistic would tell you it had worked? Give one reason, beyond this example, why a $t$-test is the wrong balance diagnostic.
 
-(c) Twelve firms fall into two cells by leverage. Within each cell treatment is as good as random, and outcomes do not vary within a cell and arm:
+(c) Twelve firms fall into two groups by leverage. Within each group treatment is as good as random, and outcomes do not vary within a group and arm:
 
 \begin{center}
 \begin{tabular}{lrrrrr}
 \toprule
-Cell & firms & treated & control & $Y$ if treated & $Y$ if control \\
+Group & firms & treated & control & $Y$ if treated & $Y$ if control \\
 \midrule
 Low leverage (L)  & $8$ & $2$ & $6$ & $13$ & $10$ \\
 High leverage (H) & $4$ & $3$ & $1$ & $28$ & $20$ \\
@@ -144,19 +144,24 @@ High leverage (H) & $4$ & $3$ & $1$ & $28$ & $20$ \\
 \end{tabular}
 \end{center}
 
-Compute $e(X)$ in each cell, the true $ATE$, the true $ATT$ and the $SDO$. Then compute $\widehat{ATE}_{IPW}$ from the Horvitz--Thompson forms of $\widehat{E[Y^1]}$ and $\widehat{E[Y^0]}$, and $\widehat{ATT}_{IPW}$ by reweighting the controls with $\hat e/(1-\hat e)$, using the true cell shares as $\hat e$. Check what each set of weights sums to, and say what that sum means.
+Compute $e(X)$ in each group, the true $ATE$, the true $ATT$ and the $SDO$. Then compute $\widehat{ATE}_{IPW}$ from the Horvitz--Thompson forms of $\widehat{E[Y^1]}$ and $\widehat{E[Y^0]}$, and $\widehat{ATT}_{IPW}$ by reweighting the controls with $\hat e/(1-\hat e)$, using the true group shares as $\hat e$. Check what each set of weights sums to, and say what that sum means.
 
-(d) Suppose instead your logit had returned $\hat e = 0.20$ for cell L and $\hat e = 0.80$ for cell H. Recompute $\widehat{E[Y^1]}$ both ways: Horvitz--Thompson (divide by $N$) and Hájek (divide by the sum of the weights). Which is guaranteed to be a weighted average of observed treated outcomes? Which is closer to the truth here --- and does normalizing fix a misspecified score?
+(d) Suppose instead your logit had returned $\hat e = 0.20$ for group L and $\hat e = 0.80$ for group H. Recompute $\widehat{E[Y^1]}$ both ways: Horvitz--Thompson (divide by $N$) and Hájek (divide by the sum of the weights). Which is guaranteed to be a weighted average of observed treated outcomes? Which is closer to the truth here --- and does normalizing fix a misspecified score?
 
-(e) Now add a third cell, V: ten very large firms, **all** of them treated. Which of the $ATE$, $ATT$ and $ATU$ remain identified? Lecture 3b advises "retreating to the $ATT$, which only needs overlap in one direction." Does that advice help here? Explain, and say what you would do instead.
+(e) Now add a third group, V: ten very large firms, **all** of them treated. Which of the $ATE$, $ATT$ and $ATU$ remain identified? Lecture 3b advises "retreating to the $ATT$, which only needs overlap in one direction." Does that advice help here? Explain, and say what you would do instead.
 
 \newpage
 
+<!-- 
 ## Problem 5 (Regression when treatment effects are heterogeneous)
 
-<!-- *What this is for: the canonical regression returns a number that is none of the three estimands --- and you can say exactly which number it is, and how to get the ones you wanted.* -->
+*What this is for: the canonical regression returns a number that is none of the three estimands --- and you can say exactly which number it is, and how to get the ones you wanted.* 
 
-A supervisor grants waivers ($D$) to banks in two size classes. Within each class assignment is as good as random. The outcome is loan growth (%), measured without noise: every bank's outcome equals its class-and-arm value below.
+A supervisor grants waivers ($D$) to banks in two size classes. Within each class assignment is as good as random. The outcome $Y$ is loan growth (%), and it carries **no noise**: a bank's outcome is fixed by its size class and by whether it was treated,
+$$
+Y \;=\; E[Y^0 \mid \text{class}] \;+\; \text{effect}(\text{class}) \times D ,
+$$
+so the four possible outcomes are $10$ and $12$ for a small bank untreated and treated, and $20$ and $28$ for a large one. Because nothing is random given class and treatment, your sample quantities will equal the population ones exactly.
 
 \begin{center}
 \begin{tabular}{lrrrrr}
@@ -173,7 +178,17 @@ Build the dataset in R (or Stata) with one row per bank --- 1,000 rows --- and l
 
 (a) Compute the $ATE$, the $ATT$, the $ATU$ and the treated share $\rho$. Fit the canonical model $Y = \alpha + \tau D + \gamma X + \varepsilon$ and report $\hat\tau$; show that it is **none** of the three estimands. Of the model's three bundled assumptions --- unconfoundedness, linearity, constant effect --- which fails here? Explain why linearity cannot fail with this $X$.
 
-(b) Lecture 3b shows that with $X$ saturated, $\hat\tau \to E[\sigma^2_D(X)\,\tau(X)] \,/\, E[\sigma^2_D(X)]$, where $\sigma^2_D(X) = e(X)\big(1-e(X)\big)$. Compute $\sigma^2_D(X)$ in each class, the weights $N_x\,\sigma^2_D(x)$, and the weighted average of the two class effects. Confirm it reproduces $\hat\tau$ exactly. Which class does OLS over-weight relative to its population share, and why?
+(b) Lecture 3b shows that with $X$ saturated, OLS returns a **variance-weighted average of the class effects**. Written as an estimator --- which is what you can actually check here --- the identity is
+$$
+\hat\tau \;=\; \frac{\sum_x N_x\,\hat\sigma^2_D(x)\,\hat\tau(x)}{\sum_x N_x\,\hat\sigma^2_D(x)},
+\qquad
+\hat\sigma^2_D(x) = \hat e(x)\big(1 - \hat e(x)\big),
+$$
+where $\hat e(x)$ is the treated share in class $x$ and $\hat\tau(x)$ the within-class difference in means. Compute $\hat e(x)$, $\hat\sigma^2_D(x)$ and the weights $N_x\,\hat\sigma^2_D(x)$, then the weighted average, and confirm it reproduces the $\hat\tau$ you fitted in (a) to the last digit. Which class does OLS over-weight relative to its population share, and why?
+
+\vspace{0.3em}
+
+*(The lecture states the population version, $\hat\tau \overset{p}{\to} E[\sigma^2_D(X)\tau(X)] / E[\sigma^2_D(X)]$. Because the outcomes here carry no noise and $X$ is saturated, the sample identity above holds exactly rather than in the limit.)*
 
 (c) Now verify the result through its proof. Compute $E\big[Y(D - e(X)) \mid X\big]$ in each class directly from the table, show that it equals $\sigma^2_D(X)\,\tau(X)$, and assemble $\hat\tau$ as a ratio of averages. Then confirm the same number by the Frisch--Waugh--Lovell route: regress $D$ on $X$, form $\tilde D = D - \hat D$, and compute $\widehat{Cov}(Y, \tilde D)/\widehat{Var}(\tilde D)$.
 
@@ -183,4 +198,5 @@ Build the dataset in R (or Stata) with one row per bank --- 1,000 rows --- and l
 $$
 w_1 = \frac{(1-\rho)\,V[p(X) \mid D{=}0]}{\rho\,V[p(X) \mid D{=}1] + (1-\rho)\,V[p(X) \mid D{=}0]},
 $$
-where $p(X)$ is the linear projection of $D$ on $X$ --- here exactly $e(X)$, since $X$ is binary. Is $w_1$ above or below $1-\rho$, and why? Which group, the treated or the controls, gets the larger weight relative to its size?
+where $p(X)$ is the linear projection of $D$ on $X$ --- here exactly $e(X)$, since $X$ is binary. Is $w_1$ above or below $1-\rho$, and why? Which of the two --- the treated banks or the controls --- gets the larger weight relative to its size?
+--> 

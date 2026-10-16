@@ -18,12 +18,13 @@ format:
         \newcommand{\indep}{\perp\!\!\!\perp}
         \usepackage{booktabs}
 ---
-
+<!-- 
 *Five problems. Plan on about four hours. Problem 3 asks you to simulate and to fit regressions in R (or Stata); attach your code and output. Problem 5 asks you to read four papers. The rest need only a pen.*
 
 *Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
 *This problem set is separate from the Hansen (2015) replication exercise in §6.6 of the lecture, which you should do first --- Problem 3(e) assumes you have the data loaded.*
+-->
 
 ## Problem 1 (What RD assumes, and what it gives you)
 

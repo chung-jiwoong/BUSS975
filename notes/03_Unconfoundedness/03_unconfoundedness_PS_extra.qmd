@@ -53,7 +53,7 @@ For each candidate control, classify it as a **confounder**, a **mediator**, a *
 
 (b) Explain why the $ATU$ is the least trustworthy of the three in this application.
 
-(c) With $k$ binary covariates the number of strata is $2^k$. At $n = 5{,}000$, how many covariates can you stratify on before the average cell holds fewer than five treated units? Simulate the collapse: report the share of strata with no treated or no control unit as $k$ rises.
+(c) With $k$ binary covariates the number of strata is $2^k$. At $n = 5{,}000$, how many covariates can you stratify on before the average group holds fewer than five treated units? Simulate the collapse: report the share of strata with no treated or no control unit as $k$ rises.
 
 (d) Cochran's method and exact matching are the same idea executed differently. State the one operational difference, and say which of the two makes the common-support failure more visible.
 
