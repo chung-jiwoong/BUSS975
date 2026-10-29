@@ -298,18 +298,6 @@ Research}{BUSS975: Causal Inference in Financial Research}}
   \textbf{Fixed effects in finance}: richer effects, and the comparison
   each one leaves.
 \end{enumerate}
-
-\vspace{0.3em}
-
-\begin{itemize}
-\tightlist
-\item
-  A \emph{lagged \(Y\)} on the right-hand side is a story of its own. It
-  gets its own deck, next.
-\item
-  The running question, asked of every slide: \emph{which comparison is
-  this estimator actually making?}
-\end{itemize}
 \end{frame}
 
 \section{1. What Panel Data Is}\label{what-panel-data-is}
@@ -705,9 +693,8 @@ E[\varepsilon_{it} \mid D_{i1}, D_{i2}, \dots, D_{iT},\, u_i] = 0, \qquad t = 1,
 
 \vspace{0.3em}
 
-A lagged dependent variable violates it too --- not doubtfully but
-\emph{by construction}. That is the \textbf{dynamic panel} problem, and
-the next deck is about it.
+A lagged dependent variable violates it too --- \emph{by construction}.
+That is the \textbf{dynamic panel} problem.
 \end{frame}
 
 \begin{frame}{It was never really about time}
@@ -812,9 +799,9 @@ as parameters. \(N = 1{,}500\) firm-years, \(300\) firms. \normalsize
   \end{itemize}
 \item
   Within a unit, the \(\varepsilon_{it}\) are almost certainly
-  correlated over time. \textbf{Cluster by panel unit} --- the person,
-  the firm, the county --- or by the level at which treatment is
-  assigned, if that is coarser.
+  correlated over time. \textbf{Cluster by panel unit} --- or, if
+  treatment is assigned to whole groups of units (a state policy studied
+  on worker data), by that group.
 \end{itemize}
 
 \vspace{0.3em}
@@ -823,12 +810,12 @@ as parameters. \(N = 1{,}500\) firm-years, \(300\) firms. \normalsize
 \tightlist
 \item
   Cluster-robust inference is valid as the \textbf{number of clusters}
-  \(G\) grows, not the number of observations.
+  \(G\) grows, not \(N\).
 \item
-  Rule of thumb: with fewer than about \(40\) clusters, treat the
-  standard errors with suspicion. Remedies: the \textbf{wild cluster
-  bootstrap} (Cameron, Gelbach and Miller 2008), or small-sample
-  corrections (Bell and McCaffrey 2002).
+  Rule of thumb: \(<40\) clusters, treat the standard errors with
+  suspicion. Remedies: the \textbf{wild cluster bootstrap} (Cameron,
+  Gelbach and Miller 2008), or small-sample corrections (Bell and
+  McCaffrey 2002).
 \end{itemize}
 \end{frame}
 
@@ -1060,13 +1047,11 @@ as \texttt{reghdfe} does; WCB is restricted, \(B = 999\). Code:
 \tightlist
 \item
   \textbf{Few \emph{treated} clusters is the danger.} With \(2\) treated
-  states, CRSE rejects a true null \(17\%\) of the time --- more than
-  three times the nominal rate.
+  states, CRSE rejects a true null \(17\%\) of the time.
 \item
-  \textbf{WCB does not rescue that case; it overcorrects.} It almost
-  never rejects, so it has almost no power either (MacKinnon and Webb
-  2017). No procedure can manufacture variation that two treated states
-  do not contain.
+  \textbf{WCB does not rescue that case.} It almost never rejects, so it
+  has almost no power either (MacKinnon and Webb 2017). No procedure can
+  manufacture variation that two treated states do not contain.
 \item
   \textbf{With more treated clusters, both move toward \(5\%\)}, and WCB
   gets there faster. Count your \emph{treated} clusters before trusting
@@ -1080,7 +1065,7 @@ Fix}\label{what-fixed-effects-cannot-fix}
 \begin{frame}{Reverse causality}
 \protect\phantomsection\label{reverse-causality}
 Becker (1968) predicts that more policing lowers crime. Cornwell and
-Trumbull (1994), North Carolina counties:
+Trumbull (1994):
 
 \begin{center}\small
 \begin{tabular}{lcccc}
@@ -1106,14 +1091,10 @@ controls. \normalsize
   cross-county variation only, the complement of within.
 \item
   Every column says more police, \textbf{more} crime --- and fixed
-  effects make it \emph{larger}, not smaller.
+  effects make it \emph{larger}.
 \item
-  The reason is not a missing county trait. \textbf{Counties hire police
-  because crime is high}: \(Y \to D\). Demeaning cannot touch that.
-\item
-  The 2SLS columns try instruments instead; with fixed effects the
-  estimate is too imprecise (s.e.~\(0.62\)) to say anything. Reverse
-  causality needs a shock, not more fixed effects.
+  The reason: \textbf{Counties hire police because crime is high}:
+  \(Y \to D\). Demeaning cannot touch that.
 \end{itemize}
 \end{frame}
 
@@ -1168,7 +1149,7 @@ levels, classical attenuation says
 \item
   Fixed effects removes the \textbf{cross-sectional} part of the
   variation. For most regressors that is where the signal lives ---
-  firms differ from one another far more than any one firm differs from
+  firms differ from one another more than any one firm differs from
   itself.
 \item
   The noise is idiosyncratic, so it largely survives the demeaning.
@@ -1252,9 +1233,6 @@ Substitute; the \(2\)'s cancel:
 
 \begin{frame}{Cost 2: the same thing, without any mismeasurement}
 \protect\phantomsection\label{cost-2-the-same-thing-without-any-mismeasurement}
-The problem survives even when every variable is measured perfectly
-(McKinnish 2008).
-
 \begin{itemize}
 \tightlist
 \item
@@ -1299,8 +1277,7 @@ that managers have persistent ``styles.''
   is the \textbf{incidental parameters problem}.
 \item
   Note the asymmetry: \(\hat\delta\) is fine as \(N \to \infty\) with
-  \(T\) fixed. The \(\hat u_i\) are not. Consistency for the slope does
-  not transfer to the effects.
+  \(T\) fixed. The \(\hat u_i\) are not.
 \item
   And the \(F\)-test that the \(\hat u_i\) are jointly non-zero is valid
   only under strong assumptions --- errors normal, homoskedastic,

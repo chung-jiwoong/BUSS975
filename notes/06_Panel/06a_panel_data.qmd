@@ -71,10 +71,6 @@ execute:
 6. **What fixed effects cannot fix** --- two identification failures, then four costs.
 7. **Fixed effects in finance**: richer effects, and the comparison each one leaves.
 
-\vspace{0.3em}
-
-- A *lagged $Y$* on the right-hand side is a story of its own. It gets its own deck, next.
-- The running question, asked of every slide: *which comparison is this estimator actually making?*
 
 # 1. What Panel Data Is
 
@@ -464,7 +460,7 @@ $$
 
 \vspace{0.3em}
 
-A lagged dependent variable violates it too --- not doubtfully but *by construction*. That is the **dynamic panel** problem, and the next deck is about it.
+A lagged dependent variable violates it too --- *by construction*. That is the **dynamic panel** problem.
 
 
 ## It was never really about time
@@ -598,13 +594,13 @@ Standard errors clustered by firm, computed as \texttt{xtreg, fe} and \texttt{re
 - **Keep two decisions separate.**
   - **Fixed effects** fix the *point estimate*: they sweep out group means that would bias $\hat\delta$.
   - **Clustering** fixes the *standard error*: it lets shocks be correlated within a group.
-- Within a unit, the $\varepsilon_{it}$ are almost certainly correlated over time. **Cluster by panel unit** --- the person, the firm, the county --- or by the level at which treatment is assigned, if that is coarser.
+- Within a unit, the $\varepsilon_{it}$ are almost certainly correlated over time. **Cluster by panel unit** --- or, if treatment is assigned to whole groups of units (a state policy studied on worker data), by that group.
 <!-- - This is not optional, and it is not the same adjustment as robust standard errors. Robust fixes heteroskedasticity; clustering fixes dependence *within* a unit. -->
 
 \vspace{0.3em}
 
-- Cluster-robust inference is valid as the **number of clusters** $G$ grows, not the number of observations.
-- Rule of thumb: with fewer than about $40$ clusters, treat the standard errors with suspicion. Remedies: the **wild cluster bootstrap** (Cameron, Gelbach and Miller 2008), or small-sample corrections (Bell and McCaffrey 2002).
+- Cluster-robust inference is valid as the **number of clusters** $G$ grows, not $N$.
+- Rule of thumb: $<40$ clusters, treat the standard errors with suspicion. Remedies: the **wild cluster bootstrap** (Cameron, Gelbach and Miller 2008), or small-sample corrections (Bell and McCaffrey 2002).
 
 <!-- 
 \vspace{0.4em}
@@ -634,6 +630,22 @@ Standard errors clustered by firm, computed as \texttt{xtreg, fe} and \texttt{re
 - What is usually scarce is not clusters but **treated** clusters. If $2$ of $10$ states are treated, $\hat\delta$ is driven by those two states' shocks.
 - The treatment dummy soaks up much of those shocks, so the treated states' residuals look small --- and the CRSE looks precise when it is not.
 - Unequal cluster sizes make it worse (MacKinnon and Webb 2017).
+
+<!--
+Where δ̂ comes from. With worker and year fixed effects, δ̂ is essentially "how much wages in the treated states rose after 2022, minus how much they rose in the control states."
+
+Why two treated states is the binding constraint. The treated side of that comparison is an average over just 2 states. Suppose one of them had a good year in 2023, say a local boom. That boom doesn't average out across 2 states, so it goes straight into δ̂. Most of δ̂'s sampling error is "whatever shocks those two states happened to get." Having 8 control states doesn't help, because the treated side is still only two draws. That's why the count of treated clusters matters more than the total.
+
+Why the CRSE misses this. The cluster-robust s.e. estimates that noise by looking at the residuals. But OLS has already used the treated states' post-period shift to set δ̂; that shift is the estimate. Whatever boom those states got is now labelled "treatment effect," not "error."
+
+So the treated states' residuals show little post-period jump.
+With one treated state it's exact: the normal equations force that state's residuals to have no post-vs-pre jump at all.
+The CRSE sees calm residuals and reports a small s.e. Meanwhile the true uncertainty is large, because a different boom would have produced a different δ̂.
+An analogy. You flip two coins, and judge how noisy coin flips are by how far each flip is from the average of those same two flips. The fit has absorbed the very noise you are trying to measure.
+
+That's why the deck's simulation shows CRSE rejecting 17% of the time, not 5%, with 2 treated states. The wild cluster bootstrap avoids the problem: it imposes the null, δ = 0, before computing residuals, so the treated states' shock stays in the residuals where it can be seen.
+--> 
+
 
 <!--
 ## Why Standard Bootstrap Fails for Few Clusters
@@ -761,15 +773,15 @@ $5$ & $6.3\%$ & $5.7\%$ \\
 Share of $5{,}000$ simulated panels (the DGP above) that reject $H_0: \delta = 0$ at $5\%$. CRSE uses $t_{G-1}$ critical values, as \texttt{reghdfe} does; WCB is restricted, $B = 999$. Code: \texttt{06a\_panel\_wcb\_sim.R}.
 \normalsize
 
-- **Few *treated* clusters is the danger.** With $2$ treated states, CRSE rejects a true null $17\%$ of the time --- more than three times the nominal rate.
-- **WCB does not rescue that case; it overcorrects.** It almost never rejects, so it has almost no power either (MacKinnon and Webb 2017). No procedure can manufacture variation that two treated states do not contain.
+- **Few *treated* clusters is the danger.** With $2$ treated states, CRSE rejects a true null $17\%$ of the time.
+- **WCB does not rescue that case.** It almost never rejects, so it has almost no power either (MacKinnon and Webb 2017). No procedure can manufacture variation that two treated states do not contain.
 - **With more treated clusters, both move toward $5\%$**, and WCB gets there faster. Count your *treated* clusters before trusting any $p$-value.
 
 # 6. What Fixed Effects Cannot Fix
 
 ## Reverse causality
 
-Becker (1968) predicts that more policing lowers crime. Cornwell and Trumbull (1994), North Carolina counties:
+Becker (1968) predicts that more policing lowers crime. Cornwell and Trumbull (1994):
 
 \begin{center}\small
 \begin{tabular}{lcccc}
@@ -788,9 +800,10 @@ County-level panel. Standard errors in parentheses. All columns include controls
 \normalsize
 
 - **Between** regresses county *averages* on county averages: cross-county variation only, the complement of within.
-- Every column says more police, **more** crime --- and fixed effects make it *larger*, not smaller.
-- The reason is not a missing county trait. **Counties hire police because crime is high**: $Y \to D$. Demeaning cannot touch that.
-- The 2SLS columns try instruments instead; with fixed effects the estimate is too imprecise (s.e.\ $0.62$) to say anything. Reverse causality needs a shock, not more fixed effects.
+- Every column says more police, **more** crime --- and fixed effects make it *larger*.
+- The reason: **Counties hire police because crime is high**: $Y \to D$. Demeaning cannot touch that.
+
+<!-- - The 2SLS columns try instruments instead; with fixed effects the estimate is too imprecise (s.e.\ $0.62$) to say anything. Reverse causality needs a shock, not more fixed effects. -->
 
 <!-- - Demeaning cannot help, because the problem was never a fixed county trait. Note what this means for the DAG we drew: it had no arrow from $Y$ to $D$, so it was the wrong DAG for this question. --> 
 
@@ -827,7 +840,7 @@ $$
 \operatorname{plim} \hat\delta \;=\; \delta \cdot \frac{\operatorname{Var}(x^*)}{\operatorname{Var}(x^*) + \operatorname{Var}(e)} \;<\; \delta .
 $$
 
-- Fixed effects removes the **cross-sectional** part of the variation. For most regressors that is where the signal lives --- firms differ from one another far more than any one firm differs from itself.
+- Fixed effects removes the **cross-sectional** part of the variation. For most regressors that is where the signal lives --- firms differ from one another more than any one firm differs from itself.
 - The noise is idiosyncratic, so it largely survives the demeaning.
 - The ratio therefore **falls**, and attenuation gets *worse*. 
 
@@ -897,7 +910,7 @@ $$
 
 ## Cost 2: the same thing, without any mismeasurement
 
-The problem survives even when every variable is measured perfectly (McKinnish 2008).
+<!-- The problem survives even when every variable is measured perfectly (McKinnish 2008). -->
 
 - Suppose $Y$ responds to **sustained** changes in $X$, not to transitory wobbles --- investment responds to a permanent shift in the opportunity set, not to one noisy quarter.
 - Fixed effects throws away the permanent component by construction. What is left in $\ddot X_{it}$ is largely the transitory wobble.
@@ -924,9 +937,35 @@ Sometimes the fixed effect *is* the object of interest. Recover it as $\hat u_i 
 \vspace{0.3em}
 
 - **But $\hat u_i$ is unbiased and *inconsistent*.** As the sample grows you get more groups, so more parameters --- never more data *per* parameter. The asymptotics you need never arrive. This is the **incidental parameters problem**.
-- Note the asymmetry: $\hat\delta$ is fine as $N \to \infty$ with $T$ fixed. The $\hat u_i$ are not. Consistency for the slope does not transfer to the effects.
+- Note the asymmetry: $\hat\delta$ is fine as $N \to \infty$ with $T$ fixed. The $\hat u_i$ are not. 
 - And the $F$-test that the $\hat u_i$ are jointly non-zero is valid only under strong assumptions --- errors normal, homoskedastic, serially uncorrelated.
 - Fee, Hadlock and Pierce (2013) press exactly that point: apparent manager "style" survives procedures it should not, so the $F$-test is not evidence of style.
+
+<!--
+ more firms make δ̂ more precise, but they never make any individual û_i more precise.
+
+Why. Count how much data each estimate gets:
+
+δ̂ is one parameter shared by everyone. It uses all N × T observations, so adding firms adds evidence about the same number. Its noise shrinks to zero as N → ∞, which is what "consistent" means.
+
+Each û_i is a separate parameter for one firm. It uses only that firm's T years:
+
+$$\hat u_i = \bar Y_i - \bar D_i\hat\delta \;\approx\; u_i + \bar\varepsilon_i$$
+
+The error term ε̄_i is an average of just T shocks, so its variance is σ²_ε/T no matter how many firms are in the sample. Adding firm 501 tells you nothing about firm 1's effect; it just adds another û, which is as noisy as all the others.
+
+So "the sample grows" helps δ̂ and does nothing for the û_i. With T fixed, the û_i stay noisy forever: unbiased, but inconsistent. That's the incidental-parameters problem. Consistency for the slope does not transfer to the effects.
+
+Why it matters for the slide's example. The noise in each û_i doesn't cancel when you look at their spread:
+
+$$\operatorname{Var}(\hat u_i) \approx \operatorname{Var}(u_i) + \sigma^2_\varepsilon/T$$
+
+So the estimated CEO effects look more dispersed than the true ones. With T = 5 and σ_ε = 1, pure noise adds 0.2 to the variance even if CEOs don't matter at all. This is exactly why "managers have styles" evidence built on û_i needs care, which is the point of the Fee–Hadlock–Pierce bullet below it.
+
+A clearer version of the bullet:
+
+Note the asymmetry. $\hat\delta$ pools all $N \times T$ observations, so more firms sharpen it. Each $\hat u_i$ uses only its own $T$ years, so more firms just add more $\hat u$'s, each as noisy as before ($\operatorname{Var} = \sigma^2_\varepsilon/T$). Their spread overstates the true spread of $u_i$.
+-->
 
 
 ## Cost 4: and none of this works in a nonlinear model
