@@ -114,7 +114,7 @@ $Z_i$ & $\mathbf{1}\{$won the lottery$\}$ \\
 \begin{align*}
 \text{First stage:}\quad & D_i = \pi_0 + \pi_1 Z_i + \nu_i, \qquad \hat\pi_1 \approx 0.26 \\
 \text{Reduced form:}\quad & Y_i = \gamma_0 + \gamma_1 Z_i + u_i \\
-\text{2SLS:}\quad & Y_i = \alpha + \delta D_i + \varepsilon_i, \qquad \hat\delta = \hat\gamma_1 / \hat\pi_1
+\text{Second stage:}\quad & Y_i = \alpha + \delta \hat D_i + e_i, \qquad \hat\delta = \hat\gamma_1 / \hat\pi_1
 \end{align*}
 
 \vspace{-0.3em}
@@ -169,8 +169,8 @@ The design needs three ingredients:
 
 \vspace{0.4em}
 
-- The canonical setting is American courts, where defendants are randomly assigned to judges --- in Harris County, Texas, historically with a bingo-ball machine.
-- The idea is old. **Gaudet, Harris and St. John (1933)** found one judge imprisoned in 34% of his cases and another in nearly 60%, with cases randomly rotated between them.
+- The canonical setting is American courts, where defendants are randomly assigned to judges.
+- **Gaudet, Harris and John (1933)** found one judge imprisoned in 34% of his cases and another in nearly 60%, with cases randomly rotated between them.
 - Their conclusion: a sentence may indicate *"either the seriousness of his crime or the severity of the judge."*
 
 ## One modern example, and how far it travels
@@ -200,8 +200,8 @@ $Z_i$ & leave-one-out detention rate of the judge who drew case $i$ \\
 \vspace{-0.3em}
 
 \begin{align*}
-\text{First stage:}\quad & D_i = \pi_1 Z_i + \mathbf{c}_{ct}'\gamma + \nu_i \\
-\text{Second stage:}\quad & Y_i = \delta D_i + \mathbf{c}_{ct}'\gamma + \varepsilon_i
+\text{First stage:}\quad & D_i = \pi_1 Z_i + \mathbf{c}_{ct}'\gamma_1 + \nu_i \\
+\text{Second stage:}\quad & Y_i = \delta \hat D_i + \mathbf{c}_{ct}'\gamma + e_i
 \end{align*}
 
 \vspace{-0.3em}
@@ -225,12 +225,12 @@ $$
 \begin{tabular}{ll}
 $i$ & the case you are building the instrument \emph{for} \\
 $j(\cdot)$ & the judge who drew case $i$ \\
-<!-- $k$ & runs over every case with $j(k) = j(i)$ --- same judge --- except $k = i$ \\ -->
 $n_{j(i)}$ & that judge's caseload; subtract $1$ because we dropped case $i$ \\
 $D_k$ & whether case $k$ was treated (detained, liquidated, granted) \\
 \end{tabular}
 \end{center}
 
+<!-- $k$ & runs over every case with $j(k) = j(i)$ --- same judge --- except $k = i$ \\ -->
 \vspace{-0.2em}
 
 - A judge who detains $70\%$ of *everyone else* is a judge your case was unlucky to draw --- and that luck is the only thing the instrument uses.
@@ -238,42 +238,45 @@ $D_k$ & whether case $k$ was treated (detained, liquidated, granted) \\
 ## Two choices that make it work
 
 - **Why leave your own case out?** Keeping it in puts $D_i$ on *both* sides:
-  - $Z_i$ then inherits a slice of $D_i$, and so a slice of $\varepsilon_i$. **The instrument is no longer excluded** <!-- this is a bias, not merely noise.-->
+  $$
+  Z_i^{\text{keep}} \;=\; \underbrace{\frac{1}{n_{j(i)}} \sum_{\substack{k \,\neq\, i \\ j(k) \,=\, j(i)}} D_k}_{\text{the judge}} \;+\; \underbrace{\frac{1}{n_{j(i)}}\, D_i}_{\text{your own case}}
+  $$
+  - $Z_i^{\text{keep}}$ then inherits a slice of $D_i$, and so a slice of the structural error $\varepsilon_i$ (how serious the case is). **The instrument is no longer as good as random.** <!-- this is a bias, not merely noise.-->
   - The first stage looks strong for a reason that has nothing to do with the judge. <!-- , and in the limit $Z_i \to D_i$ --- at which point "IV" is just OLS. -->
   - The slice is $1/n_{j(i)}$, so the damage grows when caseloads are short *or* when genuine leniency differences are small.
 - **Why residualise first?**
   - Assignment is random *within* a court $\times$ period cell, not nationally.
   - So build leniency inside the group, and carry those fixed effects into both stages.
 
-\vspace{0.5em}
-
-- Then it is an ordinary just-identified IV: $D$ on $Z$, then $Y$ on $\hat D$.
-- **Equivalently:** use **one dummy per judge** as instruments. Same object --- and now the problem on the next slide becomes visible.
-
 
 ## Where it breaks
 
 - **Independence** --- usually fine, assignment really is random.
-  - *But:* in 1933 Gaudet et al. saw repeat offenders change their plea to escape a severe judge. Use the **initial** assignment.
+  <!-- - *But:* in 1933 Gaudet et al. saw repeat offenders change their plea to escape a severe judge. Use the **initial** assignment. -->
 - **Exclusion** --- the usual worry. A defendant who draws a judge known to be severe expects a worse outcome at trial, so pleads guilty --- *whether or not he was detained*. That path runs from $Z$ straight to $Y$, bypassing **detention**, which is the treatment.
 - **Monotonicity** --- the hardest. Lenient overall, strict on drug charges, and the assumption is gone. Imbens and Angrist flagged this case in 1994: no nonparametric LATE.
  <!--  - Frandsen et al. (2023) test exclusion *and* monotonicity jointly. A rejection does not say which failed. -->
-- **One instrument, or many?** Leniency is really one instrument per judge --- so weak-instrument bias is the default here, not the exception. Hence **JIVE**.
 
-## Why 2SLS is biased here
+## Why not just use judge dummies?
 
-- Run 2SLS with the $K$ **judge dummies** as instruments. The fitted value $\hat D_i = Z_i'\hat\pi$ uses a $\hat\pi$ estimated from **every** case --- including case $i$.
-- So $\hat D_i$ carries a slice of $D_i$, and therefore a slice of $\varepsilon_i$.
-
-\vspace{0.4em}
-
-<!-- - **This is a bias, not a weak-instrument problem.** It is mechanical --- it would be there with perfectly strong instruments. What $F$ tells you is only *how big* it is: -->
+- What is random is **which judge you drew**, so 2SLS uses **one dummy per judge** as instruments:
 $$
-\text{2SLS bias} \;\approx\; \frac{\text{OLS bias}}{F+1} .
+D_i \;=\; \sum_{j=1}^{K} \pi_j\,\mathbf{1}\{j(i) = j\} \;+\; \nu_i \;=\; Z_i'\pi + \nu_i
 $$
+- Here $Z_i$ is the vector of $K$ judge dummies. The first stage sets each $\hat\pi_j$ to judge $j$'s detention rate over **all** her cases --- **yours included**: $\hat D_i = Z_i'\hat\pi = Z_i^{\text{keep}}$, the instrument we just ruled out.
+- Count your case, and the judge's "strictness" moves with **your own outcome**: a serious case gets detained and makes its own judge look strict.
+- Leaving it out is the fix. Applied to the dummies' first stage, it is called **JIVE**.
 
-- Add judges and $F$ falls, so the bias grows, even if the judges together explain exactly as much as before.
-<!-- - **"Many instruments" and "weak instruments" are one number wearing two names.** --> 
+## How big is the bias? Look at the extremes
+
+- **One case per judge.** The judge's rate *is* your own outcome: $\hat D_i = D_i$. 2SLS **is** OLS, with all of OLS's bias.
+- **Thousands of cases per judge.** Your case is a vanishing slice of the rate. 2SLS is the clean IV.
+- **In between**, 2SLS sits between the two, pulled **toward OLS** --- harder the fewer cases each judge has:
+$$
+\text{2SLS bias} \;\approx\; \frac{\text{OLS bias}}{F+1}
+$$
+- $F$ asks whether judges' rates differ more than chance alone would make them. With few cases each, chance alone scatters the rates widely, so $F$ is small. Thin caseloads mean a low $F$ *and* a big slice of your own case --- the same fact, twice.
+<!-- - **"Many instruments" and "weak instruments" are one number wearing two names.** -->
 
 ## JIVE: leave yourself out
 
@@ -331,9 +334,9 @@ $$
 
 ## Once you add controls, JIVE breaks too
 
-- We *must* control for the court-and-period **group**, where assignment is random.
-- JIVE leaves your case out of **your own judge's detention rate**. But it then subtracts the **group average**, which is computed from all cases in the group, including yours.
-- So your own case walks back in through the subtraction. The bias returns.
+- Assignment is random only *within* a court $\times$ period group, so we control for group fixed effects. By FWL, the instrument then becomes **your judge's rate $-$ your group's rate**: how strict your judge is *relative to the other judges in your court*.
+- JIVE leaves your case out of the first term only. The group's rate is still computed from every case in the group, yours included.
+- So your own case walks back in through the second term. The bias returns.
 
 \vspace{0.4em}
 
@@ -384,7 +387,8 @@ Goldsmith-Pinkham, Hull and Kolesár (2026) re-run Farre-Mensa, Hegde and Ljungq
 - **Instrument** $Z_i$: **one dummy per examiner** --- examiners differ in how freely they grant.
 - **Outcome** $Y_i$: the startup's later innovation 
 <!-- files again, gets approved again, gets cited. -->
-- **Controls** $W_i$: **art unit** $\times$ year. An *art unit* is the small group of examiners who specialise in one technology; an application is assigned quasi-randomly to an examiner **within** it. It is the patent office's court-and-period group --- the place where the lottery actually happens.
+- **Controls** $W_i$: **art unit** $\times$ year. 
+  - An *art unit* is the small group of examiners who specialise in one technology; an application is assigned quasi-randomly to an examiner **within** it. It is the patent office's court-and-period group --- the place where the lottery actually happens.
 
 
 
@@ -479,7 +483,7 @@ $X_{l,t}$ & controls: city and year fixed effects \\
 
 \begin{align*}
 \text{First stage:}\quad & D_{l,t} = \pi_0 + \pi_1 B_{l,t} + \rho_1 X_{l,t} + \nu_{l,t} \\
-\text{Second stage:}\quad & Y_{l,t} = \alpha + \delta D_{l,t} + \rho X_{l,t} + \varepsilon_{l,t}
+\text{Second stage:}\quad & Y_{l,t} = \alpha + \delta \hat D_{l,t} + \rho X_{l,t} + e_{l,t}
 \end{align*}
 
 \vspace{-0.3em}
@@ -517,12 +521,14 @@ $X_{l,t}$ & controls: city and year fixed effects \\
 ## How identification fails: Framework A (exogenous shares)
 
 - **Path dependence**
-  - Instrument: 1990 manufacturing shares → modern wage growth.
-  - Problem: high-share (Rust Belt) cities also saw decades of population loss, weaker schools, and decaying infrastructure, all of which affect wages directly.
+  - Instrument: 1990 manufacturing shares → local labor demand.
+  - Problem: Rust Belt cities with high manufacturing shares were already declining, so the shares correlate with $\varepsilon$
+
+\vspace{0.3em}
 
 - **Agglomeration and amenities**
   - Instrument: tech employment share → local labor demand.
-  - Problem: tech clusters draw educated workers, costly housing, and VC. If these drive the outcome directly, the share is not exogenous.
+  - Problem: tech-heavy cities have educated workers, costly housing and VC that move $Y$ directly, so the shares correlate with $\varepsilon$
 
 <!--
 - **Policy responses**
@@ -534,7 +540,9 @@ $X_{l,t}$ & controls: city and year fixed effects \\
 
 - **Common macro shocks**
   - National auto growth spikes because interest rates were cut.
-  - Problem: if local spending responds to the rate cut itself, the shock is endogenous.
+  - Problem: a rate cut raises national auto growth (the shift), and auto-heavy cities' spending also responds to the cut directly, so the shift correlates with those cities' $\varepsilon$
+
+\vspace{0.3em}
 
 - **Few dominant shocks**
   - 2 of 50 industries (e.g., oil & gas, healthcare) drive most of the shock variation.
@@ -700,7 +708,7 @@ $Z_i$ & $\mathbf{1}\{X_i \geq c_0\}$ --- crossing the cutoff \\
 
 \begin{align*}
 \text{First stage:}\quad & D_i = \pi_0 + \pi_1 Z_i + f(X_i - c_0) + \nu_i \\
-\text{Second stage:}\quad & Y_i = \alpha + \delta D_i + g(X_i - c_0) + \varepsilon_i
+\text{Second stage:}\quad & Y_i = \alpha + \delta \hat D_i + g(X_i - c_0) + e_i
 \end{align*}
 
 \vspace{-0.3em}
@@ -770,8 +778,8 @@ $Z_t$ & $\texttt{Stormy}_t$ --- bad weather at sea over the previous two days \\
 \vspace{-0.3em}
 
 \begin{align*}
-\text{First stage:}\quad & \log P_t = \pi_0 + \pi_1 \texttt{Stormy}_t + \mathbf{d}_t'\gamma + \nu_t, \qquad \hat\pi_1 \approx 0.35 \\
-\text{Second stage:}\quad & \log Q_t = \alpha + \delta \log P_t + \mathbf{d}_t'\gamma + \varepsilon_t, \qquad \hat\delta \approx -1.12
+\text{First stage:}\quad & \log P_t = \pi_0 + \pi_1 \texttt{Stormy}_t + \mathbf{d}_t'\gamma_1 + \nu_t, \qquad \hat\pi_1 \approx 0.35 \\
+\text{Second stage:}\quad & \log Q_t = \alpha + \delta\, \widehat{\log P_t} + \mathbf{d}_t'\gamma + e_t, \qquad \hat\delta \approx -1.12
 \end{align*}
 
 \vspace{-0.3em}

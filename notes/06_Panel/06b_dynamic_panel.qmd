@@ -240,7 +240,7 @@ Years per firm & $T=3$ & $T=5$ & $T=10$ & $T=30$ \\\\
 \\midrule
 Pooled OLS \\quad(biased \\textbf{up}) & $%.3f$ & $%.3f$ & $%.3f$ & $%.3f$ \\\\
 Fixed effects \\quad(biased \\textbf{down}) & $%.3f$ & $%.3f$ & $%.3f$ & $%.3f$ \\\\
-\\quad \\emph{Nickell (1981) plim, for comparison} & \\emph{%.3f} & \\emph{%.3f} & \\emph{%.3f} & \\emph{%.3f} \\\\
+\\quad \\emph{Nickell (1981) plim, for comparison} & \\itshape %.3f & \\itshape %.3f & \\itshape %.3f & \\itshape %.3f \\\\
 \\midrule
 Truth & $0.600$ & $0.600$ & $0.600$ & $0.600$ \\\\
 \\bottomrule
