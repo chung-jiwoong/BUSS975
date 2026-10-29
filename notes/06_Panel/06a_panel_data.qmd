@@ -1,0 +1,1228 @@
+---
+title: "Causal Panel Designs"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+author: "Professor Ji-Woong Chung"
+institute: "Korea University"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    slide-level: 2
+    toc: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \setbeamertemplate{navigation symbols}{}
+        \setbeamertemplate{footline}[frame number]
+        \setbeamertemplate{itemize items}[circle]
+        \setbeamertemplate{itemize subitem}[triangle]
+        \setbeamercolor{frametitle}{fg=black}
+        \setbeamerfont{frametitle}{series=\bfseries}
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{amsmath}
+        \usepackage{setspace}
+        \DeclareMathOperator*{\argmin}{arg\,min}
+        \usepackage{booktabs}
+        \usepackage{array}
+        \newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
+        \usepackage{tikz}
+        \usetikzlibrary{arrows.meta,positioning,calc}
+        \tikzset{
+          dnode/.style={circle,draw,thick,minimum size=9mm,inner sep=1pt,font=\small},
+          unode/.style={circle,draw,thick,dashed,minimum size=9mm,inner sep=1pt,font=\small},
+          qnode/.style={circle,draw,thick,dotted,minimum size=9mm,inner sep=1pt,font=\small},
+          de/.style={-{Stealth[length=2.2mm]},thick},
+          dde/.style={-{Stealth[length=2.2mm]},thick,dashed}
+        }
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\scriptsize}
+        \makeatletter
+        \def\verbatim@font{\scriptsize\ttfamily}
+        \makeatother
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+---
+
+## Where we left off
+
+- Lecture 5 spent its time looking for a **shock**: a lottery, a judge, a national surge, a threshold, the weather. Something that moved treatment for reasons the unit did not choose.
+- Good instruments are scarce. Most of the time you do not have one.
+
+\vspace{0.4em}
+
+- Panel data offers a different trade. Instead of finding a shock, **use the unit as its own control**.
+- If you see the same firm in $2015$ and in $2019$, anything about that firm which did not change in between cannot explain why its outcome changed.
+
+
+
+## The plan
+
+1. **What panel data is** --- and what the structure buys you.
+2. **Pooled OLS**, and the two separate ways it fails.
+3. **Fixed effects**, the *within* estimator: the transformation, three ways to compute it, the assumptions.
+4. **Three estimators side by side**, on data where we know the right answer.
+5. **Inference**: clustering, and what to do when clusters are few.
+6. **What fixed effects cannot fix** --- two identification failures, then four costs.
+7. **Fixed effects in finance**: richer effects, and the comparison each one leaves.
+
+\vspace{0.3em}
+
+- A *lagged $Y$* on the right-hand side is a story of its own. It gets its own deck, next.
+- The running question, asked of every slide: *which comparison is this estimator actually making?*
+
+# 1. What Panel Data Is
+
+## Two things that get called the same name
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+ & You follow & Example \\
+\midrule
+\textbf{Panel} (longitudinal) & the \emph{same} units over time & Compustat firm-years \\
+\textbf{Repeated cross-section} & a fresh sample each period & the Census, most surveys \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Only a true panel lets you difference a unit against **itself**. A repeated cross-section lets you difference *groups* against themselves, which is a weaker but still useful thing.
+<!-- - Panels are built three ways: **purpose-built** surveys that track people; **administrative** records aggregated to a geography; **repeated surveys** of a population. -->
+- Notation throughout: $i = 1, \dots, N$ units, $t = 1, \dots, T$ periods. We assume a **balanced** panel, so every unit appears in every period.
+<!-- - Units are independent draws; observations *within* a unit are not. -->
+<!-- That second half is where the standard errors come from.-->
+
+## Motivation: a regression you have all run
+
+$$
+\text{leverage}_{i,j,t} \;=\; \beta_0 + \beta_1 \text{profitability}_{i,j,t} + u_{i,j,t}
+$$
+
+for firm $i$ in industry $j$ in year $t$. **What is in $u$?**
+
+\vspace{0.3em}
+
+- Managerial talent and managerial risk aversion. Industry supply and demand shocks. The firm's cost of capital and its investment opportunity set. Local institutions and financial development.
+<!-- - Once firms sit in different states or countries: local institutions, protection of property rights, financial development, investor sentiment. --> 
+
+\vspace{0.3em}
+
+- Every one of these plausibly moves leverage **and** correlates with profitability. <!-- None of them is in Compustat. --> 
+- **Why not just use a proxy?** A proxy delivers consistency only if the unobservable is uncorrelated with the regressors *after* conditioning on it. That is a demanding requirement, and you cannot check it.
+
+<!-- 
+## Matrix notation: what we are after
+
+Let $Y$ and $D \equiv (D_1, D_2, \dots, D_K)$ be observable random variables and $u$ be **unobservable**. What we want is the partial effect of $D_j$ in the population regression function
+$$
+E[\,Y \mid D_1, D_2, \dots, D_K,\, u\,] .
+$$
+
+- Note what is sitting inside the conditioning set: $u$. If we could condition on it, there would be no problem and no lecture.
+- We observe $i = 1, \dots, N$ cross-sectional units over $t = 1, \dots, T$ periods --- for each unit, the collection $\{(Y_{it}, D_{it}) : t = 1, \dots, T\}$.
+- With $K$ regressors, $D_{it} \equiv (D_{it1}, D_{it2}, \dots, D_{itK})$ is a $1 \times K$ **row** vector: one unit, one period, $K$ variables.
+- **Cross-sectional independence** is the sampling assumption: $\{Y_i, D_i, u_i\}_{i=1}^{N} \sim \text{i.i.d.}$ Units are independent draws from the population. Nothing is assumed about dependence *within* a unit --- and that is exactly where the standard errors will come from.
+
+## Matrix notation: stacking one unit
+
+A single unit $i$ contributes $T$ rows, one per period:
+
+$$
+Y_i = \begin{pmatrix} Y_{i1} \\ \vdots \\ Y_{it} \\ \vdots \\ Y_{iT} \end{pmatrix}_{T \times 1}
+\qquad
+D_i = \begin{pmatrix}
+D_{i,1,1} & D_{i,1,2} & \cdots & D_{i,1,K} \\
+\vdots & \vdots & & \vdots \\
+D_{i,t,1} & D_{i,t,2} & \cdots & D_{i,t,K} \\
+\vdots & \vdots & & \vdots \\
+D_{i,T,1} & D_{i,T,2} & \cdots & D_{i,T,K}
+\end{pmatrix}_{T \times K}
+$$
+
+- Rows are **periods**, columns are **variables**. Reading down a column of $D_i$ shows you one variable moving over time for one unit.
+- If a column of $D_i$ is constant down its length, that variable has no within variation for unit $i$.
+
+## Matrix notation: stacking the panel
+
+Stack the $N$ units on top of one another:
+
+$$
+Y = \begin{pmatrix} Y_1 \\ \vdots \\ Y_i \\ \vdots \\ Y_N \end{pmatrix}_{NT \times 1}
+\qquad
+D = \begin{pmatrix} D_1 \\ \vdots \\ D_i \\ \vdots \\ D_N \end{pmatrix}_{NT \times K}
+$$
+
+- So the regression has $NT$ rows and $K$ columns. Pooled OLS treats those $NT$ rows as $NT$ unrelated observations --- which is precisely the mistake §2 is about.
+- The stacking also makes the two dimensions visible. **$N$ is the number of independent draws; $T$ is not.** Adding periods gives you more rows but no more independent information about $u_i$, which is why inference depends on $N$ and not on $NT$.
+- Keep the shapes in mind: a unit dummy regression adds $N$ columns to a matrix that already has $NT$ rows.
+-->
+
+
+## The confounding, as a picture
+
+\begin{center}
+\begin{tikzpicture}[node distance=14mm]
+  \node[unode] (u) {$u_i$};
+  \node[dnode, below left=12mm and 14mm of u] (d) {$D_{it}$};
+  \node[dnode, below right=12mm and 14mm of u] (y) {$Y_{it}$};
+  \node[unode, right=26mm of y] (e) {$\varepsilon_{it}$};
+  \draw[dde] (u) -- (d);
+  \draw[dde] (u) -- (y);
+  \draw[de]  (d) -- node[below]{$\delta$} (y);
+  \draw[dde] (e) -- (y);
+\end{tikzpicture}
+\end{center}
+
+\vspace{-0.3em}
+
+- $u_i$ is a **confounder**: it causes the treatment and it causes the outcome. 
+- Ordinarily that would be the end of the story --- you cannot condition on what you cannot see.
+- **But $u_i$ carries no $t$ subscript.** It is the same number in every period for a given unit. 
+
+## The model
+
+For each unit $i$ in period $t$:
+
+$$
+Y_{it} \;=\; \alpha + \delta D_{it} \;+\; \underbrace{u_i}_{\substack{\text{unobserved} \\ \text{heterogeneity}}} \;+\; \underbrace{\varepsilon_{it}}_{\substack{\text{idiosyncratic} \\ \text{error}}}, \qquad t = 1, \dots, T .
+$$
+
+Reading it with the schooling--earnings example:
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_{it}$ & log earnings of person $i$ in year $t$ \\
+$D_{it}$ & schooling --- the treatment, and it must \textbf{change} over time \\
+$\delta$ & the returns to schooling --- assumed the \emph{same} for everyone \\
+$u_i$ & everything about $i$ that never changes: ability, upbringing, drive \\
+$\varepsilon_{it}$ & everything that changes period to period: luck, health, the cycle \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+<!-- - Note the homogeneity assumption buried in $\delta$. Lecture 7 is largely about what happens when you drop it. --> 
+
+
+# 2. Pooled OLS
+
+## Ignoring the panel structure
+
+Throw the time dimension away and regress $Y_{it}$ on $D_{it}$:
+
+$$
+Y_{it} = \alpha + \delta D_{it} + \eta_{it}, \qquad \eta_{it} \equiv u_i + \varepsilon_{it} .
+$$
+
+- This is **pooled OLS (POLS)**. <!-- It treats your $NT$ observations as $NT$ unrelated people.--> 
+- POLS needs only **contemporaneous exogeneity**: the error is unrelated to treatment *in the same period*,
+$$
+E[\eta_{it} \mid D_{it}] = 0, \qquad t = 1, \dots, T .
+$$
+- But $u_i$ sits inside $\eta_{it}$, so this requires $u_i$ to be **uncorrelated with treatment** --- exactly what the picture denies.
+
+<!-- - That is exactly the assumption the picture on the last slide denies. Schooling is chosen partly on the basis of ability. --> 
+
+## POLS fails twice, not once
+
+- **Failure 1: bias.** $u_i$ is in the error and correlated with $D_{it}$. $\Rightarrow$ Omitted variable bias.
+
+\vspace{0.4em}
+
+- **Failure 2: the standard errors.** $u_i$ appears in $\eta_{it}$ for **every** period of unit $i$. So the errors of the same unit are correlated with each other by construction --- serial correlation.
+  <!-- - Heteroskedasticity-robust standard errors do not fix this. They assume independence across observations, and your observations are not independent. -->
+  - The reported standard errors are therefore **too small**, often by a lot. You get a tight interval around a biased number.
+
+<!-- 
+\vspace{0.4em}
+- These are separate problems with separate fixes. Clustering repairs the second and does nothing for the first. 
+-->
+
+# 3. Fixed Effects: The Within Estimator
+
+## The idea in one line
+
+> Stop comparing person $i$ to person $j$. Compare person $i$ to **person $i$ at another date**.
+
+\vspace{0.5em}
+
+- Any confounder that is the same in both of $i$'s periods cannot explain a change between them. 
+- This works **whether or not you can observe the confounder**, and whether or not you can name it. 
+- The price is equally sharp: the only variation left is variation **within** units. Units that never change contribute nothing.
+- So the estimate is built entirely from **switchers** --- people whose schooling changed, firms whose policy changed. Name them before you interpret the number.
+
+## Where did $u_i$ go?
+
+Average the model over time for a single unit $i$:
+$$
+\bar Y_i = \alpha + \delta \bar D_i + u_i + \bar\varepsilon_i,
+\qquad \text{where } \bar Y_i = \tfrac{1}{T}\textstyle\sum_t Y_{it} .
+$$
+Now subtract that from the original equation, period by period:
+$$
+\underbrace{(Y_{it} - \bar Y_i)}_{\ddot Y_{it}}
+= \delta \underbrace{(D_{it} - \bar D_i)}_{\ddot D_{it}}
++ \underbrace{(\alpha - \alpha)}_{\textstyle = \;0}
++ \underbrace{(u_i - u_i)}_{\textstyle = \;0}
++ \underbrace{(\varepsilon_{it} - \bar\varepsilon_i)}_{\ddot\varepsilon_{it}} .
+$$
+\vspace{-0.2em}
+$$
+\boxed{\;\ddot Y_{it} = \delta \ddot D_{it} + \ddot\varepsilon_{it}\;}
+$$
+
+- The price: $\ddot\varepsilon_{it}$ contains $\bar\varepsilon_i$, which averages **every** period's shock. So $D_{it}$ must be unrelated to the shocks of *all* periods, not just its own --- **strict exogeneity**.
+
+<!--
+- The mean of $u_i$ over time **is $u_i$**, so $u_i - u_i = 0$. Gone --- not controlled for, not proxied, *gone*, however strongly it correlated with $D$.
+- **The constant goes with it**, for the same reason. Remember that: in §6 it decides whether two estimators agree.
+-->
+
+## The same thing, as a minimisation problem
+
+Treat the $u_i$ as $N$ parameters to be estimated alongside $\delta$:
+$$
+(\hat\delta,\, \hat u_1, \dots, \hat u_N) \;=\; \argmin_{b,\, m_1, \dots, m_N} \; \sum_{i=1}^{N} \sum_{t=1}^{T} \big(Y_{it} - D_{it} b - m_i\big)^2 .
+$$
+
+- This is a regression of $Y_{it}$ on $D_{it}$ **plus $N$ individual dummies**.
+- The first-order condition with respect to $m_i$ gives, for each unit,
+$$
+\hat m_i \;=\; \frac{1}{T}\sum_{t=1}^{T}\big(Y_{it} - D_{it}\hat\delta\big) \;=\; \bar Y_i - \bar D_i \hat\delta .
+$$
+
+- The estimated fixed effect $\hat m_i$ is simply unit $i$'s average residual. 
+<!-- It is not a structural parameter to interpret; it absorbs whatever unit-level mean is required to fit unit $i$. --> 
+
+## Why the two routes coincide
+
+The first-order condition with respect to $b$ is:
+$$
+\sum_{i=1}^{N}\sum_{t=1}^{T} D_{it}\big(Y_{it} - D_{it}\hat\delta - \hat m_i\big) = 0 .
+$$
+
+Substituting $\hat m_i = \bar Y_i - \bar D_i\hat\delta$ back into this equation:
+$$
+\hat\delta \;=\; \Bigg(\sum_{i=1}^{N}\sum_{t=1}^{T} (D_{it} - \bar D_i)^2\Bigg)^{\!-1}
+\Bigg(\sum_{i=1}^{N}\sum_{t=1}^{T} (D_{it} - \bar D_i)(Y_{it} - \bar Y_i)\Bigg)
+$$
+
+$$
+\hat\delta \;=\; \Bigg(\sum_{i=1}^{N}\sum_{t=1}^{T} \ddot D_{it}^2\Bigg)^{\!-1} \Bigg(\sum_{i=1}^{N}\sum_{t=1}^{T} \ddot D_{it} \ddot Y_{it}\Bigg)
+$$
+
+
+## Three ways to compute the same number
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+ & What you do & Watch out for \\
+\midrule
+\textbf{1. Demean} & regress $\ddot Y_{it}$ on $\ddot D_{it}$ by hand & degrees of freedom \\
+\textbf{2. Unit dummies} & regress $Y_{it}$ on $D_{it}$ and $N$ dummies & large $N$  \\
+\textbf{3. Canned routine} & \texttt{feols}, \texttt{plm}, \texttt{xtreg, fe} & --- \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- All three give the **numerically identical** slope. 
+- The **within** estimator, the **fixed effects** estimator, the **dummy variable** regression (LSDV), the **demeaned** regression. Add time dummies as well and it becomes **two-way fixed effects**.
+
+  
+## What fixed effects silently deletes
+
+- Demeaning removes $u_i$. It removes **every** time-invariant variable the same way, including ones you wanted to keep.
+<!-- - A firm's state of incorporation, a CEO's gender: all constant within unit, so all differenced to exactly zero. --> 
+- If your primary parameter of interest is fixed over time, standard FE **cannot** estimate it.
+
+\vspace{0.4em}
+- Variables that change rarely (e.g., institutional quality, policy regimes) retain almost no within-unit variation after demeaning.
+- Estimates become imprecise with inflated standard errors.
+
+\vspace{0.4em}
+- **Workarounds:**
+  - Interact $X_i$ with time indicators ($X_i \times \text{Year}_t$) to see how its effect evolves over time.
+  - Hausman--Taylor (1981): use time-varying exogenous regressors as internal instruments for time-invariant ones.
+
+<!-- 
+- **Escapes & Alternatives:**
+  - **Time interaction:** Interact $X_i$ with time indicators ($X_i \times \text{Year}_t$) to test how its impact evolves over time.
+  - **Correlated Random Effects / Mundlak:** Explicitly models $u_i$ as a function of unit means ($\bar X_i$).
+  - **Hausman–Taylor (1981):** Uses time-varying exogenous regressors as internal instruments for time-invariant ones.
+--> 
+
+<!--
+## Alternative 1: Interacting $X_i$ with Time Indicators
+
+While $X_i$ drops out after demeaning, its interaction with time indicators ($X_i \times \text{Year}_t$) **varies over time**:
+
+$$
+Y_{it} \;=\; \alpha + \delta D_{it} + \sum_{t=2}^{T} \beta_t (X_i \times \text{Year}_t) + u_i + \varepsilon_{it}
+$$
+
+Demeaning yields non-zero terms:
+$$
+(X_i \times \text{Year}_t) - \overline{(X_i \times \text{Year}_t)}_i \;=\; X_i \left( \text{Year}_t - \bar{\text{Year}} \right) \;\neq\; 0
+$$
+
+- **What it measures:** You cannot estimate the baseline main effect of $X_i$, but you estimate how its effect **evolves over time** relative to the base year.
+- **When to use:** Dynamic treatment effects, Difference-in-Differences (DiD), and event studies.
+
+---
+
+## Alternative 2: Mundlak / Correlated Random Effects (CRE)
+
+Explicitly models $u_i$ as a linear function of time-averages of time-varying regressors:
+$$
+u_i \;=\; \bar{X}_i \theta + \eta_i, \qquad \text{where } \eta_i \sim \text{i.i.d.}(0, \sigma_\eta^2)
+$$
+
+Substituting into the full model with time-invariant regressors $Z_i$:
+$$
+Y_{it} \;=\; \beta X_{it} + \gamma Z_i + \bar{X}_i \theta + \eta_i + \varepsilon_{it}
+$$
+
+- **Key Advantages:**
+  1. Estimated $\hat{\beta}$ under Random Effects (RE-GLS) is **algebraically identical** to the FE within-estimator.
+  2. Directly identifies $\hat{\gamma}$ for time-invariant variables $Z_i$.
+  3. Joint test on $\theta = 0$ is equivalent to a standard Hausman test.
+
+---
+
+## Alternative 3: Hausman–Taylor (1981) Estimator
+
+Uses time-averages of clean (exogenous) time-varying variables as **internal instruments** for dirty (endogenous) time-invariant variables.
+
+| Variable Type | Exogenous (Uncorrelated with $u_i$) | Endogenous (Correlated with $u_i$) |
+| :--- | :--- | :--- |
+| **Time-Varying** | **$X_{1it}$**: Means $\bar{X}_{1i}$ instrument $Z_{2i}$ | **$X_{2it}$**: Demeaned $(X_{2it} - \bar{X}_{2i})$ instruments itself |
+| **Time-Invariant** | **$Z_{1i}$**: Instruments itself | **$Z_{2i}$**: Target variable (Instrumented by $\bar{X}_{1i}$) |
+
+- **Core Intuition:** Time-varying exogenous variables $X_{1it}$ generate time-means $\bar{X}_{1i}$ that are unit-specific, time-invariant, and clean of $u_i$.
+- **Order Condition:** Requires $\text{Number of } X_{1it} \ge \text{Number of } Z_{2i}$.
+
+---
+
+## Alternative 4: Hybrid / Between-Within Model
+
+Decomposes time-varying variables into within-unit deviations and between-unit means:
+
+$$
+Y_{it} \;=\; \beta_{\text{within}} (X_{it} - \bar{X}_i) + \beta_{\text{between}} \bar{X}_i + \gamma Z_i + \varepsilon_{it}
+$$
+
+- **Why it works:**
+  - $\beta_{\text{within}}$ isolates pure within-unit temporal changes (exact FE point estimate).
+  - $\beta_{\text{between}}$ and $\gamma$ capture long-term cross-sectional differences across units.
+  - Easily generalizes to non-linear models (e.g., RE Logit, Probit, Poisson) where demeaning transforms fail.
+
+-->
+
+## A trap you can actually fall into
+
+Estimate $\ln(\text{pay})_{ijt}$ with CEO, firm and year effects, and include $\texttt{female}_i$. The CEO effects already absorb it. What does the software do?
+
+\vspace{0.3em}
+
+- `xtreg`-style routines drop `female` and say so. **Fine.**
+- But build the dummies yourself and put them in the regression, and the software may drop **one of your dummies instead** --- then  report a coefficient on `female`.
+- That number is not an estimate of anything. It is an artifact of which column the solver happened to discard.
+
+\vspace{0.3em}
+<!-- 
+- In our firm panel, asking for `founder` *before* the firm dummies makes R drop a firm dummy and report $\texttt{founder} = 0.152$. **Randomly relabelling the firms moves that number to $1.693$.** The profitability coefficient is unchanged to twelve decimals throughout. --> 
+- The lesson: if a time-invariant regressor survives a fixed-effects regression, something is wrong --- find out what got dropped in its place.
+
+<!-- 
+## Rank condition: $D$ must vary within units.
+$$
+\sum_{i=1}^{N}\sum_{t=1}^{T} (D_{it} - \bar D_i)^2 > 0
+$$
+
+- At least some units must change treatment status over time ($D_{it} \neq \bar D_i$).
+- The demeaned regressor $\ddot D_{it}$ cannot be written as a linear combination of other regressors or time fixed effects.
+- If $\ddot D_{it} = 0$ for all units, the FE denominator vanishes and $\hat\delta$ is unidentified.
+--> 
+
+## Strict exogeneity is stronger than it looks
+
+$$
+E[\varepsilon_{it} \mid D_{i1}, D_{i2}, \dots, D_{iT},\, u_i] = 0, \qquad t = 1, \dots, T .
+$$
+
+- POLS asked only that $D_{it}$ be unrelated to *this* period's shock. FE asks that it be unrelated to the shock of **every** period.
+- The conditioning set includes **future** treatment, so strict exogeneity rules out **feedback**: a shock today cannot influence treatment tomorrow.
+- Say $Y$ is profitability and $D$ is investment. A firm has a bad year ($\varepsilon_{it} < 0$) and cuts investment next year. Then $\varepsilon_{it}$ predicts $D_{i,t+1}$, and strict exogeneity fails.
+<!-- - A worker is laid off and goes back to school. Same structure, same violation. -->
+- **This is the assumption that fails most often in finance**, because firms react to what happens to them.
+
+\vspace{0.3em}
+
+A lagged dependent variable violates it too --- not doubtfully but *by construction*. That is the **dynamic panel** problem, and the next deck is about it.
+
+
+## It was never really about time
+
+- Fixed effects works wherever observations can be **grouped**, removing any unobserved heterogeneity that is constant *within a group*.
+- Firms grouped by **industry**. Patents grouped by **examiner**. Loans grouped by **bank--year**. CEO spells grouped by **CEO--firm** pairs. Students grouped by **classroom**.
+- The logic is the same every time: compare units **inside** a group, so anything the group shares cancels.
+<!--- Consistency needs **many groups**, each with within-group variation --- which is the few-clusters problem again, now wearing the other hat. Twenty industries is twenty effective observations for the between-industry comparison, however many firm-years sit inside them. --> 
+
+
+
+<!-- 
+## Two things it does not touch
+
+- Fixed effects removes **time-invariant** unobserved heterogeneity. That is a precise claim, and people routinely read it as "fixed effects handles endogeneity."
+
+\vspace{0.4em}
+
+- However, fixed effects cannot address:
+
+1. **Reverse causality.** If $Y$ causes $D$, demeaning does nothing. 
+2. **Time-varying unobserved heterogeneity.** 
+--> 
+
+
+# 4. Three Estimators, Side by Side
+
+## A firm panel we can check against the truth
+
+Simulate a panel where we **set** the answer.
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$i$, $t$ & $300$ firms, $5$ years each \\
+$u_i$ & managerial risk appetite --- \emph{unobserved}, fixed per firm \\
+$\texttt{prof}_{it}$ & profitability, built to be correlated with $u_i$ \\
+$\texttt{founder}_i$ & founder-led --- a \emph{time-invariant} trait, also correlated with $u_i$ \\
+$\texttt{lev}_{it}$ & leverage: $\;0.5 - 0.30\,\texttt{prof}_{it} + 0.20\,\texttt{founder}_i + u_i + \varepsilon_{it}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **The truth is $-0.30$**: more profitable firms borrow less. 
+<!-- This is the pecking order, and it is the number every estimator below is trying to find. -->
+- $u_i$ raises leverage *and* is correlated with profitability and with founder status
+<!-- exactly the motivating problem from §1, now with a known answer.-->
+
+## Three estimators, one number
+
+```{r}
+#| results: asis
+suppressMessages({library(sandwich); library(lmtest)})
+set.seed(20260101)
+N <- 300; T <- 5
+firm <- rep(1:N, each = T)
+u_f  <- rnorm(N)                                       # one draw per firm
+founder_f <- as.numeric(0.8 * u_f + rnorm(N) > 0.5)    # founder-led firms differ in u
+u    <- rep(u_f, each = T)
+founder <- rep(founder_f, each = T)
+prof <- 0.8 * u + rnorm(N * T)
+lev  <- 0.5 - 0.30 * prof + 0.20 * founder + u + rnorm(N * T)
+d <- data.frame(firm, lev, prof, founder)
+
+pols <- lm(lev ~ prof + founder, data = d)
+lsdv <- lm(lev ~ prof + factor(firm) + founder, data = d)
+dm <- d; for (v in c("lev", "prof", "founder")) dm[[v]] <- dm[[v]] - ave(dm[[v]], dm$firm)
+dmo  <- lm(lev ~ prof + founder, data = dm)
+
+# Clustered SEs as xtreg, fe / reghdfe compute them: firm effects are nested in
+# the firm clusters, so they do not count as parameters in the small-sample
+# factor. k = slope coefficients + constant.
+se <- function(m, cl, nm, k) {
+  n <- nobs(m)
+  sqrt(vcovCL(m, cluster = cl, type = "HC0")[nm, nm] * (n - 1) / (n - k))
+}
+cat(sprintf(
+"\\begin{center}\\small
+\\begin{tabular}{lccc}
+\\toprule
+Dependent variable: leverage & POLS & LSDV / FE & Demeaned OLS \\\\
+\\midrule
+Profitability \\quad(truth $-0.30$) & $%.3f$ & $%.3f$ & $%.3f$ \\\\
+ & $(%.3f)$ & $(%.3f)$ & $(%.3f)$ \\\\
+Founder-led \\quad(truth $+0.20$) & $%.3f$ & --- & --- \\\\
+ & $(%.3f)$ & & \\\\
+\\midrule
+Firm dummies & no & yes & absorbed \\\\
+$R^2$ & $%.3f$ & $%.3f$ & $%.3f$ \\\\
+\\bottomrule
+\\end{tabular}
+\\end{center}
+",
+coef(pols)["prof"], coef(lsdv)["prof"], coef(dmo)["prof"],
+se(pols, d$firm, "prof", 3), se(lsdv, d$firm, "prof", 2), se(dmo, dm$firm, "prof", 2),
+coef(pols)["founder"], se(pols, d$firm, "founder", 3),
+summary(pols)$r.squared, summary(lsdv)$r.squared, summary(dmo)$r.squared))
+```
+
+\vspace{0.2em}
+\scriptsize
+Standard errors clustered by firm, computed as \texttt{xtreg, fe} and \texttt{reghdfe} do: firm effects nested in the clusters are not counted as parameters. $N = 1{,}500$ firm-years, $300$ firms.
+\normalsize
+
+- In Stata, `xtreg, fe` reports the within $R^2$; `areg` reports an overall $R^2$ that includes what the fixed effects explain. Know which one you are quoting.
+
+<!-- 
+## Reading the table
+
+- **POLS does not merely mis-measure the effect --- it gets the sign wrong.** The truth is $-0.30$; POLS reports $+0.06$. A researcher with this output would conclude that profitable firms borrow *more*, and would have a story ready for it by the end of the afternoon.
+- The bias is the one from §2: $u_i$ raises leverage and is correlated with profitability, so the correlation picks up the manager, not the capital structure decision.
+- **LSDV and demeaned OLS agree to machine precision** --- slope *and* clustered standard error --- and both land at $-0.35$, close to the truth. The equivalence of §3 is not an approximation.
+- **Founder-led is reported by POLS and refused by the other two.** POLS gets $0.83$ against a truth of $0.20$ --- four times too big, and highly significant. That estimate comes from comparing *different firms*, which is precisely the comparison $u_i$ contaminates.
+
+
+## Look at the $R^2$ column
+
+- POLS reports $R^2 \approx 0.10$. LSDV reports $\approx 0.52$. **Nothing about the explanatory power of profitability changed** --- the slope is identical in LSDV and in the demeaned regression.
+- The jump is $300$ firm dummies explaining cross-firm differences in leverage. That is not a finding; it is arithmetic.
+- The demeaned regression reports $\approx 0.10$, the **within $R^2$**: the share of *within-firm* variation in leverage explained by *within-firm* variation in profitability. That is the number that answers the question you asked.
+
+\vspace{0.3em}
+-->
+
+
+
+# 5. Inference
+
+## Cluster by unit
+
+- **Keep two decisions separate.**
+  - **Fixed effects** fix the *point estimate*: they sweep out group means that would bias $\hat\delta$.
+  - **Clustering** fixes the *standard error*: it lets shocks be correlated within a group.
+- Within a unit, the $\varepsilon_{it}$ are almost certainly correlated over time. **Cluster by panel unit** --- the person, the firm, the county --- or by the level at which treatment is assigned, if that is coarser.
+<!-- - This is not optional, and it is not the same adjustment as robust standard errors. Robust fixes heteroskedasticity; clustering fixes dependence *within* a unit. -->
+
+\vspace{0.3em}
+
+- Cluster-robust inference is valid as the **number of clusters** $G$ grows, not the number of observations.
+- Rule of thumb: with fewer than about $40$ clusters, treat the standard errors with suspicion. Remedies: the **wild cluster bootstrap** (Cameron, Gelbach and Miller 2008), or small-sample corrections (Bell and McCaffrey 2002).
+
+<!-- 
+\vspace{0.4em}
+
+- Note which dimension matters **for inference**. $N$ large and $T$ small is the comfortable case; $N$ small and $T$ large is not.
+- Careful, though: that is a statement about standard errors. For the *bias* problems in §6 the ranking reverses --- there it is large $T$ that rescues you. Different problem, different dimension.
+--> 
+
+<!--
+### $N$ vs. $T$ Dualities: Inference vs. Bias
+
+| Dimension Focus | Favorable Setting | What It Protects |
+| :--- | :--- | :--- |
+| **Inference (Standard Errors)** | **Large $N$, Small $T$** | Ensures valid asymptotic variance estimates across independent clusters. |
+| **Estimation Bias (e.g., Dynamic FE)** | **Large $T$, Small $N$** | $T \to \infty$ eliminates Nickell bias ($O(1/T)$) in dynamic panel models. |
+
+- **Takeaway:** Large $N$ saves your standard errors; large $T$ saves your point estimates.
+--> 
+
+## The few-clusters problem
+
+- Cluster-robust standard errors (**CRSE**) are built from **one score per cluster**. With $G = 10$ you are estimating a variance from ten numbers.
+- With few clusters (fewer than about $40$), CRSE **understates** sampling variability. The $t$-statistics are too big, and a $5\%$ test rejects a true null too often.
+
+\vspace{0.3em}
+
+- What is usually scarce is not clusters but **treated** clusters. If $2$ of $10$ states are treated, $\hat\delta$ is driven by those two states' shocks.
+- The treatment dummy soaks up much of those shocks, so the treated states' residuals look small --- and the CRSE looks precise when it is not.
+- Unequal cluster sizes make it worse (MacKinnon and Webb 2017).
+
+<!--
+## Why Standard Bootstrap Fails for Few Clusters
+
+- **Pairs Cluster Bootstrap** resamples entire clusters with replacement.
+- When $G = 10$, resampling 10 clusters with replacement means some clusters are duplicated multiple times while others are omitted completely.
+- **The Failure:** If treatment varies in only a few clusters, resampled datasets often suffer from zero treatment variation or matrix singular rank failures.
+--> 
+
+
+## The wild cluster bootstrap: intuition
+
+Model: $Y_{it} = \delta D_{it} + X_{it}\beta + \alpha_i + \lambda_t + \varepsilon_{it}$, with clusters $g = 1, \dots, G$; $g(i)$ is unit $i$'s cluster.
+
+- Do not resample observations or clusters. **Keep every regressor fixed and resample the residuals** --- one coin per cluster.
+
+1. Fit the model **imposing $H_0: \delta = 0$**. Keep its fitted values $\tilde Y_{it}$ and residuals $\tilde\varepsilon_{it}$.
+2. For each cluster, toss a coin. Heads: keep its residuals. Tails: flip the sign of **all** of them.
+$$
+Y^{*}_{it} \;=\; \tilde Y_{it} + w_{g(i)}\,\tilde\varepsilon_{it}, \qquad w_g \in \{-1, +1\} .
+$$
+
+- **Why it works:** flipping a whole cluster at once keeps its within-cluster correlation intact, and the pseudo-data satisfy $H_0$ by construction.
+
+## The wild cluster bootstrap: algorithm
+
+1. **Restricted fit.** Estimate the model with $\delta = 0$ imposed. Keep $\tilde Y_{it}$ and $\tilde\varepsilon_{it}$.
+2. **Pseudo-outcomes.** For $b = 1, \dots, B$: draw a weight $w_g$ for each cluster and set $Y^{(b)}_{it} = \tilde Y_{it} + w_{g(i)}\,\tilde\varepsilon_{it}$.
+3. **Re-estimate.** Regress $Y^{(b)}_{it}$ on $D_{it}$, $X_{it}$ and the fixed effects; record the cluster-robust $t$-statistic $t^{(b)}$ for $\hat\delta$.
+4. **$p$-value.** Locate the actual $t$ in the bootstrap distribution:
+$$
+p_{\text{WCB}} \;=\; \frac{1}{B}\sum_{b=1}^{B} \mathbb{I}\big( |t^{(b)}| \ge |t| \big) .
+$$
+
+- With $G$ clusters there are only $2^G$ sign patterns ($1{,}024$ for $G = 10$). Below $G \approx 12$, use Webb's six-point weights instead (Webb 2023).
+
+
+
+## Numerical example: building the panel
+
+```stata
+clear all
+set seed 12345
+local n_treated 5                      // number of treated states; try 2
+
+* 1. 10 states x 100 workers; worker effect drawn ONCE per worker
+set obs 1000
+gen worker_id = _n
+gen state = ceil(worker_id / 100)
+gen worker_effect = rnormal(15, 2)
+
+* 2. Expand across 5 years (2020-2024): 5,000 observations
+expand 5
+bysort worker_id: gen year = 2020 + _n - 1
+
+* 3. The policy starts in 2022 in states 1, ..., n_treated
+gen policy_subsidy = (state <= `n_treated' & year >= 2022)
+```
+
+- $5{,}000$ observations --- but only **ten clusters**, and we choose how many are treated.
+- `worker_effect` is drawn *before* `expand`, so each worker keeps one value in every year.
+
+## Numerical example: wages with no true effect
+
+```stata
+* 4. One shock per state-year, shared by every worker in it
+bysort state year: gen state_year_shock = rnormal(0, 1.2) if _n == 1
+by state year: replace state_year_shock = state_year_shock[1]
+
+* 5. Wages with ZERO true policy effect
+sort worker_id year
+gen wage = worker_effect + state_year_shock + rnormal(0, 1)
+xtset worker_id year
+```
+
+- **The true effect is exactly zero.** Any rejection is a false positive.
+- The state-year shock correlates residuals within a state --- what clustering exists to handle.
+- **A Stata trap:** `bysort state year: gen x = rnormal()` draws a new number for *every row*, not one per group. The `_n == 1` / `[1]` pair is what makes the shock common.
+
+## Stata implementation
+
+\scriptsize
+
+```stata
+cap ssc install ftools
+cap ssc install reghdfe
+cap ssc install boottest
+
+* A. Standard CRSE, clustered by state (G = 10). Year enters as dummies:
+*    boottest allows at most one absorbed fixed effect after reghdfe
+reghdfe wage policy_subsidy i.year, absorb(worker_id) vce(cluster state)
+
+* B. WCB with Rademacher signs. Only 2^10 = 1,024 sign patterns exist;
+*    asking for more reps makes boottest enumerate all of them
+boottest policy_subsidy, weight(rademacher) reps(9999) seed(12345)
+
+* C. WCB with Webb's six-point weights (6^10 patterns): preferred below G = 12
+boottest policy_subsidy, weight(webb) reps(9999) seed(12345)
+```
+
+\normalsize
+
+- `boottest` reads the model and the clustering from the preceding command (`regress`, `areg`, `xtreg`, `ivreg2`, or `reghdfe` with one absorbed effect) and inverts the test into a confidence interval (Roodman et al.\ 2019).
+- In R: `fwildclusterboot::boottest()` --- same algorithm.
+
+
+## What happens across 5,000 such panels
+
+$\text{Wage}_{it} = \delta\,\text{Policy}_{it} + \alpha_i + \lambda_t + \varepsilon_{it}$, true $\delta = 0$, $G = 10$ states. **How often does a $5\%$ test reject?**
+
+\begin{center}\small
+\begin{tabular}{ccc}
+\toprule
+Treated states (of $10$) & Standard CRSE & WCB (Webb weights) \\
+\midrule
+$2$ & $17.1\%$ & $0.6\%$ \\
+$3$ & $11.0\%$ & $7.0\%$ \\
+$5$ & $6.3\%$ & $5.7\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+\scriptsize
+Share of $5{,}000$ simulated panels (the DGP above) that reject $H_0: \delta = 0$ at $5\%$. CRSE uses $t_{G-1}$ critical values, as \texttt{reghdfe} does; WCB is restricted, $B = 999$. Code: \texttt{06a\_panel\_wcb\_sim.R}.
+\normalsize
+
+- **Few *treated* clusters is the danger.** With $2$ treated states, CRSE rejects a true null $17\%$ of the time --- more than three times the nominal rate.
+- **WCB does not rescue that case; it overcorrects.** It almost never rejects, so it has almost no power either (MacKinnon and Webb 2017). No procedure can manufacture variation that two treated states do not contain.
+- **With more treated clusters, both move toward $5\%$**, and WCB gets there faster. Count your *treated* clusters before trusting any $p$-value.
+
+# 6. What Fixed Effects Cannot Fix
+
+## Reverse causality
+
+Becker (1968) predicts that more policing lowers crime. Cornwell and Trumbull (1994), North Carolina counties:
+
+\begin{center}\small
+\begin{tabular}{lcccc}
+\toprule
+DepVar: crime rate & Between & Within & 2SLS (FE) & 2SLS (no FE) \\
+\midrule
+Police & $0.364$ & $0.413$ & $0.504$ & $0.419$ \\
+       & $(0.060)$ & $(0.027)$ & $(0.617)$ & $(0.218)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+\footnotesize
+County-level panel. Standard errors in parentheses. All columns include controls.
+\normalsize
+
+- **Between** regresses county *averages* on county averages: cross-county variation only, the complement of within.
+- Every column says more police, **more** crime --- and fixed effects make it *larger*, not smaller.
+- The reason is not a missing county trait. **Counties hire police because crime is high**: $Y \to D$. Demeaning cannot touch that.
+- The 2SLS columns try instruments instead; with fixed effects the estimate is too imprecise (s.e.\ $0.62$) to say anything. Reverse causality needs a shock, not more fixed effects.
+
+<!-- - Demeaning cannot help, because the problem was never a fixed county trait. Note what this means for the DAG we drew: it had no arrow from $Y$ to $D$, so it was the wrong DAG for this question. --> 
+
+## Time-varying unobserved heterogeneity
+
+Married men earn more. Is that marriage, or is it the kind of man who marries? Cornwell and Rupert (1997):
+
+\begin{center}\small
+\begin{tabular}{lcccc}
+\toprule
+DepVar: log wage & RE (FGLS) & Within & Within & Within \\
+\midrule
+Married & $0.083$ & $0.056$ & $0.051$ & $0.033$ \\
+        & $(0.022)$ & $(0.026)$ & $(0.026)$ & $(0.028)$ \\
+\midrule
+Education controls & Yes & No & No & No \\
+Tenure             & No  & No & Yes & Yes \\
+Quadratics in years married & No & No & No & Yes \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+
+- **FE removes the fixed part of selection** (ability, temperament): $0.083 \to 0.056$.
+- **Time-varying controls move it again**, to an insignificant $0.033$. Something that *changes over time* is tangled up with marriage, beyond the reach of FE.
+- **Confounder or channel?** If marriage raises tenure, controlling for tenure removes part of the effect. The DAG decides, not FE.
+
+## Cost 1: measurement error gets worse
+
+You observe $x = x^* + e$: **signal** plus **noise**. In levels, classical attenuation says
+
+$$
+\operatorname{plim} \hat\delta \;=\; \delta \cdot \frac{\operatorname{Var}(x^*)}{\operatorname{Var}(x^*) + \operatorname{Var}(e)} \;<\; \delta .
+$$
+
+- Fixed effects removes the **cross-sectional** part of the variation. For most regressors that is where the signal lives --- firms differ from one another far more than any one firm differs from itself.
+- The noise is idiosyncratic, so it largely survives the demeaning.
+- The ratio therefore **falls**, and attenuation gets *worse*. 
+
+\vspace{0.3em}
+
+- Insignificance may reflect noise attenuation, not a true zero effect.
+- Mismeasurement leaks bias into other control coefficients in unknown directions.
+
+
+## But it depends on what persists
+
+Write $\rho$ for the autocorrelation of the **signal** and $r$ for the autocorrelation of the **noise**. For first differences (FE behaves the same way; the algebra is messier):
+
+$$
+\operatorname{plim}\hat\delta \;=\; \delta \cdot \frac{1}{1 + \dfrac{\sigma_e^2\,(1-r)}{\sigma_{x^*}^2\,(1-\rho)}} .
+$$
+
+\vspace{-0.2em}
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+Case & Meaning & Consequence \\
+\midrule
+$r = \rho = 0$   & both signal and noise iid & ordinary attenuation \\
+$r = 0,\ \rho$ high & persistent signal, transitory noise & \textbf{much worse}  \\
+$r = 1$          & the mismeasurement is \emph{constant} & FE \textbf{eliminates} the error \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Fixed effects worsens measurement error **whenever the noise is less persistent than the signal**.
+<!-- - A mismeasurement that is a fixed firm-level mislabelling is the one case where the design helps. --> 
+
+
+## Aside: where that formula comes from
+
+\small
+
+Classical measurement error: $x_{it} = x^*_{it} + e_{it}$, with $e$ uncorrelated with $x^*$ and with the equation error. Differencing and applying the same attenuation logic,
+
+$$
+\operatorname{plim}\hat\delta_{\text{FD}} \;=\; \delta \cdot \frac{\operatorname{Var}(\Delta x^*)}{\operatorname{Var}(\Delta x^*) + \operatorname{Var}(\Delta e)} .
+$$
+
+
+If $x^*$ and $e$ are **stationary**, with first-order autocorrelations $\rho$ and $r$,
+
+$$
+\operatorname{Var}(\Delta x^*) = 2\sigma^2_{x^*} - 2\operatorname{Cov}(x^*_t, x^*_{t-1}) = 2\sigma^2_{x^*}(1-\rho),
+\qquad
+\operatorname{Var}(\Delta e) = 2\sigma^2_{e}(1-r).
+$$
+
+
+Substitute; the $2$'s cancel:
+
+$$
+\operatorname{plim}\hat\delta_{\text{FD}}
+= \delta \cdot \frac{2\sigma^2_{x^*}(1-\rho)}{2\sigma^2_{x^*}(1-\rho) + 2\sigma^2_{e}(1-r)}
+= \frac{\delta}{1 + \dfrac{\sigma^2_{e}(1-r)}{\sigma^2_{x^*}(1-\rho)}} .
+$$
+
+<!-- 
+- Everything turns on $(1-r)/(1-\rho)$. This is the **first-difference** result; the within estimator is qualitatively the same but messier, involving all $T$ autocovariances. --> 
+
+
+## Cost 2: the same thing, without any mismeasurement
+
+The problem survives even when every variable is measured perfectly (McKinnish 2008).
+
+- Suppose $Y$ responds to **sustained** changes in $X$, not to transitory wobbles --- investment responds to a permanent shift in the opportunity set, not to one noisy quarter.
+- Fixed effects throws away the permanent component by construction. What is left in $\ddot X_{it}$ is largely the transitory wobble.
+- You can then find $X$ unrelated to $Y$ under fixed effects, **even though sustained changes in $X$ are the main determinant of $Y$.**
+
+\vspace{0.3em}
+<!-- This is the deepest cost of the design, and it is not a bias you can sign or correct. --> 
+- Fixed effects answers a question about within-unit variation; if your theory is about between-unit differences, you have changed the question.
+
+<!-- 
+\vspace{0.4em}
+\hrule
+\begingroup\setstretch{1}\scriptsize
+
+**On dealing with measurement error:** Griliches and Hausman (1986) exploit the fact that FD and FE are attenuated *differently* to back out the true parameter; Biørn (2000) builds GMM estimators combining levels and differences; Erickson and Whited (2000, 2012) use higher-order moments for mismeasured Tobin's $q$; Almeida, Campello and Galvao (2010) compare these estimators in investment equations.
+
+\par\endgroup
+-->
+
+## Cost 3: you cannot trust the $\hat u_i$ themselves
+
+Sometimes the fixed effect *is* the object of interest. Recover it as $\hat u_i = \bar Y_i - \bar D_i\hat\delta$ --- Bertrand and Schoar (2003) did exactly this to back out **CEO effects**, and argued that managers have persistent "styles."
+
+\vspace{0.3em}
+
+- **But $\hat u_i$ is unbiased and *inconsistent*.** As the sample grows you get more groups, so more parameters --- never more data *per* parameter. The asymptotics you need never arrive. This is the **incidental parameters problem**.
+- Note the asymmetry: $\hat\delta$ is fine as $N \to \infty$ with $T$ fixed. The $\hat u_i$ are not. Consistency for the slope does not transfer to the effects.
+- And the $F$-test that the $\hat u_i$ are jointly non-zero is valid only under strong assumptions --- errors normal, homoskedastic, serially uncorrelated.
+- Fee, Hadlock and Pierce (2013) press exactly that point: apparent manager "style" survives procedures it should not, so the $F$-test is not evidence of style.
+
+
+## Cost 4: and none of this works in a nonlinear model
+
+- **You cannot demean to eliminate $u_i$ in a nonlinear model.** Probit, Logit and Tobit have no within transformation, so the $u_i$ must be estimated, and their inconsistency contaminates the coefficient you actually wanted.
+- The escape routes demand assumptions most people would not sign:
+  - **Probit:** estimating the $u_i$ as dummies is inconsistent for fixed $T$ (Greene 2004). The usual fallback, *random-effects* probit, needs $u_i$ normal *and independent of* $D_{it}$ --- the very correlation fixed effects existed to permit.
+  - **Logit:** conditional logit works, but needs no serial correlation in $Y$ given $D$ and $u_i$, and discards every unit whose outcome never changes.
+
+\vspace{0.3em}
+
+- **Rule of thumb:** Avoid high-dimensional FE in nonlinear settings. Prefer Linear Probability Models (LPM) or **Poisson FE** (which avoids incidental parameter bias).
+
+<!--
+## First differencing
+
+Demeaning is not the only way to kill a fixed effect. Subtract the **previous period** instead of the unit mean:
+
+
+\begin{align*}
+Y_{it}   &= \alpha + \delta D_{it}   + u_i + \varepsilon_{it} \\
+Y_{i,t-1} &= \alpha + \delta D_{i,t-1} + u_i + \varepsilon_{i,t-1}
+\end{align*}
+
+$$
+\Delta Y_{it} \;=\; \delta\, \Delta D_{it} \;+\; \Delta\varepsilon_{it}
+$$
+
+- You lose one period per unit --- there is no lag for $t = 1$.
+- Consistency needs the **same strict exogeneity** as fixed effects. First differencing is not a way around that assumption.
+
+## First Differences vs. Fixed Effects
+
+- **Equivalence at $T = 2$:** FE and FD yield identical slope estimates provided time controls match (a time dummy in FE corresponds to an intercept in FD).
+- **Efficiency Choice ($T > 2$):** Driven by the serial correlation of errors ($\varepsilon_{it}$):
+  - **FE preferred:** Errors are *uncorrelated* (FD induces artificial serial correlation in $\Delta\varepsilon_{it}$).
+  - **FD preferred:** Errors follow a *random walk* (differencing restores white-noise errors).
+  - **Exogeneity Violations:** If strict exogeneity fails, FE inconsistency shrinks at rate $O(1/T)$, whereas FD bias persists regardless of $T$.
+- **Diagnostic Rule:** **Run both.** A substantial gap between $\hat\delta_{\text{FE}}$ and $\hat\delta_{\text{FD}}$ signals measurement error, omitted dynamics, or endogeneity (Griliches & Hausman 1986).
+--> 
+
+# 7. Fixed Effects in Finance
+
+## What firm and year effects absorb
+
+The workhorse specification in corporate finance:
+
+$$
+Y_{it} \;=\; \delta D_{it} + X_{it}\beta + \underbrace{\alpha_i}_{\text{firm}} + \underbrace{\lambda_t}_{\text{year}} + \varepsilon_{it} .
+$$
+
+- **Firm effects** $\alpha_i$ absorb anything fixed about the firm: its industry, location, culture.
+- **Year effects** $\lambda_t$ absorb anything common to all firms in a year: the cycle, interest rates, a new regulation.
+- What is left is **firm-year** variation: how far *this* firm moved in *this* year, beyond its own usual level and beyond what every firm did that year.
+
+<!--
+\vspace{0.3em}
+
+- A confounder survives only if it is **neither** fixed within the firm **nor** common to all firms in a year --- a new CEO at one firm in one year, say. To the regression, it looks exactly like $D$.
+-->
+
+
+## Two-way FE by hand: two firms, two years
+
+Truth: $Y_{it} = 2D_{it} + \alpha_i + \lambda_t$, no noise. Firm A is big ($\alpha_A = 10$), B is small ($\alpha_B = 4$), and year 2 is a boom ($\lambda_2 = 3$). Only A is treated, only in year 2.
+
+\begin{center}\footnotesize
+\begin{minipage}[t]{0.37\linewidth}\centering
+\begin{tabular}{lccc}
+\toprule
+ & Year 1 & Year 2 & Change \\
+\midrule
+A \;($D = 0, 1$) & $10$ & $15$ & $+5$ \\
+B \;($D = 0, 0$) & $4$ & $7$ & $+3$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.58\linewidth}\centering
+\begin{tabular}{lcl}
+\toprule
+Estimator & $\hat\delta$ & What contaminates it \\
+\midrule
+Pooled OLS & $8$ & A is big, \emph{and} year 2 booms \\
+Firm FE only & $5$ & the boom \\
+Year FE only & $8$ & A is big \\
+Firm $+$ year FE & $\mathbf{2}$ & nothing \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+- Each effect removes one confounder: firm effects remove *size*, year effects remove the *boom*. You need both.
+- $\hat\delta = (15 - 10) - (7 - 4) = 2$: on a $2 \times 2$ panel, two-way FE **is** difference-in-differences.
+
+## Richer fixed effects, and what each one compares
+
+- Finance keeps asking for effects where **both** dimensions are large. Naive dummies would mean inverting a matrix with tens of thousands of columns; `reghdfe` (Stata) and `fixest::feols` (R) made it routine.
+
+\begin{center}\scriptsize
+\begin{tabular}{R{2.7cm}R{3.6cm}R{4.8cm}}
+\toprule
+Fixed effects & The second effect absorbs & What you are left comparing \\
+\midrule
+firm $+$ industry$\times$year & the industry's whole year: demand, input prices, industry regulation & a firm against \emph{its own industry peers}, in the same year \\[0.3em]
+bank $+$ county$\times$quarter & local credit \emph{demand} and local conditions & two banks lending into the \emph{same market, same quarter} \\[0.3em]
+CEO $+$ firm $+$ year & the firm permanently, and the macro year & the \emph{same CEO at a different firm} --- movers only \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Each added effect absorbs a confounder you **cannot measure** but which has a *group $\times$ time* shape.
+- The price is always the same: any treatment that varies **only** at that level is absorbed too.
+
+## Firm $+$ industry $\times$ year, in numbers
+
+Truth: $Y_{it} = 2D_{it} + \alpha_i + \lambda_t + \eta_{jt}$. Every firm gets $\lambda_2 = 1$; **industry 1 alone** gets a shock $\eta_{12} = 3$. Only A is treated, in year 2.
+
+\begin{center}\scriptsize
+\begin{tabular}{clccc}
+\toprule
+Industry & Firm & Year 1 & Year 2 & Change \\
+\midrule
+1 & A \quad($D = 0, 1$) & $10$ & $16$ & $+6$ \\
+1 & B & $6$ & $10$ & $+4$ \\
+2 & C & $8$ & $9$ & $+1$ \\
+2 & D & $4$ & $5$ & $+1$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **Firm $+$ year:** A's change against the *average* of the other three: $6 - \tfrac{4+1+1}{3} = 4$. Two-thirds of the industry shock is credited to $D$.
+- **Firm $+$ industry$\times$year:** A against its *industry peer*: $6 - 4 = 2$. The industry shock is a tide that lifts every boat in the industry; firm effects measure each boat against its own waterline.
+- **Treat all of industry 1**, and firm $+$ industry$\times$year has nothing left to compare: $D$ is collinear with the fixed effects. An industry-wide treatment looks exactly like an industry-wide shock.
+
+## Three effects, one story: acquisitions and ROA
+
+Do acquisitions move profitability?
+\begin{center}
+$\text{ROA}_{ict} = \delta\,\text{Acq}_{ict} + \alpha_i + \gamma_c + \lambda_t + \varepsilon_{ict}$, firm $i$, CEO $c$, year $t$. 
+\end{center}
+
+- **Three filters.** $\alpha_i$: Apple out-earns Ford every year. $\gamma_c$: some CEOs are permanently better at running assets. $\lambda_t$: a recession pulls everyone down.
+- **The mover.** Jane leaves profitable Firm A for struggling Firm B and ramps up acquisitions. Subtract B's usual ROA, Jane's usual ROA, and the year. *Did B's ROA move beyond all three when the budget spiked?* That is $\delta$.
+- **What the move buys.** Seeing Jane at A *and* at B separates $\gamma_{\text{Jane}}$ from $\alpha_A$. 
+<!-- Without movers only their *sum* is identified --- enough for $\delta$, not for any claim about "CEO effects." --> 
+
+<!-- 
+## What these designs cannot deliver
+
+- **Relative, not aggregate.** If borrowers simply switch to the less-exposed bank, bank $+$ county$\times$quarter measures **reallocation across banks**, not the aggregate credit contraction. The county$\times$quarter effect absorbs exactly the aggregate you wanted.
+- **Movers are not random.** Firm B *chose* Jane, plausibly because of where B was heading (Fee, Hadlock and Pierce 2013).
+- **Limited mobility bias.** With few movers, the estimated CEO effects are noisy and their *dispersion* is biased **up**: managers look as if they matter more than they do (Andrews et al.\ 2008, in AKM worker--firm designs).
+
+
+## Why it is harder in finance than in labour
+
+- **Firms react.** Strict exogeneity requires that this year's shock not move next year's policy. Firms exist to respond to shocks, advised by people paid to respond quickly. Feedback is the norm, not the exception.
+- **Reverse causality is everywhere.** Leverage and performance, governance and value, payout and investment --- in almost every pair, each plausibly causes the other. Firm effects do nothing about this.
+- **The confounders move.** Growth opportunities, product-market competition, financing conditions: all firm-specific *and* time-varying. Exactly the case §6 said fixed effects cannot reach.
+-->
+
+
+## The habit: how much of $D_{it}$ survives?
+
+Every effect you add absorbs part of the confounder --- **and part of $D$**. If $D$ barely moves within the fixed effects, your estimate rests on a handful of switchers.
+
+\scriptsize
+
+```stata
+* One command does it: sumhdfe (deHaan), a reghdfe post-estimation tool
+net install sumhdfe, from("https://raw.githubusercontent.com/ed-dehaan/sumhdfe/master/src/")
+reghdfe y D x, absorb(firm ind#year) vce(cluster firm)
+sumhdfe                          // or standalone: sumhdfe y D x, absorb(firm ind#year)
+
+* Panel C: groups in which D never varies -- the non-switchers, and how many obs they hold
+* Panel D: pooled s.d. of D vs. within-FE s.d., and the R2 of D on each FE and on all of them
+
+* By hand, if you want the number itself
+reghdfe D, absorb(firm ind#year) residuals(D_tilde)
+summarize D D_tilde              // (sd D_tilde / sd D)^2 = share of variance surviving
+```
+
+\normalsize
+
+- In R: `sd(resid(feols(D ~ 1 | firm + ind^year, d))) / sd(d$D)`, squared.
+- Report it next to the coefficient: *"7\% of the variance in $D$ survives the fixed effects, from 36 switching firms."* Not the same as `reghdfe`'s within $R^2$, which is about $\tilde Y$, not $D$.
+
+## The habit, in output
+
+Simulated (\texttt{06a\_panel\_habit\_sim.do}): $500$ firms in $20$ industries, 2011--2020; true effect of $D$ is $0.5$. A quarter of firms are always treated, $36$ switch on mid-sample, the rest never.
+
+\begin{center}\footnotesize
+\begin{minipage}[t]{0.30\linewidth}\centering
+\texttt{reghdfe}\\[0.3em]
+\begin{tabular}{lc}
+\toprule
+ & Coef.\ (s.e.) \\
+\midrule
+$D$ & $0.375$ \;($0.116$) \\
+$x$ & $0.301$ \;($0.015$) \\
+\midrule
+Within $R^2$ & $0.087$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.66\linewidth}\centering
+\texttt{sumhdfe}, Panels C and D\\[0.3em]
+\begin{tabular}{lcccccc}
+\toprule
+ & Firms where & \multicolumn{3}{c}{Std.\ dev.} & \multicolumn{2}{c}{$R^2$ of the FE} \\
+\cmidrule(lr){3-5}\cmidrule(lr){6-7}
+ & it never varies & Pooled & Within & Ratio & Firm & All \\
+\midrule
+$y$ & $0$ & $1.785$ & $0.969$ & $54\%$ & $0.473$ & $0.705$ \\
+$D$ & $\mathbf{464}$ & $0.465$ & $0.120$ & $\mathbf{26\%}$ & $\mathbf{0.928}$ & $0.934$ \\
+$x$ & $0$ & $1.132$ & $0.939$ & $83\%$ & $0.281$ & $0.312$ \\
+\bottomrule
+\end{tabular}
+\end{minipage}
+\end{center}
+
+- **Panel C:** $D$ never varies within $464$ of $500$ firms ($4{,}640$ obs.). Only the $36$ switchers identify $\hat\delta$.
+- **Panel D:** firm effects alone explain $93\%$ of $D$. A quarter of its s.d. survives, so $0.26^2 \approx 7\%$ of its variance.
+- The FE starve the **treatment**, not the outcome: $y$ and $x$ keep far more variation. $\hat\delta = 0.37$ (s.e.\ $0.12$; truth $0.5$) rests on $36$ firms.
+
+## Three questions to ask of any panel FE result
+
+1. **Which comparison is this?** Say it in words: *"firms that changed $D$ in year $t$, against themselves before and after, net of what happened to everyone that year."* If you cannot say it, you do not know what you estimated.
+2. **Is the confounder you fear actually fixed?** Write it down and ask whether it could plausibly move over your sample window. Governance quality does not sit still for fifteen years.
+3. **Could the outcome be causing the treatment?** If yes, stop. You need a source of exogenous variation (Lecture 5), not more fixed effects.
+
+\vspace{0.4em}
+
+- Fixed effects is not a robustness check you add at the end. It is a research design, and it makes a specific, falsifiable claim about what the confounder looks like.
+
+# Concluding Remarks
+
+## What fixed effects buys
+
+- **Selection on unobservables, without a shock.** Matching needs you to *measure* the confounder; IV needs the world to have *moved* the treatment. Fixed effects needs only that the confounder **sit still**. That is a far weaker thing to ask of the world.
+- **A claim you can state in one sentence, and partly check.** The confounder does not change --- and the gap between POLS and FE tells you which way it pushed.
+- **It changes the question** from *"what should I control for?"* to *"what comparison does my data allow?"* --- the same unit before and after, net of what happened to everyone.
+- **In finance it is the workhorse.** Firm and year effects are the default; `reghdfe` made firm $+$ industry $\times$ year and bank $+$ county $\times$ quarter routine. Most of what you will read, and write, is built on it.
+
+## What it costs
+
+- **Everything fixed is gone** --- including, often, the thing you cared about: founder-led, industry, state law. The design cannot say a word about them.
+- **Measurement error gets worse.** Demeaning removes signal that persists and keeps noise that does not. The bias toward zero can swamp the bias you removed.
+- **Strict exogeneity means no feedback.** This year's shock may not move next year's treatment. Firms exist to respond to shocks; in finance, feedback is the point, not the exception.
+- **Only switchers count.** The estimate rests on the units that changed, and you did not choose them. Report how many there are.
+- **Richer effects, thinner variation.** Every added effect absorbs more of $D$ along with more of the confounder. At the limit --- firm $\times$ year --- nothing is left to estimate.
+
+## What fixed effects is, and is not
+
+\begin{center}\scriptsize
+\begin{tabular}{ll}
+\toprule
+It removes & It does nothing about \\
+\midrule
+\emph{time-invariant} confounders, named or not & time-varying confounders \\
+every other time-invariant variable, wanted or not & reverse causality \\
+ & feedback from shocks to future treatment \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- One word carries the design: the confounder **does not change**. Everything strong and everything fragile about fixed effects follows from it.
+- It is not a substitute for a DAG. It is what you do *after* the DAG tells you the confounder is fixed.
+- Many problems in the social sciences really do have this shape. Many finance problems do not.
+
+\vspace{0.2em}
+
+- The question to carry out, as always: **which comparison is this?** If you can say it in one sentence, you understand your estimate.
+- **Next:** dynamic panels --- when yesterday's $Y$ is today's regressor. Then difference-in-differences, when the switching has a *date*.
+
+## References
+
+\tiny
+
+- Abowd, J., F. Kramarz and D. Margolis (1999). High Wage Workers and High Wage Firms. *Econometrica* 67(2), 251--333.
+- Andrews, M., L. Gill, T. Schank and R. Upward (2008). High Wage Workers and Low Wage Firms: Negative Assortative Matching or Limited Mobility Bias? *Journal of the Royal Statistical Society A* 171(3), 673--697.
+- Becker, G. (1968). Crime and Punishment: An Economic Approach. *JPE* 76, 169--217.
+- Bell, R. and D. McCaffrey (2002). Bias Reduction in Standard Errors for Linear Regression with Multi-Stage Samples. *Survey Methodology* 28(2), 169--181.
+- Bertrand, M. and A. Schoar (2003). Managing with Style: The Effect of Managers on Firm Policies. *QJE* 118, 1169--1208.
+- Cameron, A. C., J. Gelbach and D. Miller (2008). Bootstrap-Based Improvements for Inference with Clustered Errors. *Review of Economics and Statistics* 90(3), 414--427.
+- Cornwell, C. and P. Rupert (1997). Unobservable Individual Effects, Marriage and the Earnings of Young Men. *Economic Inquiry* 35, 285--294.
+- Cornwell, C. and W. Trumbull (1994). Estimating the Economic Model of Crime with Panel Data. *Review of Economics and Statistics* 76, 360--366.
+- Cunningham, S. *Causal Inference: The Remix*, §8 --- this deck follows it closely.
+- deHaan, E. (2021). Using and Interpreting Fixed Effects Models. Working paper, University of Washington. (Companion command: `sumhdfe`.)
+- Fee, C. E., C. Hadlock and J. Pierce (2013). Managers with and without Style: Evidence Using Exogenous Variation. *RFS* 26(3), 567--601.
+- Gormley, T. and D. Matsa (2014). Common Errors: How to (and Not to) Control for Unobserved Heterogeneity. *RFS* 27, 617--661.
+- Greene, W. (2004). The Behaviour of the ML Estimator of Limited Dependent Variable Models in the Presence of Fixed Effects. *Econometrics Journal* 7, 98--119.
+- Hausman, J. and W. Taylor (1981). Panel Data and Unobservable Individual Effects. *Econometrica* 49, 1377--1398.
+- Khwaja, A. I. and A. Mian (2008). Tracing the Impact of Bank Liquidity Shocks: Evidence from an Emerging Market. *AER* 98(4), 1413--1442.
+- MacKinnon, J. and M. Webb (2017). Wild Bootstrap Inference for Wildly Different Cluster Sizes. *Journal of Applied Econometrics* 32(2), 233--254.
+- McKinnish, T. (2008). Panel Data Models and Transitory Fluctuations in the Explanatory Variable. In *Modelling and Evaluating Treatment Effects in Econometrics*.
+- Roodman, D., M. Ø. Nielsen, J. MacKinnon and M. Webb (2019). Fast and Wild: Bootstrap Inference in Stata Using \texttt{boottest}. *Stata Journal* 19(1), 4--60.
+- Webb, M. (2023). Reworking Wild Bootstrap-Based Inference for Clustered Errors. *Canadian Journal of Economics* 56(3), 839--858. (The six-point weights.)
+- Wooldridge, J. (2010). *Econometric Analysis of Cross Section and Panel Data*, 2nd ed. MIT Press. --- the standard reference, including random effects, which this deck omits.

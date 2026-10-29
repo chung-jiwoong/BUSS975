@@ -46,10 +46,10 @@ execute:
 
 ## Where we left off
 
-- The previous deck built the machinery: the Wald ratio, 2SLS, weak instruments, and the five LATE assumptions. This one is about **where IVs actually come from**.
-- IV is a general-purpose strategy: it works wherever a credible shock turns up. But over the years certain strategies have been used so often that they have become **designs** --- each with its own literature, its own conventions, and its own characteristic failure mode.
-- Knowing the designs is useful in two directions. It tells you where to look for an IV in your own work, and it tells you what to interrogate when you referee someone else's.
-- This deck follows **Remix §7.7**, and closes with where these shocks turn up in **finance**.
+- We built the machinery: the Wald ratio, 2SLS, weak instruments, and the five LATE assumptions. This one is about **where IVs actually come from**.
+- IV is a general-purpose strategy: it works wherever a credible shock turns up. But over the years certain strategies have been used so often that they have become **designs** --- each with its own literature and its own conventions.
+- Knowing the designs tells you where to look for an IV in your own work.
+
 
 ## The five
 
@@ -68,7 +68,10 @@ execute:
 \vspace{0.2em}
 
 \begin{center}
-\emph{What is the shock? \quad What is the first stage? \quad Who are the compliers? \quad Where does exclusion break?}
+\emph{What is the shock? \quad What is the first stage?} 
+\end{center}
+\begin{center}
+\emph{Who are the compliers? \quad Where does exclusion break?}
 \end{center}
 
 \vspace{0.3em}
@@ -77,13 +80,46 @@ execute:
 
 # 1. Lotteries
 
-## The design
+## The design: randomisation is not enough
 
-- In many randomised trials, assignment to treatment is random but **take-up is voluntary**. Those who take it up are precisely those who expect to benefit --- positive selection.
-- Comparing the treated with the untreated is then biased **even in a randomised experiment**. The fix: IV actual treatment with the **randomised offer**, and estimate the LATE.
-- **Oregon Health Insurance Experiment.** In 2008 Oregon expanded Medicaid for low-income adults and, facing excess demand, allocated places by **lottery**: roughly 30,000 drawn from a list of 85,000. Of those selected, about 10,000 enrolled.
-- First stage (Finkelstein et al. 2012): winning the lottery raised the probability of ever being on Medicaid by about **26 percentage points** --- large, but nowhere near one. Hence IV rather than a simple comparison.
-- Note what the design gives you: the effect of **having Medicaid** for those who enrolled *because* they won --- not for those who would have found coverage anyway.
+- In many randomised trials, assignment is random but **take-up is voluntary**.
+- Those who take it up are precisely those who expect to benefit --- **positive selection**.
+- So comparing the treated with the untreated is biased **even inside a randomised experiment**.
+
+\vspace{0.4em}
+
+- **The fix:** instrument actual treatment with the **randomised offer**, and estimate the LATE.
+
+## Oregon Health Insurance Experiment
+
+- In 2008 Oregon expanded Medicaid for low-income adults. Facing excess demand, it allocated places by **lottery**: roughly $30{,}000$ drawn from a list of $85{,}000$.
+- Of those selected, about $10{,}000$ enrolled.
+- **First stage** (Finkelstein et al. 2012): winning raised the probability of ever being on Medicaid by about **26 percentage points** --- large, but nowhere near one. Hence IV rather than a simple comparison.
+- **What the design gives you:** the effect of *having Medicaid* for those who enrolled **because** they won --- not for those who would have found coverage anyway.
+
+## Oregon, in equations
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_i$ & utilisation or financial strain --- e.g. $\mathbf{1}\{$has a usual place of care$\}$ \\
+$D_i$ & $\mathbf{1}\{$enrolled in Medicaid$\}$ \\
+$Z_i$ & $\mathbf{1}\{$won the lottery$\}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & D_i = \pi_0 + \pi_1 Z_i + \nu_i, \qquad \hat\pi_1 \approx 0.26 \\
+\text{Reduced form:}\quad & Y_i = \gamma_0 + \gamma_1 Z_i + u_i \\
+\text{2SLS:}\quad & Y_i = \alpha + \delta D_i + \varepsilon_i, \qquad \hat\delta = \hat\gamma_1 / \hat\pi_1
+\end{align*}
+
+\vspace{-0.3em}
+
+- On the next slide, $\hat\gamma_1$ is the **ITT column** and $\hat\delta$ is the **LATE column**.
 
 ## What Oregon found
 
@@ -103,9 +139,23 @@ Owed on medical collection     & $-\$99$  & $-\$390$ \\
 \end{tabular}
 \end{center}
 
-- The **ITT column is the reduced form** --- the effect of winning the lottery. The **LATE column scales it by the first stage**. Roughly a factor of four, because about a quarter of winners actually enrolled.
-- Medicaid raised utilisation and sharply reduced financial strain. Effects on *health* were small, and on mortality absent.
-- **Which column should you report?** Both. The ITT is the policy effect of running the lottery; the LATE is the effect of coverage on those it reached.
+- The **ITT column is the reduced form** --- the policy effect of *running the lottery* --- what a legislator decides on.
+- The **LATE column scales it by the first stage** --- the effect of *coverage* on the outcomes.
+
+<!--
+## Utilisation up, health mostly flat
+
+- Medicaid raised utilisation and **sharply reduced financial strain**.
+- **Baicker et al. (2013)** followed the same lottery through to clinical outcomes:
+  - **no detectable effect** on blood pressure, cholesterol or glycated haemoglobin;
+  - but **depression fell by about 9 percentage points**, off a base of $30\%$.
+
+\vspace{0.4em}
+
+- **Which column should you report?** **Both.**
+  - The **ITT** is the policy effect of *running the lottery* --- what a legislator decides on.
+  - The **LATE** is the effect of *coverage* on those it actually reached.
+-->
 
 # 2. Judge and Examiner Fixed Effects
 
@@ -120,34 +170,495 @@ The design needs three ingredients:
 \vspace{0.4em}
 
 - The canonical setting is American courts, where defendants are randomly assigned to judges --- in Harris County, Texas, historically with a bingo-ball machine.
-- The idea is old. **Gaudet, Harris and John (1933)** found one judge imprisoned in 34% of his cases and another in nearly 60%, with cases randomly rotated between them. Their conclusion: a sentence may indicate *"either the seriousness of his crime or the severity of the judge."*
-- **Stevenson (2018)**, Philadelphia bail magistrates: randomly assigned judges differ in how affordable they set bail, so some defendants are detained pre-trial purely by draw. She finds pre-trial detention raises conviction by about **13%**, mostly through guilty pleas, and raises sentence length and court fees.
-- The design has spread far beyond courts: patent examiners, disability examiners, loan officers, auditors.
+- The idea is old. **Gaudet, Harris and St. John (1933)** found one judge imprisoned in 34% of his cases and another in nearly 60%, with cases randomly rotated between them.
+- Their conclusion: a sentence may indicate *"either the seriousness of his crime or the severity of the judge."*
+
+## One modern example, and how far it travels
+
+- **Stevenson (2018)**, Philadelphia bail magistrates. Randomly assigned judges differ in how affordable they set bail, so some defendants are detained pre-trial **purely by draw**.
+- She finds pre-trial detention raises conviction by about **13%**, mostly through guilty pleas, and raises sentence length and court fees.
+
+\vspace{0.4em}
+
+- The design has spread far beyond courts. Anywhere a queue is staffed by rotating officials with discretion:
+  - patent examiners, disability examiners, loan officers, auditors, bankruptcy judges, bank supervisors.
+<!-- - **That list is why this design matters in finance** --- it is the one from this deck that transplants without modification. --> 
+
+
+## Leniency, in equations
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_i$ & convicted $\{0,1\}$ --- also sentence length, court fees \\
+$D_i$ & $\mathbf{1}\{$detained pre-trial$\}$ \\
+$Z_i$ & leave-one-out detention rate of the judge who drew case $i$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & D_i = \pi_1 Z_i + \mathbf{c}_{ct}'\gamma + \nu_i \\
+\text{Second stage:}\quad & Y_i = \delta D_i + \mathbf{c}_{ct}'\gamma + \varepsilon_i
+\end{align*}
+
+\vspace{-0.3em}
+
+- $\mathbf{c}_{ct}$ are **court $\times$ period fixed effects** --- the cell inside which assignment is random. They are not controls; they define the experiment.
+- Stevenson's $\hat\delta$: detention raises conviction by about $13\%$.
+
+
+## Building the instrument
+
+**Not the judge --- the judge's *leniency*:** *of all the other cases my judge handled, what fraction did they treat?*
+
+$$
+Z_i \;=\; \frac{1}{n_{j(i)} - 1} \sum_{\substack{k \,\neq\, i \\ j(k) \,=\, j(i)}} D_k
+\qquad \text{(leave-one-out, or \emph{jackknife}, leniency)}
+$$
+
+\vspace{-0.5em}
+
+\begin{center}\footnotesize
+\begin{tabular}{ll}
+$i$ & the case you are building the instrument \emph{for} \\
+$j(\cdot)$ & the judge who drew case $i$ \\
+<!-- $k$ & runs over every case with $j(k) = j(i)$ --- same judge --- except $k = i$ \\ -->
+$n_{j(i)}$ & that judge's caseload; subtract $1$ because we dropped case $i$ \\
+$D_k$ & whether case $k$ was treated (detained, liquidated, granted) \\
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+
+- A judge who detains $70\%$ of *everyone else* is a judge your case was unlucky to draw --- and that luck is the only thing the instrument uses.
+
+## Two choices that make it work
+
+- **Why leave your own case out?** Keeping it in puts $D_i$ on *both* sides:
+  - $Z_i$ then inherits a slice of $D_i$, and so a slice of $\varepsilon_i$. **The instrument is no longer excluded** <!-- this is a bias, not merely noise.-->
+  - The first stage looks strong for a reason that has nothing to do with the judge. <!-- , and in the limit $Z_i \to D_i$ --- at which point "IV" is just OLS. -->
+  - The slice is $1/n_{j(i)}$, so the damage grows when caseloads are short *or* when genuine leniency differences are small.
+- **Why residualise first?**
+  - Assignment is random *within* a court $\times$ period cell, not nationally.
+  - So build leniency inside the group, and carry those fixed effects into both stages.
+
+\vspace{0.5em}
+
+- Then it is an ordinary just-identified IV: $D$ on $Z$, then $Y$ on $\hat D$.
+- **Equivalently:** use **one dummy per judge** as instruments. Same object --- and now the problem on the next slide becomes visible.
+
 
 ## Where it breaks
 
-- **Independence** is usually the easy one --- assignment really is random. But watch for *strategic response*: Gaudet et al. already reported in 1933 that repeat offenders who recognised a severe judge would change their plea to force a reassignment.
-  - Use the **initial** assignment, not the final one, where you can.
-- **Exclusion** is the usual worry, and it must be argued case by case. If a defendant is assigned a severe judge, the *expected* penalty at trial rises --- so the defendant may accept a plea. That is a channel from IV to outcome that does not run through the judge's sentence.
-- **Monotonicity** is often the hardest. The assumption requires that a judge who is stricter for one defendant is stricter for *all* of them. But a judge may be lenient in general and strict on drug charges. Imbens and Angrist flagged exactly this case in 1994 and concluded you **cannot** identify a LATE nonparametrically.
-  - Frandsen, Lefgren and Leslie (2023) propose a joint test of exclusion and monotonicity; a rejection does not tell you which failed.
-- **Econometric wrinkle.** Judge leniency looks like one IV but is really **many** --- one per judge. Weak-instrument bias is therefore the default, not the exception, which is why this literature uses **JIVE** (leave-one-out) estimators.
+- **Independence** --- usually fine, assignment really is random.
+  - *But:* in 1933 Gaudet et al. saw repeat offenders change their plea to escape a severe judge. Use the **initial** assignment.
+- **Exclusion** --- the usual worry. A defendant who draws a judge known to be severe expects a worse outcome at trial, so pleads guilty --- *whether or not he was detained*. That path runs from $Z$ straight to $Y$, bypassing **detention**, which is the treatment.
+- **Monotonicity** --- the hardest. Lenient overall, strict on drug charges, and the assumption is gone. Imbens and Angrist flagged this case in 1994: no nonparametric LATE.
+ <!--  - Frandsen et al. (2023) test exclusion *and* monotonicity jointly. A rejection does not say which failed. -->
+- **One instrument, or many?** Leniency is really one instrument per judge --- so weak-instrument bias is the default here, not the exception. Hence **JIVE**.
+
+## Why 2SLS is biased here
+
+- Run 2SLS with the $K$ **judge dummies** as instruments. The fitted value $\hat D_i = Z_i'\hat\pi$ uses a $\hat\pi$ estimated from **every** case --- including case $i$.
+- So $\hat D_i$ carries a slice of $D_i$, and therefore a slice of $\varepsilon_i$.
+
+\vspace{0.4em}
+
+<!-- - **This is a bias, not a weak-instrument problem.** It is mechanical --- it would be there with perfectly strong instruments. What $F$ tells you is only *how big* it is: -->
+$$
+\text{2SLS bias} \;\approx\; \frac{\text{OLS bias}}{F+1} .
+$$
+
+- Add judges and $F$ falls, so the bias grows, even if the judges together explain exactly as much as before.
+<!-- - **"Many instruments" and "weak instruments" are one number wearing two names.** --> 
+
+## JIVE: leave yourself out
+
+- **The fix:** Estimate the first stage **without case $i$**, then use it to predict case $i$. Same $K$ instruments --- different fitted value.
+$$
+\hat D_i^{\text{JIVE}} \;=\; Z_i'\hat\pi_{(-i)} , \qquad \hat\pi_{(-i)} \text{ fitted on everyone but } i .
+$$
+- Regress $Y_i$ on $\hat D_i^{\text{JIVE}}$. This is **JIVE** (Angrist, Imbens and Krueger 1999).
+- Nothing about your own case is used to predict your own case.
+
+\vspace{0.4em}
+
+- **You do not run $n$ regressions.** Leave-one-out has a closed form, built from the **leverage** of observation $i$:
+$$
+\hat D_i^{\text{JIVE}} \;=\; \frac{Z_i'\hat\pi - h_i D_i}{1 - h_i},
+\qquad
+h_i = Z_i'(Z'Z)^{-1} Z_i .
+$$
+- $h_i$ is the $i$th diagonal of the projection ("hat") matrix --- how much case $i$ pulls its own fitted value. <!-- Dropping it and rescaling by $1 - h_i$ is the standard leave-one-out identity.-->  See Hansen, *Econometrics*, §3.21.
+
+## Your leniency measure *was* JIVE
+
+With judge dummies and nothing else, your fitted value is just your judge's average, $Z_i'\hat\pi = \bar D_{j(i)}$, and your leverage is your share of that average, $h_i = 1/n_{j(i)}$, where $n_{j(i)}$ is your judge's caseload. So
+
+$$
+\hat D_i^{\text{JIVE}}
+= \frac{\bar D_{j(i)} - D_i / n_{j(i)}}{1 - 1/n_{j(i)}}
+= \frac{1}{n_{j(i)} - 1} \sum_{\substack{k \,\neq\, i \\ j(k) \,=\, j(i)}} D_k .
+$$
+
+- That is **exactly** the leave-one-out leniency we built earlier. 
+- **Caveat:** Add controls and this breaks --- next slide.
+
+<!--  One instrument or $K$ dummies, construction or estimator --- the same object, reached from two directions.
+- Cunningham puts it well: the ideal instrument is *"the mean strictness of the judge in all other cases, excluding the particular defendant's case."* -->
+
+<!-- 
+## A note on what $Z$ actually looks like
+
+Six cases, three judges: A hears cases $1$--$3$, B hears $4$--$5$, C hears $6$. One dummy per judge:
+
+$$
+Z = \begin{pmatrix} 1&0&0 \\ 1&0&0 \\ 1&0&0 \\ 0&1&0 \\ 0&1&0 \\ 0&0&1 \end{pmatrix},
+\qquad
+Z_4 = \begin{pmatrix} 0\\1\\0 \end{pmatrix},
+\qquad
+Z'Z = \begin{pmatrix} 3&0&0 \\ 0&2&0 \\ 0&0&1 \end{pmatrix}.
+$$
+
+- $Z_i$ is **row $i$ as a column** --- a one-hot flag for your judge. $Z'Z$ holds the **caseloads** on the diagonal (no case has two judges).
+- So $\hat\pi = (Z'Z)^{-1} Z'D = (\bar D_A, \bar D_B, \bar D_C)'$: the first-stage coefficients **are** the judges' detention rates.
+- And $h_i = Z_i'(Z'Z)^{-1}Z_i$ picks out one diagonal entry: $h_1 = 1/3$, $h_4 = 1/2$, $h_6 = 1$.
+- **Judge C is a warning.** $h_6 = 1$, so $1 - h_6 = 0$: JIVE is undefined --- rightly so. A one-case judge has no *other* cases. Drop judges below a caseload threshold.
+--> 
+
+## Once you add controls, JIVE breaks too
+
+- We *must* control for the court-and-period **group**, where assignment is random.
+- JIVE leaves your case out of **your own judge's detention rate**. But it then subtracts the **group average**, which is computed from all cases in the group, including yours.
+- So your own case walks back in through the subtraction. The bias returns.
+
+\vspace{0.4em}
+
+<!-- - Residualising on controls first, then leaving out (IJIVE) does not fully fix it: the residualisation itself used case $i$. --> 
+- **UJIVE** (Kolesár 2013) leaves case $i$ out of *both* pieces:
+  your judge's leave-out rate $-$ your group's leave-out rate.
+- Without group controls the difference is negligible. With them, UJIVE is the safe default.
+
+## Two more things worth knowing
+
+- **Do not cluster by judge.** It is common, and it is wrong. What matters is how cases were *assigned*.
+  - Cases assigned to judges one at a time, independently $\Rightarrow$ plain **robust** standard errors.
+  - Cases assigned in batches --- one duty judge takes every case filed that day $\Rightarrow$ cluster **by day**, the unit that was actually drawn.
+
+- **With UJIVE you need not chase a large $F$.** It stays roughly unbiased even when $F$ is close to $1$. That is the point of using it.
+
+\vspace{0.4em}
+
+- \textbf{Read:} Goldsmith-Pinkham, Hull and Kolesár (2026), *Leniency Designs: An Operator's Manual*, \emph{JEP} 40(3). A step-by-step guide --- including a weaker, more believable version of monotonicity and a test for it --- with an \texttt{R} package (\texttt{ManyIV}).
+
+## Stevenson's numbers (Remix, Table 7.12)
+
+\begin{center}\small
+\begin{tabular}{lcccccc}
+\toprule
+ & OLS & OLS & 2SLS & 2SLS & JIVE & JIVE \\
+\midrule
+Detention & $-0.001$ & $0.029$ & $0.151$ & $0.186$ & $0.162$ & $0.212$ \\
+          & $(0.002)$ & $(0.002)$ & $(0.065)$ & $(0.064)$ & $(0.070)$ & $(0.076)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+\footnotesize
+$N = 331{,}971$, eight bail judges. Outcome: guilty plea. Odd columns use time controls only; even columns add defendant and offence characteristics.
+\normalsize
+
+- **OLS says detention does nothing.** IV says it raises guilty pleas by $15$--$21$ percentage points.
+<!-- - Note where 2SLS sits: **between OLS and JIVE**, part-way back toward OLS. That is what the bias story predicts --- 2SLS is roughly JIVE pulled a fraction $1/E[F]$ of the way toward OLS. It is a tendency, not a theorem: noise can break it. -->
+- But Stevenson has only **eight** judges. To see what happens with *many*, we need a bigger pipeline.
+
+## A bigger pipeline: patent examiners
+
+Goldsmith-Pinkham, Hull and Kolesár (2026) re-run Farre-Mensa, Hegde and Ljungqvist (2020): does getting your **first patent approved** help a startup innovate again? <!-- $32{,}514$ first-time US applications. -->
+
+- **Treatment** $D_i$: the application was **approved**.
+- **Instrument** $Z_i$: **one dummy per examiner** --- examiners differ in how freely they grant.
+- **Outcome** $Y_i$: the startup's later innovation 
+<!-- files again, gets approved again, gets cited. -->
+- **Controls** $W_i$: **art unit** $\times$ year. An *art unit* is the small group of examiners who specialise in one technology; an application is assigned quasi-randomly to an examiner **within** it. It is the patent office's court-and-period group --- the place where the lottery actually happens.
+
+
+
+## The standard errors lie too (GPHK 2026)
+
+\begin{center}\small
+\begin{tabular}{lccc}
+\toprule
+Effect of approval on & UJIVE & 2SLS (examiner dummies) & OLS \\
+\midrule
+Any later application & $0.173$ & $0.232$ & $0.234$ \\
+                      & $(0.055)$ & $(0.016)$ & $(0.006)$ \\
+Any later approval    & $0.259$ & $0.240$ & $0.223$ \\
+                      & $(0.050)$ & $(0.014)$ & $(0.005)$ \\
+$\log(1+\text{citations})$ & $0.419$ & $0.372$ & $0.339$ \\
+                      & $(0.125)$ & $(0.033)$ & $(0.011)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **2SLS has landed on OLS** --- That is the bias reproduced. 
+<!-- 2SLS again sits between UJIVE and OLS --- but here UJIVE is *below* OLS, so "IV comes out larger" is no rule either. --> 
+- **And look at the standard errors.** 2SLS reports errors three to four times *smaller* than UJIVE. 
+<!-- That is not efficiency; it is the same overfitting, showing up twice. - 2SLS copies OLS's answer **and** OLS's confidence. A tight interval around a biased number is the worst of both. -->
+
+
+<!-- 
+## A note on why the errors run $0.006 \to 0.016 \to 0.055$
+
+**Two different things are going on.**
+
+- **OLS $\to$ IV is a real cost.** OLS uses *all* the variation in approval. IV keeps only the slice the instrument explains:
+$$\mathrm{SE}(\hat\delta_{IV}) \;\approx\; \frac{\mathrm{SE}(\hat\delta_{OLS})}{\left|\mathrm{corr}(D, \hat D)\right|} .$$
+Examiner identity explains only part of whether a patent is approved --- the rest is the application's merit. This gap is **honest**. It is the price of identification, and you should expect it in any IV.
+
+- **2SLS $\to$ UJIVE is an illusion.** $0.016$ against $0.055$ is a factor of $3.4$, so 2SLS believes its first stage is about $3.4^2 \approx 12$ times stronger than it truly is. With hundreds of dummies, $\hat D_i$ tracks $D_i$ partly because it *contains* $D_i$ --- and the 2SLS variance formula divides by that inflated first stage.
+
+- 2SLS copies OLS's answer **and** OLS's confidence. A tight interval around a biased number is worse than either mistake alone.
+--> 
+
 
 # 3. Bartik / Shift-Share IVs
 
-## The construction
+## The question: what does immigration do to local wages?
 
-- **The problem.** Regress local wages on local immigration (or employment) flows and the regressor is simultaneously determined by local supply and demand. Everything is endogenous.
-- **The construction.** Combine *national* industry- or origin-specific growth with *local* initial shares:
+- **The question.** When immigrants arrive in a city, what happens to the wages of the **native** workers already there? 
 $$
-B_{l,t} \;=\; \sum_{k=1}^{K} z_{l,k,t_0}\, m_{k,t},
+Y_{l,t} = \alpha + \delta D_{l,t} + \rho X_{l,t} + \varepsilon_{l,t}
 $$
-where $z_{l,k,t_0}$ is location $l$'s **initial share** of group $k$ (the "share") and $m_{k,t}$ is the **national change** for group $k$ (the "shift").
-- The predicted local flow is a weighted average of national rates, with weights fixed by history.
-- **Two incompatible justifications**, and you must pick one:
-  - **Shares view** (Goldsmith-Pinkham, Sorkin and Swift 2020): the exogenous variation is in the *initial shares*; the shifts only supply first-stage power. The burden is to argue the shares are exogenous conditional on controls.
-  - **Shifts view** (Borusyak, Hull and Jaravel 2022): with many independent national shocks, identification can come from the *shocks*, whether or not the shares are exogenous.
-- **Rotemberg weights** (GPSS) decompose the estimator into the contribution of each share, telling you which few industries are actually identifying your result --- and therefore which ones to scrutinise.
+
+\vspace{-0.2em}
+
+- $Y_{l,t}$: log native wages in city $l$ in year $t$. $D_{l,t}$: immigrant inflow. $X_{l,t}$: controls, including city and year fixed effects.
+- **Why OLS cannot answer it.** Immigrants are not sprinkled over cities at random. They go where the work is.
+<!-- 
+  - A city whose labour market is booming draws migrants --- so $I_{l,t}$ rises *because* wages are rising.
+  - And whatever made that city boom sits in $\varepsilon_{l,t}$ as well.
+--> 
+<!--  - So OLS pushes $\hat\delta$ **upward**. It can show immigration raising native wages even if the true effect is zero. The regression is reading the arrow backwards. --> 
+- **What we need:** something that sends immigrants to a city for reasons that have nothing to do with *that city's* labour market.
+
+## The idea: you go where your people already are
+
+- A new arrival from Mexico does not choose a city off a map. They go where there is already a Mexican community.
+<!-- family, language, a church, someone who knows who is hiring.--> 
+- So a **national** surge in migration from one country lands disproportionately in the cities that already held people from that country. <!-- The old enclave map routes the flow. --> 
+- $l$ = a **city**, $k$ = a **source country**, $t$ = the year, $t_0$ = a base year *before* the flows we study.
+  <!-- - $z_{l,k,t_0}$ --- the **share** of city $l$'s immigrants who came from country $k$ in the base year.
+  - $m_{k,t}$ --- the **shift**: total inflow from country $k$ into the US *as a whole* in year $t$. --> 
+$$
+\underbrace{B_{l,t}}_{\text{predicted inflow}} \;=\; \sum_{k=1}^{K} \underbrace{z_{l,k,t_0}}_{\substack{\text{\textbf{shares}} \\ \text{who was already there}}} \times \underbrace{m_{k,t}}_{\substack{\text{\textbf{shifts}} \\ \text{who left home}}}
+$$
+
+\vspace{0.2em}
+
+- Los Angeles chose neither the surge out of Mexico nor, in anticipation of it, its 1980 immigrants. The surge was decided in Mexico.
+
+## Shift-share, in equations
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_{l,t}$ & log wages of \emph{native} workers in city $l$ \\
+$D_{l,t}$ & immigrant inflow into city $l$ --- the Remix writes this $I_{l,t}$ \\
+$Z_{l,t}$ & $B_{l,t} = \sum_k z_{l,k,t_0}\, m_{k,t}$ --- inflow predicted by the enclave map \\
+$X_{l,t}$ & controls: city and year fixed effects \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & D_{l,t} = \pi_0 + \pi_1 B_{l,t} + \rho_1 X_{l,t} + \nu_{l,t} \\
+\text{Second stage:}\quad & Y_{l,t} = \alpha + \delta D_{l,t} + \rho X_{l,t} + \varepsilon_{l,t}
+\end{align*}
+
+\vspace{-0.3em}
+
+- First stage: do the cities whose enclaves *should* have drawn immigrants actually get them? 
+<!-- - **Unit of observation:** a city-year, not a person. Cluster by city. --> 
+- $\delta$ is the effect of immigration on native wages --- an average across source countries, weighted towards whichever ones actually move the instrument.
+
+## Identification
+
+**Bartik IV requires exogeneity of either shares OR shifts**.
+
+::: {.columns}
+
+::: {.column width="50%"}
+### Framework A: Shares Exogenous
+**Goldsmith-Pinkham, Sorkin, Swift (GPSS, 2020)**
+
+* Identifies via baseline shares $z_{ik}$.
+* Equivalent to using shares as individual instruments.
+* Shifts $m_{k,t}$ act merely as a weighting matrix.
+:::
+
+::: {.column width="50%"}
+### Framework B: Shifts Exogenous
+**Borusyak, Hull, Jaravel (BHJ, 2022)**
+
+* Identifies via sectoral shocks $m_{kt}$.
+* Shares $z_{ik}$ can be completely endogenous.
+* Requires many independent shocks ($K \to \infty$).
+:::
+
+:::
+
+## How identification fails: Framework A (exogenous shares)
+
+- **Path dependence**
+  - Instrument: 1990 manufacturing shares → modern wage growth.
+  - Problem: high-share (Rust Belt) cities also saw decades of population loss, weaker schools, and decaying infrastructure, all of which affect wages directly.
+
+- **Agglomeration and amenities**
+  - Instrument: tech employment share → local labor demand.
+  - Problem: tech clusters draw educated workers, costly housing, and VC. If these drive the outcome directly, the share is not exogenous.
+
+<!--
+- **Policy responses**
+  - High coal share → local diversification and retraining programs.
+  - Problem: these policies affect employment directly.
+-->
+
+## How identification fails: Framework B (exogenous shocks)
+
+- **Common macro shocks**
+  - National auto growth spikes because interest rates were cut.
+  - Problem: if local spending responds to the rate cut itself, the shock is endogenous.
+
+- **Few dominant shocks**
+  - 2 of 50 industries (e.g., oil & gas, healthcare) drive most of the shock variation.
+  - Problem: BHJ needs many independent shocks so unobservables average out. With one or two dominant sectors, any confounder in those sectors biases the estimate.
+
+<!--
+- **Large-unit contamination**
+  - Detroit is a large share of national auto employment.
+  - Problem: Detroit's local shocks move the "national" growth rate. Use leave-one-out shocks.
+-->
+
+<!-- 
+## How identification fails: Framework A
+
+- Historical Industry Path-Dependency
+  - Use 1990 manufacturing employment shares to predict modern wage growth.
+  - Violation: Cities with high 1990 manufacturing shares (e.g., Rust Belt cities) also experienced long-term population decline, underfunded local schools, and decaying infrastructure over the next 30 years. These unobserved regional declines affect modern wages directly, violating the exclusion restriction.
+
+- Agglomeration and Local Amenities
+  - Use a high share of tech industry employment to instrument for local labor demand.
+  - Violation: High-tech clusters naturally attract specific amenities (e.g., highly educated demographics, expensive housing markets, specialized venture capital). If these local amenities independently drive your outcome variable (like real estate prices or health outcomes), the share is not exogenous.
+
+<!-- 
+- Policy Responses and Confounding Trends
+  - A region has a high baseline share of the coal mining industry.
+  - Violation: Because of this high concentration, local governments implement aggressive economic diversification funds or retraining programs. These policy interventions independently impact local employment outcomes, breaking the instrument's validity.
+--> 
+<!-- 
+## How identification fails: Framework B
+
+- Omitted Macro Shocks, Common Factors
+  - Use national industry growth rates during a period that overlaps with a massive national regulatory shift or monetary policy change. 
+  - Violation: The national growth of the automotive industry spikes, but it spikes precisely because national interest rates were slashed to historic lows. If your local outcome (e.g., local consumer spending) reacts directly to the low interest rates rather than the auto-industry employment bump, the shock is endogenous.
+
+- Lack of Adequate Variation ("Few Dominant Shocks")
+  - You have 50 industries, but 2 of them (e.g., Oil & Gas and Healthcare) account for 90% of the total variance in national growth.
+  - Violation: For the Borusyak et al. framework to work, you need a large number of independent, idiosyncratic shocks so that unobserved components average out to zero. If the variation is driven by just one or two massive sectors, you lose the "as-if random assignment" property, and any unobserved macro shock to oil or healthcare biases your entire model.
+-->
+
+<!-- 
+- Global Endogeneity (The "Large Country" Problem)
+  - A specific region (e.g., Detroit) makes up a massive portion of the national automotive industry.
+  - Violation: A local labor strike or policy change in Detroit directly alters the national growth rate of the auto industry. In this case, the national shock is not a truly exogenous macro trend; it is mechanically contaminated by a single local unit's error term.
+--> 
+
+<!-- 
+## Framework A: Exogenous Shares (GPSS 2020)
+
+### Primary Assumption
+$$\mathbb{E}[z_{ik} \cdot \varepsilon_{it} \mid X_{it}] = 0 \quad \forall k$$
+The initial spatial distribution of industry exposure is **as good as randomly assigned**.
+
+### Rotemberg Weights ($\alpha_k$)
+GPSS show that the Bartik estimator is a weighted average of individual share estimators $\hat{\beta}_k$:
+$$\hat{\beta}_{\text{Bartik}} = \sum_{k=1}^K \alpha_k \hat{\beta}_k, \quad \text{where } \sum_{k=1}^K \alpha_k = 1$$
+
+* $\alpha_k$ measures the **sensitivity** of $\hat{\beta}_{\text{Bartik}}$ to share $s_{ik}$.
+* A few industries often account for $>80\%$ of total identification strength.
+
+
+## Framework B: Exogenous Shifts (BHJ 2022)
+
+### Primary Assumption
+$$\mathbb{E}[m_{kt} \cdot \bar{\varepsilon}_{kt} \mid w_{kt}] = 0$$
+Aggregate industry shocks $m_{kt}$ are **as good as randomly assigned** conditional on sector controls.
+
+### Sector-Level Equivalence
+BHJ show that a location-level Bartik regression is numerically equivalent to a **sector-level regression** weighted by total sector exposure $z_k = \sum_i z_{ik}$:
+
+* Location model: Regress $\Delta Y_{it}$ on $\Delta X_{it}$ instrumented by $Z_{it}$.
+* Equivalent Sector model: Regress exposure-weighted outcome $\bar{Y}_{kt}$ on exposure-weighted endogeneity $\bar{X}_{kt}$ instrumented by $g_{kt}$.
+
+
+
+## Where it breaks: pick one story
+
+\begin{center}
+\small
+\begin{tabular}{lll}
+\toprule
+ & Exogeneity sits in & What you must argue \\
+\midrule
+\textbf{Shares} view (GPSS 2020)  & the enclave map & parallel trends \\
+\textbf{Shifts} view (BHJ 2022)   & the national surges & as good as random, and \emph{many} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **Shares view --- parallel trends in disguise.** The $1980$ enclave map may be correlated with the **level** of anything you like: cities with Mexican enclaves were warmer, more agricultural, lower-wage. It must not be correlated with the **change** those things were already going to undergo. If enclave cities were on a different wage trajectory anyway, the instrument picks that up and calls it immigration.
+- **Shifts view --- randomness, and enough of it.** Now the enclave map may be as endogenous as you like. Instead you argue the national surges --- Mexico, Vietnam, the Philippines --- were set by events abroad, so they are as good as random from a US city's point of view, *and* that there are **many** of them, so any one country's endogeneity averages out. Four big surges will not do, however clean each looks.
+
+
+## Diagnostic toolkit: Placebo & Pre-trend tests
+
+Because identification rests on different units, placebo tests target different levels of aggregation:
+
+| Dimension | Framework A (GPSS 2020) | Framework B (BHJ 2022) |
+| :--- | :--- | :--- |
+| **Unit of Exogeneity** | Locations ($i$) | Sectors/Shocks ($k$) |
+| **Key Diagnostic** | Rotemberg Weights ($\alpha_k$) | Exposure Collapse (`ssaggregate`) |
+| **Balance Test** | Regress baseline $X_{i,0}$ on high-weight shares $s_{ik}$ | Regress industry shocks $g_k$ on sector covariates $X_k$ |
+| **Pre-Trend Test** | Regress $\Delta Y_{i, \text{pre}}$ on key shares $s_{ik}$ | Regress $\Delta Y_{i, \text{pre}}$ on $Z_i$ using **shock-level SEs** |
+| **Simulation** | Permute location shares | Permute shocks $g_k$ across sectors |
+--> 
+
+## Choose your framework first
+
+- **State your framework:** exogenous shares (GPSS) or exogenous shocks (BHJ).
+- The framework determines the diagnostics:
+  - GPSS: Rotemberg weights; balance and pre-trends for the top-weighted industries.
+  - BHJ: shock-level balance; effective number of shocks; exposure-robust SEs.
+
+\vspace{0.3em}
+
+- \textbf{Read:} Breuer (2022), *Bartik Instruments: An Applied Introduction*, \emph{JFR} 7(1). Written for accounting and finance.
+- \textbf{Read:} Borusyak, Hull and Jaravel (2025), *A Practical Guide to Shift-Share Instruments*, \emph{JEP} 39(1).
+
+
+<!--
+- **Only one defence is needed --- but say which.** An endogenous enclave map alone does not sink the design; nor do endogenous surges. Most papers never state which story they are running. (Breuer 2022)
+- **Compliers are source countries, not people.** The estimate is carried by whichever countries actually move the instrument --- usually a handful of the $K$. *"Built from 80 source countries" is often Mexico in a disguise.*
+- **The check:** re-run the estimate **dropping one source country at a time**. If the answer is stable, no single country is carrying it. If dropping one moves the answer, audit that country as if it were your only instrument.
+- **Classic failure: pre-trends.** Plot the outcome against the instrument *before* the surge period.
+--> 
 
 # 4. Fuzzy Regression Discontinuity
 
@@ -162,16 +673,59 @@ $$
 \delta_{\text{FRD}} = \frac{\lim_{x\downarrow c_0} E[Y|X=x] - \lim_{x\uparrow c_0} E[Y|X=x]}
                            {\lim_{x\downarrow c_0} E[D|X=x] - \lim_{x\uparrow c_0} E[D|X=x]} .
 $$
-- In practice: let $Z_i = \mathbf{1}\{X_i \geq c_0\}$ and use it as an **IV** for $D_i$, with the running-variable polynomial as covariates on both stages. Using $Z_i$ alone is just-identified, which has good finite-sample properties.
-- **The assumptions are now IV's assumptions**, not just continuity: exclusion, monotonicity, SUTVA, a strong first stage. Hahn, Todd and van der Klaauw (2001) made this precise.
-- **Who are the compliers?** Units whose treatment status flips as $x$ moves from just below $c_0$ to just above. This is why the "Design" column of the finance table in Lecture 4 mattered.
+- A ratio of two discontinuities is a Wald estimator. So a fuzzy RD **is** an IV design.
+
+## Fuzzy RD is an IV design
+
+- Fuzzy RD **is** IV, with the instrument $Z_i = \mathbf{1}\{X_i \geq c_0\}$:
+  - Numerator = reduced-form jump in $Y$; denominator = first-stage jump in $D$.
+  - Estimate by 2SLS within a bandwidth, instrumenting $D$ with $Z$ and controlling for a local polynomial in $X$ on each side.
+  - Same IV assumptions, holding locally at $c_0$: crossing the cutoff affects $Y$ only through $D$ (exclusion), and no one is pushed *out* of treatment by crossing it (monotonicity). Relevance. SUTVA.
+  - So $\delta_{\text{FRD}}$ is a LATE for **compliers at the cutoff**: units whose treatment is switched by crossing $c_0$.
+  
+  
+## Fuzzy RD, in equations
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_i$ & the outcome \\
+$D_i$ & treatment actually **received** --- not assignment \\
+$Z_i$ & $\mathbf{1}\{X_i \geq c_0\}$ --- crossing the cutoff \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & D_i = \pi_0 + \pi_1 Z_i + f(X_i - c_0) + \nu_i \\
+\text{Second stage:}\quad & Y_i = \alpha + \delta D_i + g(X_i - c_0) + \varepsilon_i
+\end{align*}
+
+\vspace{-0.3em}
+
+- $f$ and $g$ are the running-variable polynomials, fitted **separately on each side** and only inside the bandwidth, with Lecture 4's kernel weights.
+- $\delta$ is a LATE *at the cutoff*, for units whose treatment flips there --- doubly local.
 
 # 5. The Elasticity of Demand
 
+
+## The Identification Problem
+- **The Target:** A demand curve is a causal object—the effect of price ($P$) on quantity demanded ($Q$).
+- **The Obstacle:** Observed $(P, Q)$ pairs are **equilibrium points** generated by simultaneous shifts in both supply and demand.
+- Wright's Solution:
+  - **History:** Instrumental variables were invented for this exact problem by **Philip Wright (1928)**.
+  - **The Logic:** To trace out a fixed demand curve, you need exogenous variation that shifts **supply only**.
+
+
+<!--
 ## Supply shifters
 
 - IV was **invented** for this, by Philip Wright in the 1920s. A demand curve is a causal object --- the effect of price on quantity --- but every price you observe is an **equilibrium** price, produced by supply *and* demand.
-- To trace demand you need something that shifts **supply only**. Economic theory even tells you where to look:
+- To identify the effect of price on quantity you need something that shifts **supply only**. 
+
+- Economic theory even tells you where to look:
 
 \begin{center}
 \small
@@ -188,38 +742,153 @@ Number of buyers & Number of sellers \\
 \end{tabular}
 \end{center}
 
-- You need a variable in the **right** column that is emphatically **not** in the left one. Notice that this is the strangeness principle, stated as economics.
+- You need a variable in the **right** column that is emphatically **not** in the left one. 
+--> 
 
-## Fulton Fish Market
+## The question: how price-sensitive are fish buyers?
+
+- **The question.** What is the **price elasticity of demand** for fish? **Kathryn Graddy** set out to measure it at the **Fulton Fish Market**. **She hand-collected the data**, driving in from New Jersey before dawn each morning.
+- To hold the good fixed, she narrowed it to one product: **fresh whiting of roughly the same size.**
+
+\vspace{0.3em}
+
+- **The obstacle is Wright's.** Each trading day hands you a single $(P,Q)$ pair, set by supply and demand *at once*. Regressing $\log Q$ on $\log P$ traces neither curve.
+- **The instrument:** the weather at sea in the days *before* the fish reached the market. (Graddy 1995, 2006)
+
+## Fulton Fish, in equations
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_t$ & $\log Q_t$ --- log pounds of whiting sold on day $t$ \\
+$D_t$ & $\log P_t$ --- log average price that day \\
+$Z_t$ & $\texttt{Stormy}_t$ --- bad weather at sea over the previous two days \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & \log P_t = \pi_0 + \pi_1 \texttt{Stormy}_t + \mathbf{d}_t'\gamma + \nu_t, \qquad \hat\pi_1 \approx 0.35 \\
+\text{Second stage:}\quad & \log Q_t = \alpha + \delta \log P_t + \mathbf{d}_t'\gamma + \varepsilon_t, \qquad \hat\delta \approx -1.12
+\end{align*}
+
+\vspace{-0.3em}
+
+- $\mathbf{d}_t$ are day-of-week dummies. The unit is a **day**, not a buyer.
+- Both variables are in **logs**, so $\delta$ *is* the elasticity --- no conversion required.
+
+## Fulton Fish Market (Remix, Table 7.14)
 
 ```{r}
-#| echo: true
+#| echo: false
+#| results: asis
 suppressMessages({library(haven); library(AER); library(sandwich); library(lmtest)})
 fish <- as.data.frame(read_dta("data/Fulton.dta"))
+st <- function(p) if (p < .01) "***" else if (p < .05) "**" else if (p < .1) "*" else ""
 f_ols <- lm(q ~ p + Mon + Tue + Wed + Thu, data = fish)
-f_iv  <- ivreg(q ~ p + Mon + Tue + Wed + Thu | Stormy + Mon + Tue + Wed + Thu, data = fish)
+o <- coeftest(f_ols, vcov = vcovHC(f_ols, "HC1"))["p", ]
+f_iv <- ivreg(q ~ p + Mon + Tue + Wed + Thu | Stormy + Mon + Tue + Wed + Thu, data = fish)
+v <- coeftest(f_iv, vcov = vcovHC(f_iv, "HC1"))["p", ]
 f_1st <- lm(p ~ Stormy + Mon + Tue + Wed + Thu, data = fish)
-c1 <- coeftest(f_1st, vcov = vcovHC(f_1st, "HC1"))["Stormy", ]
-round(setNames(unname(c(coef(f_ols)["p"], coef(f_iv)["p"], c1[1],
-                        (c1[1] / c1[2])^2, nrow(fish))),
-               c("OLS elasticity", "IV elasticity", "first stage",
-                 "effective F", "N")), 3)
+s <- coeftest(f_1st, vcov = vcovHC(f_1st, "HC1"))["Stormy", ]
+Feff <- (s[1] / s[2])^2
+## Anderson-Rubin 95% interval, by grid inversion on the robust AR statistic
+X <- model.matrix(~ Mon + Tue + Wed + Thu, data = fish); n <- nrow(fish)
+rs <- function(x) lm.fit(X, x)$residuals
+zt <- rs(fish$Stormy); qt <- rs(fish$q); pt <- rs(fish$p)
+dfr <- n - ncol(X) - 1; zz <- sum(zt^2); cv <- qf(.95, 1, dfr)
+keep <- function(d) { u <- qt - d * pt; b <- sum(zt * u) / zz; e <- u - zt * b
+                      (b^2 / ((n / dfr) * sum(zt^2 * e^2) / zz^2)) < cv }
+g <- seq(-5, 2, by = .001); a <- g[vapply(g, keep, logical(1))]
+cat(sprintf(
+"\\begin{center}\\small
+\\begin{tabular}{lcc}
+\\toprule
+Dependent variable: $\\log Q$ & OLS & 2SLS \\\\
+\\midrule
+$\\log(\\text{Price})$ & $%.3f$%s & $%.3f$%s \\\\
+ & $(%.3f)$ & $(%.3f)$ \\\\
+ & & $[%.3f,\\; %.3f]$ \\\\
+\\midrule
+\\multicolumn{3}{l}{\\emph{First stage}} \\\\
+\\texttt{Stormy} & & $%.3f$%s \\\\
+ & & $(%.3f)$ \\\\
+Effective $F$ & & $%.3f$ \\\\
+\\midrule
+$N$ & $%d$ & $%d$ \\\\
+\\bottomrule
+\\end{tabular}
+\\end{center}
+", o[1], st(o[4]), v[1], st(v[4]), o[2], v[2], min(a), max(a),
+   s[1], st(s[4]), s[2], Feff, n, n))
 ```
 
-\vspace{-0.2em}
+\vspace{-0.4em}
 \footnotesize
 
-- **Graddy (2006)**, 111 days at the Fulton Fish Market. $Q$ = log pounds of whiting sold, $P$ = log average daily price. The IV `Stormy` records bad weather at sea over the previous two days.
-- Stormy weather raises price by about **35%** --- a supply shock, not a demand shock. OLS says the elasticity is $-0.56$; IV says $-1.12$.
-- Why does OLS understate it? Because the observed price--quantity pairs are equilibria traced out by *both* curves moving.
+**Graddy (2006)**, 111 days at the Fulton Fish Market. $Q$ = log pounds of whiting sold, $P$ = log average daily price. `Stormy` records bad weather at sea over the previous two days. Robust standard errors in parentheses, Anderson--Rubin 95% interval in brackets. All models control for day-of-week dummies. $^{*}p<0.1$, $^{**}p<0.05$, $^{***}p<0.01$.
+
+\normalsize
+
+## Reading the fish
+
+- Stormy weather raises price by about **35%**. That is a **supply** shock, not a demand shock --- storms make fish harder to catch, they do not make New Yorkers hungrier.
+- **OLS says the elasticity is $-0.56$. IV says $-1.12$** --- twice as elastic.
+
+\vspace{0.4em}
+
+- **Why does OLS understate it?** Because the observed price--quantity pairs are *equilibria*. Both curves move, so the scatter traces out neither one. 
+
+
+<!-- 
+## Why OLS understates the elasticity
+
+Each day is one dot in a $(P,Q)$ scatter. But days differ for **two** reasons, and the two leave **opposite** tracks:
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+What moved that day & Price & Quantity \\
+\midrule
+\textbf{Supply} shifts --- a storm        & up & \textbf{down} --- traces the \emph{demand} curve \\
+\textbf{Demand} shifts --- a busy weekend & up & \textbf{up} --- traces the \emph{supply} curve \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- OLS pools both kinds of day. Storm days pull the slope **negative**; busy days pull it **positive**. What comes out is a variance-weighted blend of the demand slope and the supply slope --- which is neither curve.
+- A blend sits **between** the two, so the demand slope is dragged **towards zero**: $-0.56$ instead of $-1.12$. Demand looks less elastic than it is.
+- **The instrument fixes this by throwing days away.** It keeps only the movement storms create --- days when demand sat still and supply alone moved. Holding one curve fixed is the only way the other is ever traced.
+-->
+
 
 ## Even here, it is only a LATE
 
-- The IV elasticity of $-1.12$ says: **for compliers**, a 10% storm-induced price rise cuts quantity by about 11%. Angrist, Graddy and Imbens (2000) made this precise.
+- The IV elasticity of $-1.12$ says: **for compliers**, a 10% storm-induced price rise cuts quantity by about 11%. 
+<!-- Angrist, Graddy and Imbens (2000) made this precise. -->
 - Now suppose a seller wants to use this number to set a profit-maximising price. Demand looks elastic, so cut prices and sell more --- right?
-- **No.** That elasticity was identified by *storms*. When the firm lowers its price deliberately, it is not using a storm, and the relevant elasticity may be entirely different. Buyers may read a storm-driven price rise as temporary and a posted price cut as permanent.
-- This is the sobering version of LATE: **it does not tell you what you want to know; it tells you what you can learn given your IV.**
-- The same warning applies to every design in this deck. Before reporting a LATE, ask whether the policy you have in mind would move the same people, in the same way, as your IV did.
+- **No.** That elasticity was identified by *storms*. When the firm cuts its price deliberately, it is not using a storm.
+- Buyers read a storm-driven price rise as **temporary** and a posted price cut as **permanent**. Different shock, different response, different elasticity.
+
+## What a LATE is, and is not
+
+- This is the sobering version of LATE:
+
+\vspace{0.2em}
+
+\begin{center}
+\emph{It does not tell you what you want to know.}\\
+\emph{It tells you what you can learn, given your instrument.}
+\end{center}
+
+\vspace{0.4em}
+
+- The warning applies to **every** design --- the lottery, the judge, the national shock, the threshold, the weather.
+- Before reporting a LATE, ask one question: *would the policy I have in mind move the same people, in the same way, as my instrument did?*
+- If the answer is no, you have a clean estimate of something other than what you were asked.
+
 
 ## What the five have in common
 
@@ -230,9 +899,9 @@ round(setNames(unname(c(coef(f_ols)["p"], coef(f_iv)["p"], c1[1],
 \toprule
 Design & The shock & Typical first stage & Hardest assumption \\
 \midrule
-Lotteries        & randomised offer        & strong, well below 1 & exclusion (usually fine) \\
+Lotteries        & randomised offer        & strong & exclusion (usually fine) \\
 Judge FE         & assigned decision-maker & many weak instruments & \textbf{monotonicity} \\
-Bartik           & national shock $\times$ local share & varies & exclusion (shares or shifts) \\
+Bartik           & national shock $\times$ local share & strong & exclusion (shares or shifts) \\
 Fuzzy RD         & crossing the cutoff     & jump in $\Pr(D=1)$ & exclusion at the cutoff \\
 Elasticity       & supply shifter          & price response & exclusion (demand channel) \\
 \bottomrule
@@ -243,8 +912,10 @@ Elasticity       & supply shifter          & price response & exclusion (demand 
 
 \normalsize
 
-- In every one, the IV is **something that physically happened in the world**: a draw, an assignment, a national shock, a threshold, the weather. That is not a coincidence --- it is the requirement.
-- And in every one, the estimand is a LATE for whoever that shock happened to move. Name them before you interpret the number.
+1. **Instruments are physical events.** A lottery draw, a shift schedule, a national policy, a storm. If you cannot describe the physical event that assigns treatment in the real world, you do not have an IV.
+2. **Estimands are Local (LATE).** An IV only identifies the treatment effect for the **compliers**—the specific people moved by that exact shock. 
+
+- Always name the compliers in plain English before interpreting your estimate.
 
 # IV in Finance
 
@@ -255,12 +926,12 @@ Finance has fewer clean lotteries than labour economics. The recurring sources a
 - **Regulatory and legal changes** that bind some firms and not others --- staggered state laws, index or listing rules, supervisory thresholds.
 - **Weather, geography and distance** --- historically popular, increasingly contested, because geography correlates with almost everything.
 - **Shift-share exposure** --- a firm's or region's pre-existing portfolio of industries, suppliers or customers, interacted with aggregate shocks.
-- **Randomly assigned decision-makers** --- bankruptcy judges, bank examiners, auditors, analysts, patent examiners. Design 2 transplants directly, monotonicity worry and all.
+- **Randomly assigned decision-makers** --- bankruptcy judges, bank examiners, auditors, analysts, patent examiners. 
 - **Lotteries and quasi-lotteries** --- oversubscribed allocations, IPO allocation rules, random audits.
 
 \vspace{0.4em}
 
-- The common failure is the same everywhere: in finance the agents are **sophisticated, well advised and highly motivated**, so the shock you think is exogenous is often anticipated, lobbied for, or selected into.
+- In finance the agents are **sophisticated, well advised and highly motivated**, so the shock you think is exogenous is often anticipated, lobbied for, or selected into.
 
 ## Three questions to ask of any finance IV
 
@@ -268,10 +939,19 @@ Finance has fewer clean lotteries than labour economics. The recurring sources a
 2. **Is there exactly one channel?** This is where most finance IVs fail. A legal change that alters takeover exposure also alters managerial incentives, disclosure, and the composition of shareholders. Distance to a city affects financing *and* labour markets, customers and information.
 3. **Who are the compliers, and do you care about them?** A regulation that binds only small, constrained firms identifies an effect for small, constrained firms --- which may be the opposite of the effect for the firms the policy debate is about.
 
+## The most useful habit
+
+- Write the exclusion restriction down as a **sentence, in words** --- not as an equation, and not as a citation.
+- Show it to someone who knows the **institution** and not the econometrics.
+
 \vspace{0.4em}
 
-- Wei Jiang (2017) surveys the use of IV in corporate finance and is worth reading before you use one.
-- **The most useful habit:** write down the exclusion restriction as a sentence, in words, and show it to someone who knows the institution and not the econometrics. If they can name a second channel in under a minute, you have your answer.
+- If they can name a second channel in under a minute, you have your answer.
+- If you cannot write the sentence at all, you did not have an instrument --- you had a variable that happened to be correlated with your treatment.
+
+\vspace{0.4em}
+
+- Read: Jiang, W. (2017). Have Instrumental Variables Brought Us Closer to the Truth? *Review of Corporate Finance Studies* 6, 127--140.
 
 ## References
 
@@ -282,13 +962,18 @@ Finance has fewer clean lotteries than labour economics. The recurring sources a
 - Baicker, K. et al. (2013). The Oregon Experiment --- Effects of Medicaid on Clinical Outcomes. *NEJM* 368, 1713--1722.
 - Bartik, T. (1991). *Who Benefits from State and Local Economic Development Policies?* Upjohn Institute.
 - Borusyak, K., P. Hull and X. Jaravel (2022). Quasi-Experimental Shift-Share Research Designs. *ReStud* 89, 181--213.
+- Borusyak, K., P. Hull and X. Jaravel (2025). A Practical Guide to Shift-Share Instruments. *JEP* 39(1), 181--204.
+- Breuer, M. (2022). Bartik Instruments: An Applied Introduction. *Journal of Financial Reporting* 7(1), 49--67. --- **read this before building a shift-share instrument.**
 - Cunningham, S. *Causal Inference: The Remix*, §7.7 --- this deck follows it closely.
+- Farre-Mensa, J., D. Hegde and A. Ljungqvist (2020). What Is a Patent Worth? Evidence from the U.S. Patent "Lottery". *Journal of Finance* 75(2), 639--682.
 - Finkelstein, A. et al. (2012). The Oregon Health Insurance Experiment: Evidence from the First Year. *QJE* 127, 1057--1106.
-- Frandsen, B., L. Lefgren and E. Leslie (2023). Judging Judge Fixed Effects. *AER* 113, 253--277.
-- Gaudet, F., G. Harris and C. John (1933). Individual Differences in the Sentencing Tendencies of Judges. *Journal of Criminal Law and Criminology* 23, 811--818.
+- Gaudet, F., G. Harris and C. St. John (1933). Individual Differences in the Sentencing Tendencies of Judges. *Journal of Criminal Law and Criminology* 23, 811--818.
+- Goldsmith-Pinkham, P., P. Hull and M. Kolesár (2026). Leniency Designs: An Operator's Manual. *JEP* 40(3), 213--240. --- **read this before running a leniency design.**
 - Goldsmith-Pinkham, P., I. Sorkin and H. Swift (2020). Bartik Instruments: What, When, Why, and How. *AER* 110, 2586--2624.
+- Graddy, K. (1995). Testing for Imperfect Competition at the Fulton Fish Market. *RAND Journal of Economics* 26(1), 75--92.
 - Graddy, K. (2006). Markets: The Fulton Fish Market. *JEP* 20, 207--220.
-- Hahn, J., P. Todd and W. van der Klaauw (2001). Identification and Estimation of Treatment Effects with a RD Design. *Econometrica* 69, 201--209.
+- Hansen, B. (2022). *Econometrics*. Princeton University Press. (§3.21, leave-one-out and leverage.)
 - Imbens, G. and J. Angrist (1994). Identification and Estimation of Local Average Treatment Effects. *Econometrica* 62, 467--475.
+- Kolesár, M. (2013). Estimation in an Instrumental Variables Model with Treatment Effect Heterogeneity. Working paper. (UJIVE.)
 - Jiang, W. (2017). Have Instrumental Variables Brought Us Closer to the Truth? *Review of Corporate Finance Studies* 6, 127--140.
 - Stevenson, M. (2018). Distortion of Justice: How the Inability to Pay Bail Affects Case Outcomes. *Journal of Law, Economics, and Organization* 34, 511--542.

@@ -1,0 +1,157 @@
+---
+title: "Problem Set: Five IV Designs"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+*Five required problems, plus one optional problem at the end. Problem 5 asks you to fit models in R (or Stata); attach your code and output. The rest need only a pen.*
+
+*Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
+
+*Problem 5 uses `Fulton.dta`, which you can read directly from*
+`https://raw.github.com/scunning1975/mixtape/master/Fulton.dta`.
+
+## Problem 1 (Lotteries: randomisation is not enough)
+
+In 2008 Oregon expanded Medicaid for low-income adults. Facing excess demand, it allocated places by lottery: roughly $30{,}000$ names were drawn from a list of $85{,}000$. Of those selected, about $10{,}000$ actually enrolled. Finkelstein et al. (2012) report:
+
+\begin{center}
+\small
+\begin{tabular}{lrr}
+\toprule
+Outcome & ITT (reduced form) & LATE (2SLS) \\
+\midrule
+Has a usual place of care      & $9.9\%$  & $33.9\%$ \\
+Has a personal doctor          & $8.1\%$  & $28.0\%$ \\
+Got all needed healthcare      & $6.9\%$  & $23.9\%$ \\
+Any hospital admission         & $0.5\%$  & $2.1\%$  \\
+Had a medical collection       & $-1.6\%$ & $-6.4\%$ \\
+Owed on medical collection     & $-\$99$  & $-\$390$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+(a) The lottery really was random. Explain why, even so, comparing those who *enrolled* in Medicaid with those who did not would be biased, and say in which direction. Name the selection at work.
+
+(b) For each of the first three rows, back out the first-stage coefficient implied by the ITT and LATE columns. You should get roughly the same number three times. State what that number is, and what it means in words.
+
+(c) Now do the same for the last three rows. You will get a somewhat different number. Both sets of estimates are correct as published. Give a reason why two different first-stage coefficients can both be right in the same experiment.
+
+(d) Name the compliers, the always-takers and the never-takers in this design. Then explain why the LATE column says nothing about the always-takers, even though they are insured.
+
+(e) A state legislator asks you which column to put in the briefing memo. A health economist asks you the same question. Give each of them an answer, and say why the answers differ.
+
+\newpage
+
+## Problem 2 (Leniency designs: judges and examiners)
+
+A defendant $i$ is randomly assigned to one of $K$ bail judges within a court-and-period group. Let $D_i = \mathbf{1}\{$detained pre-trial$\}$, let $Y_i = \mathbf{1}\{$pleads guilty$\}$, and let $Z_i$ be the vector of $K$ judge dummies.
+
+Parts (c)--(e) use the following nine cases. Judge A hears cases $1$--$4$, judge B hears cases $5$--$7$, and judge C hears cases $8$--$9$. The detention outcomes are
+$$
+D = (1,\,1,\,0,\,0 \;\mid\; 1,\,1,\,1 \;\mid\; 1,\,0).
+$$
+
+(a) Write down the first and second stage, naming every object including the controls. Then say why the court-and-period controls are **not** optional, in one sentence.
+
+(b) With $K$ judge dummies as instruments, 2SLS is biased. Say what the bias is *toward*, and explain the mechanism in one sentence. Then explain why the following statement is wrong: *"the bias arises because each judge dummy is a weak instrument."*
+
+(c) Write out the $9 \times 3$ matrix $Z$ and the $3 \times 3$ matrix $Z'Z$. Say in words what the diagonal of $Z'Z$ contains, and why the matrix is diagonal.
+
+(d) Compute the leverage $h_i = Z_i'(Z'Z)^{-1}Z_i$ for cases $1$, $5$ and $8$. Then, for case $1$, compute the leave-one-out leniency **two ways** --- directly, as the mean detention rate of judge A's *other* cases, and from the formula $\hat D_i^{\text{JIVE}} = (Z_i'\hat\pi - h_i D_i)/(1 - h_i)$ --- and show that they agree.
+
+(e) Suppose a fourth judge heard exactly one case. What is that case's leverage, and what does the formula do? Say what this tells you to do in practice.
+
+(f) JIVE leaves case $i$ out of its own judge's detention rate. Explain why that is **not** enough once you add the court-and-period controls, and say what UJIVE does differently.
+
+(g) Two courts assign cases differently. In court 1, each case is assigned to a judge one at a time, independently. In court 2, a single duty judge takes every case filed that day. State the correct standard errors in each court, and explain why clustering by judge is wrong in both.
+
+(h) Goldsmith-Pinkham, Hull and Kolesár (2026) re-analyse $32{,}514$ patent applications, instrumenting approval with examiner dummies and controlling for art unit $\times$ year. For the outcome "any subsequent application" they report UJIVE $0.173$ $(0.055)$, 2SLS with examiner dummies $0.232$ $(0.016)$, and OLS $0.234$ $(0.006)$. Two separate things have gone wrong in the 2SLS column. Name both, and explain why they are the *same* underlying problem showing up twice.
+
+\newpage
+
+## Problem 3 (Shift-share: the enclave instrument)
+
+You want the effect of immigration on the wages of native workers:
+$$
+Y_{l,t} \;=\; \alpha + \delta I_{l,t} + \rho X_{l,t} + \varepsilon_{l,t},
+$$
+where $l$ indexes a city, $t$ a year, $Y$ is log native wages, $I$ is the immigrant inflow, and $X$ holds city and year fixed effects. The instrument is $B_{l,t} = \sum_{k=1}^{K} z_{l,k,t_0}\, m_{k,t}$.
+
+(a) Define $z_{l,k,t_0}$ and $m_{k,t}$ in words, and say what $k$ indexes. Then state the first and second stage, and name the unit of observation.
+
+(b) Sign the bias in the OLS estimate of $\delta$ and explain the mechanism in one sentence. Then say what economic story would have to be true for OLS to be biased the *other* way.
+
+(c) There are two separate defences of this instrument, and you need only one. State the identifying assumption of each in a single sentence, and name the diagnostic each one obliges you to run.
+
+(d) Your data has $80$ source countries, but the national surge from Mexico accounts for most of the variation in $m_{k,t}$. Which of the two defences survives and which does not? Explain.
+
+(e) A referee writes: *"The 1980 enclave map is obviously endogenous — cities with large Mexican communities differ from other cities in a hundred ways."* Is the design dead? Answer precisely, and say what you would need to show to keep it alive.
+
+(f) Design a pre-trend test for this instrument. Say exactly what you would regress on what, over which period, and what result would worry you.
+
+\newpage
+
+## Problem 4 (Fuzzy RD, and what a LATE is not)
+
+(a) A fuzzy RD estimates
+$$
+\delta_{\text{FRD}} = \frac{\lim_{x\downarrow c_0} E[Y|X=x] - \lim_{x\uparrow c_0} E[Y|X=x]}
+                           {\lim_{x\downarrow c_0} E[D|X=x] - \lim_{x\uparrow c_0} E[D|X=x]} .
+$$
+Identify the numerator and the denominator by their IV names, and state the instrument.
+
+(b) At a scholarship cutoff, crossing the threshold raises the probability of receiving aid by $0.25$ and raises four-year graduation rates by $6$ percentage points. Compute the fuzzy RD estimate and state precisely whose effect it is.
+
+(c) The deck calls the fuzzy RD estimand "doubly local." Name the two localities.
+
+(d) State what monotonicity means at an RD cutoff, and describe a concrete scholarship rule that would violate it.
+
+(e) At the Fulton Fish Market the IV elasticity of demand is about $-1.12$, which looks elastic enough that a seller should cut prices and sell more. Explain why the seller should not do this, and then state the general lesson as a rule you could apply to any of the five designs.
+
+\newpage
+
+## Problem 5 (Computational: the elasticity of demand for fish)
+
+Load `Fulton.dta` from the address on page 1. The variables you need are `q` (log pounds of whiting sold), `p` (log average daily price), `Stormy` (bad weather at sea over the previous two days), and the day-of-week dummies `Mon`, `Tue`, `Wed`, `Thu`. There are $111$ trading days. Control for the day-of-week dummies throughout and use heteroskedasticity-robust standard errors.
+
+(a) Regress `q` on `p` and the day dummies. Report the coefficient and robust standard error. Why can this number not be read as the elasticity of demand?
+
+(b) Estimate the first stage: regress `p` on `Stormy` and the day dummies. Report the coefficient, its robust standard error, and the effective $F$-statistic. Is the instrument strong? Interpret the coefficient in percentage terms.
+
+(c) Estimate 2SLS, instrumenting `p` with `Stormy`. Report the coefficient and robust standard error. The IV estimate is roughly twice the OLS estimate in absolute value. Explain *why* OLS is the smaller of the two — your answer should mention what else is moving on a day when demand shifts.
+
+(d) Compute the Anderson--Rubin $95\%$ confidence interval by grid inversion. For a grid of candidate values $\delta_0$, form $u_i = q_i - \delta_0 p_i$, regress $u$ on `Stormy` and the day dummies, and keep those $\delta_0$ for which the coefficient on `Stormy` is **not** significantly different from zero. Report the interval. Compare it with the conventional $\hat\delta \pm 1.96\,\widehat{\text{SE}}$ interval, and say when the two would diverge sharply.
+
+(e) The identifying claim is that a storm shifts supply but not demand. Give one concrete story under which a storm would also shift demand, and say what you would look at in the data to check it.
+
+\newpage
+
+## Optional Problem A (Refereeing a finance IV)
+
+Pick **one** published finance paper that uses an instrumental variable. Any paper will do, but choose one whose institutional setting you can describe without looking anything up.
+
+(a) State the design in four lines: the outcome, the treatment, the instrument, and the controls that make the assignment as good as random.
+
+(b) Write the exclusion restriction as a **sentence in plain English** — not an equation, and not a citation. The sentence must name the one channel you are claiming, and rule out the others by name.
+
+(c) Show your sentence to someone who knows the institution and not the econometrics. Report what they said. If they named a second channel in under a minute, say what it was.
+
+(d) Name the compliers. Then say whether the policy question the paper is motivated by would move those same units, in the same way.
+
+(e) Which of the five designs in this lecture is the paper closest to? Say what the hardest assumption is for that family, and whether the paper addresses it.

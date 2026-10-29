@@ -80,46 +80,6 @@
   \KOMAoptions{parskip=half}}
 \makeatother
 
-\usepackage{color}
-\usepackage{fancyvrb}
-\newcommand{\VerbBar}{|}
-\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
-\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
-% Add ',fontsize=\small' for more characters per line
-\usepackage{framed}
-\definecolor{shadecolor}{RGB}{241,243,245}
-\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
-\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
-\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
-\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
-\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
-\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
-\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
-\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
-\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
-\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
-\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
-\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
-\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
-\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
-\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
-\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
-\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
-\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
-\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
-\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
-\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
-\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
-\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
-\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
-\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
-\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
-\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
-\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
-\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
-\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
-\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
-\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
 
 \usepackage{longtable,booktabs,array}
 \newcounter{none} % for unnumbered tables
@@ -249,9 +209,9 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \begin{itemize}
 \tightlist
 \item
-  The previous deck built the machinery: the Wald ratio, 2SLS, weak
-  instruments, and the five LATE assumptions. This one is about
-  \textbf{where IVs actually come from}.
+  We built the machinery: the Wald ratio, 2SLS, weak instruments, and
+  the five LATE assumptions. This one is about \textbf{where IVs
+  actually come from}.
 \item
   IV is a general-purpose strategy: it works wherever a credible shock
   turns up. But over the years certain strategies have been used so
@@ -259,12 +219,8 @@ Research}{BUSS975: Causal Inference in Financial Research}}
   literature, its own conventions, and its own characteristic failure
   mode.
 \item
-  Knowing the designs is useful in two directions. It tells you where to
-  look for an IV in your own work, and it tells you what to interrogate
-  when you referee someone else's.
-\item
-  This deck follows \textbf{Remix §7.7}, and closes with where these
-  shocks turn up in \textbf{finance}.
+  Knowing the designs tells you where to look for an IV in your own
+  work.
 \end{itemize}
 \end{frame}
 
@@ -298,7 +254,10 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \vspace{0.2em}
 
 \begin{center}
-\emph{What is the shock? \quad What is the first stage? \quad Who are the compliers? \quad Where does exclusion break?}
+\emph{What is the shock? \quad What is the first stage?} 
+\end{center}
+\begin{center}
+\emph{Who are the compliers? \quad Where does exclusion break?}
 \end{center}
 
 \vspace{0.3em}
@@ -313,32 +272,80 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 
 \section{1. Lotteries}\label{lotteries}
 
-\begin{frame}{The design}
-\protect\phantomsection\label{the-design}
+\begin{frame}{The design: randomisation is not enough}
+\protect\phantomsection\label{the-design-randomisation-is-not-enough}
 \begin{itemize}
 \tightlist
 \item
-  In many randomised trials, assignment to treatment is random but
-  \textbf{take-up is voluntary}. Those who take it up are precisely
-  those who expect to benefit --- positive selection.
+  In many randomised trials, assignment is random but \textbf{take-up is
+  voluntary}.
 \item
-  Comparing the treated with the untreated is then biased \textbf{even
-  in a randomised experiment}. The fix: IV actual treatment with the
+  Those who take it up are precisely those who expect to benefit ---
+  \textbf{positive selection}.
+\item
+  So comparing the treated with the untreated is biased \textbf{even
+  inside a randomised experiment}.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{The fix:} instrument actual treatment with the
   \textbf{randomised offer}, and estimate the LATE.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Oregon Health Insurance Experiment}
+\protect\phantomsection\label{oregon-health-insurance-experiment}
+\begin{itemize}
+\tightlist
 \item
-  \textbf{Oregon Health Insurance Experiment.} In 2008 Oregon expanded
-  Medicaid for low-income adults and, facing excess demand, allocated
-  places by \textbf{lottery}: roughly 30,000 drawn from a list of
-  85,000. Of those selected, about 10,000 enrolled.
+  In 2008 Oregon expanded Medicaid for low-income adults. Facing excess
+  demand, it allocated places by \textbf{lottery}: roughly \(30{,}000\)
+  drawn from a list of \(85{,}000\).
 \item
-  First stage (Finkelstein et al.~2012): winning the lottery raised the
+  Of those selected, about \(10{,}000\) enrolled.
+\item
+  \textbf{First stage} (Finkelstein et al.~2012): winning raised the
   probability of ever being on Medicaid by about \textbf{26 percentage
   points} --- large, but nowhere near one. Hence IV rather than a simple
   comparison.
 \item
-  Note what the design gives you: the effect of \textbf{having Medicaid}
-  for those who enrolled \emph{because} they won --- not for those who
-  would have found coverage anyway.
+  \textbf{What the design gives you:} the effect of \emph{having
+  Medicaid} for those who enrolled \textbf{because} they won --- not for
+  those who would have found coverage anyway.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Oregon, in equations}
+\protect\phantomsection\label{oregon-in-equations}
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_i$ & utilisation or financial strain --- e.g. $\mathbf{1}\{$has a usual place of care$\}$ \\
+$D_i$ & $\mathbf{1}\{$enrolled in Medicaid$\}$ \\
+$Z_i$ & $\mathbf{1}\{$won the lottery$\}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & D_i = \pi_0 + \pi_1 Z_i + \nu_i, \qquad \hat\pi_1 \approx 0.26 \\
+\text{Reduced form:}\quad & Y_i = \gamma_0 + \gamma_1 Z_i + u_i \\
+\text{2SLS:}\quad & Y_i = \alpha + \delta D_i + \varepsilon_i, \qquad \hat\delta = \hat\gamma_1 / \hat\pi_1
+\end{align*}
+
+\vspace{-0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  On the next slide, \(\hat\gamma_1\) is the \textbf{ITT column} and
+  \(\hat\delta\) is the \textbf{LATE column}.
 \end{itemize}
 \end{frame}
 
@@ -363,17 +370,11 @@ Owed on medical collection     & $-\$99$  & $-\$390$ \\
 \begin{itemize}
 \tightlist
 \item
-  The \textbf{ITT column is the reduced form} --- the effect of winning
-  the lottery. The \textbf{LATE column scales it by the first stage}.
-  Roughly a factor of four, because about a quarter of winners actually
-  enrolled.
+  The \textbf{ITT column is the reduced form} --- the policy effect of
+  \emph{running the lottery} --- what a legislator decides on.
 \item
-  Medicaid raised utilisation and sharply reduced financial strain.
-  Effects on \emph{health} were small, and on mortality absent.
-\item
-  \textbf{Which column should you report?} Both. The ITT is the policy
-  effect of running the lottery; the LATE is the effect of coverage on
-  those it reached.
+  The \textbf{LATE column scales it by the first stage} --- the effect
+  of \emph{coverage} on the outcomes.
 \end{itemize}
 \end{frame}
 
@@ -403,20 +404,157 @@ The design needs three ingredients:
   randomly assigned to judges --- in Harris County, Texas, historically
   with a bingo-ball machine.
 \item
-  The idea is old. \textbf{Gaudet, Harris and John (1933)} found one
+  The idea is old. \textbf{Gaudet, Harris and St.~John (1933)} found one
   judge imprisoned in 34\% of his cases and another in nearly 60\%, with
-  cases randomly rotated between them. Their conclusion: a sentence may
-  indicate \emph{``either the seriousness of his crime or the severity
-  of the judge.''}
+  cases randomly rotated between them.
 \item
-  \textbf{Stevenson (2018)}, Philadelphia bail magistrates: randomly
+  Their conclusion: a sentence may indicate \emph{``either the
+  seriousness of his crime or the severity of the judge.''}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{One modern example, and how far it travels}
+\protect\phantomsection\label{one-modern-example-and-how-far-it-travels}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Stevenson (2018)}, Philadelphia bail magistrates. Randomly
   assigned judges differ in how affordable they set bail, so some
-  defendants are detained pre-trial purely by draw. She finds pre-trial
-  detention raises conviction by about \textbf{13\%}, mostly through
-  guilty pleas, and raises sentence length and court fees.
+  defendants are detained pre-trial \textbf{purely by draw}.
 \item
-  The design has spread far beyond courts: patent examiners, disability
-  examiners, loan officers, auditors.
+  She finds pre-trial detention raises conviction by about
+  \textbf{13\%}, mostly through guilty pleas, and raises sentence length
+  and court fees.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  The design has spread far beyond courts. Anywhere a queue is staffed
+  by rotating officials with discretion:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    patent examiners, disability examiners, loan officers, auditors,
+    bankruptcy judges, bank supervisors.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Leniency, in equations}
+\protect\phantomsection\label{leniency-in-equations}
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_i$ & convicted $\{0,1\}$ --- also sentence length, court fees \\
+$D_i$ & $\mathbf{1}\{$detained pre-trial$\}$ \\
+$Z_i$ & leave-one-out detention rate of the judge who drew case $i$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & D_i = \pi_1 Z_i + \mathbf{c}_{ct}'\gamma + \nu_i \\
+\text{Second stage:}\quad & Y_i = \delta D_i + \mathbf{c}_{ct}'\gamma + \varepsilon_i
+\end{align*}
+
+\vspace{-0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  \(\mathbf{c}_{ct}\) are \textbf{court \(\times\) period fixed effects}
+  --- the cell inside which assignment is random. They are not controls;
+  they define the experiment.
+\item
+  Stevenson's \(\hat\delta\): detention raises conviction by about
+  \(13\%\).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Building the instrument}
+\protect\phantomsection\label{building-the-instrument}
+\textbf{Not the judge --- the judge's \emph{leniency}:} \emph{of all the
+other cases my judge handled, what fraction did they treat?}
+
+\[
+Z_i \;=\; \frac{1}{n_{j(i)} - 1} \sum_{\substack{k \,\neq\, i \\ j(k) \,=\, j(i)}} D_k
+\qquad \text{(leave-one-out, or \emph{jackknife}, leniency)}
+\]
+
+\vspace{-0.5em}
+
+\begin{center}\footnotesize
+\begin{tabular}{ll}
+$i$ & the case you are building the instrument \emph{for} \\
+$j(\cdot)$ & the judge who drew case $i$ \\
+<!-- $k$ & runs over every case with $j(k) = j(i)$ --- same judge --- except $k = i$ \\ -->
+$n_{j(i)}$ & that judge's caseload; subtract $1$ because we dropped case $i$ \\
+$D_k$ & whether case $k$ was treated (detained, liquidated, granted) \\
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+
+\begin{itemize}
+\tightlist
+\item
+  A judge who detains \(70\%\) of \emph{everyone else} is a judge your
+  case was unlucky to draw --- and that luck is the only thing the
+  instrument uses.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Two choices that make it work}
+\protect\phantomsection\label{two-choices-that-make-it-work}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Why leave your own case out?} Keeping it in puts \(D_i\) on
+  \emph{both} sides:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \(Z_i\) then inherits a slice of \(D_i\), and so a slice of
+    \(\varepsilon_i\). \textbf{The instrument is no longer excluded}
+  \item
+    The first stage looks strong for a reason that has nothing to do
+    with the judge.
+  \item
+    The slice is \(1/n_{j(i)}\), so the damage grows when caseloads are
+    short \emph{or} when genuine leniency differences are small.
+  \end{itemize}
+\item
+  \textbf{Why residualise first?}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Assignment is random \emph{within} a court \(\times\) period cell,
+    not nationally.
+  \item
+    So build leniency inside the group, and carry those fixed effects
+    into both stages.
+  \end{itemize}
+\end{itemize}
+
+\vspace{0.5em}
+
+\begin{itemize}
+\tightlist
+\item
+  Then it is an ordinary just-identified IV: \(D\) on \(Z\), then \(Y\)
+  on \(\hat D\).
+\item
+  \textbf{Equivalently:} use \textbf{one dummy per judge} as
+  instruments. Same object --- and now the problem on the next slide
+  becomes visible.
 \end{itemize}
 \end{frame}
 
@@ -425,85 +563,488 @@ The design needs three ingredients:
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Independence} is usually the easy one --- assignment really is
-  random. But watch for \emph{strategic response}: Gaudet et al.~already
-  reported in 1933 that repeat offenders who recognised a severe judge
-  would change their plea to force a reassignment.
+  \textbf{Independence} --- usually fine, assignment really is random.
 
   \begin{itemize}
   \tightlist
   \item
-    Use the \textbf{initial} assignment, not the final one, where you
-    can.
+    \emph{But:} in 1933 Gaudet et al.~saw repeat offenders change their
+    plea to escape a severe judge. Use the \textbf{initial} assignment.
   \end{itemize}
 \item
-  \textbf{Exclusion} is the usual worry, and it must be argued case by
-  case. If a defendant is assigned a severe judge, the \emph{expected}
-  penalty at trial rises --- so the defendant may accept a plea. That is
-  a channel from IV to outcome that does not run through the judge's
-  sentence.
+  \textbf{Exclusion} --- the usual worry. A defendant who draws a judge
+  known to be severe expects a worse outcome at trial, so pleads guilty
+  --- \emph{whether or not he was detained}. That path runs from \(Z\)
+  straight to \(Y\), bypassing \textbf{detention}, which is the
+  treatment.
 \item
-  \textbf{Monotonicity} is often the hardest. The assumption requires
-  that a judge who is stricter for one defendant is stricter for
-  \emph{all} of them. But a judge may be lenient in general and strict
-  on drug charges. Imbens and Angrist flagged exactly this case in 1994
-  and concluded you \textbf{cannot} identify a LATE nonparametrically.
+  \textbf{Monotonicity} --- the hardest. Lenient overall, strict on drug
+  charges, and the assumption is gone. Imbens and Angrist flagged this
+  case in 1994: no nonparametric LATE.
+\item
+  \textbf{One instrument, or many?} Leniency is really one instrument
+  per judge --- so weak-instrument bias is the default here, not the
+  exception. Hence \textbf{JIVE}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why 2SLS is biased here}
+\protect\phantomsection\label{why-2sls-is-biased-here}
+\begin{itemize}
+\tightlist
+\item
+  Run 2SLS with the \(K\) \textbf{judge dummies} as instruments. The
+  fitted value \(\hat D_i = Z_i'\hat\pi\) uses a \(\hat\pi\) estimated
+  from \textbf{every} case --- including case \(i\).
+\item
+  So \(\hat D_i\) carries a slice of \(D_i\), and therefore a slice of
+  \(\varepsilon_i\).
+\end{itemize}
+
+\vspace{0.4em}
+
+\[
+\text{2SLS bias} \;\approx\; \frac{\text{OLS bias}}{F+1} .
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Add judges and \(F\) falls, so the bias grows, even if the judges
+  together explain exactly as much as before.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{JIVE: leave yourself out}
+\protect\phantomsection\label{jive-leave-yourself-out}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{The fix:} Estimate the first stage \textbf{without case
+  \(i\)}, then use it to predict case \(i\). Same \(K\) instruments ---
+  different fitted value. \[
+  \hat D_i^{\text{JIVE}} \;=\; Z_i'\hat\pi_{(-i)} , \qquad \hat\pi_{(-i)} \text{ fitted on everyone but } i .
+  \]
+\item
+  Regress \(Y_i\) on \(\hat D_i^{\text{JIVE}}\). This is \textbf{JIVE}
+  (Angrist, Imbens and Krueger 1999).
+\item
+  Nothing about your own case is used to predict your own case.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{You do not run \(n\) regressions.} Leave-one-out has a closed
+  form, built from the \textbf{leverage} of observation \(i\): \[
+  \hat D_i^{\text{JIVE}} \;=\; \frac{Z_i'\hat\pi - h_i D_i}{1 - h_i},
+  \qquad
+  h_i = Z_i'(Z'Z)^{-1} Z_i .
+  \]
+\item
+  \(h_i\) is the \(i\)th diagonal of the projection (``hat'') matrix ---
+  how much case \(i\) pulls its own fitted value. See Hansen,
+  \emph{Econometrics}, §3.21.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Your leniency measure \emph{was} JIVE}
+\protect\phantomsection\label{your-leniency-measure-was-jive}
+With judge dummies and nothing else, your fitted value is just your
+judge's average, \(Z_i'\hat\pi = \bar D_{j(i)}\), and your leverage is
+your share of that average, \(h_i = 1/n_{j(i)}\), where \(n_{j(i)}\) is
+your judge's caseload. So
+
+\[
+\hat D_i^{\text{JIVE}}
+= \frac{\bar D_{j(i)} - D_i / n_{j(i)}}{1 - 1/n_{j(i)}}
+= \frac{1}{n_{j(i)} - 1} \sum_{\substack{k \,\neq\, i \\ j(k) \,=\, j(i)}} D_k .
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  That is \textbf{exactly} the leave-one-out leniency we built earlier.
+\item
+  \textbf{Caveat:} Add controls and this breaks --- next slide.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Once you add controls, JIVE breaks too}
+\protect\phantomsection\label{once-you-add-controls-jive-breaks-too}
+\begin{itemize}
+\tightlist
+\item
+  We \emph{must} control for the court-and-period \textbf{group}, where
+  assignment is random.
+\item
+  JIVE leaves your case out of \textbf{your own judge's detention rate}.
+  But it then subtracts the \textbf{group average}, which is computed
+  from all cases in the group, including yours.
+\item
+  So your own case walks back in through the subtraction. The bias
+  returns.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{UJIVE} (Kolesár 2013) leaves case \(i\) out of \emph{both}
+  pieces: your judge's leave-out rate \(-\) your group's leave-out rate.
+\item
+  Without group controls the difference is negligible. With them, UJIVE
+  is the safe default.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Two more things worth knowing}
+\protect\phantomsection\label{two-more-things-worth-knowing}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Do not cluster by judge.} It is common, and it is wrong. What
+  matters is how cases were \emph{assigned}.
 
   \begin{itemize}
   \tightlist
   \item
-    Frandsen, Lefgren and Leslie (2023) propose a joint test of
-    exclusion and monotonicity; a rejection does not tell you which
-    failed.
+    Cases assigned to judges one at a time, independently
+    \(\Rightarrow\) plain \textbf{robust} standard errors.
+  \item
+    Cases assigned in batches --- one duty judge takes every case filed
+    that day \(\Rightarrow\) cluster \textbf{by day}, the unit that was
+    actually drawn.
   \end{itemize}
 \item
-  \textbf{Econometric wrinkle.} Judge leniency looks like one IV but is
-  really \textbf{many} --- one per judge. Weak-instrument bias is
-  therefore the default, not the exception, which is why this literature
-  uses \textbf{JIVE} (leave-one-out) estimators.
+  \textbf{With UJIVE you need not chase a large \(F\).} It stays roughly
+  unbiased even when \(F\) is close to \(1\). That is the point of using
+  it.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Read:} Goldsmith-Pinkham, Hull and Kolesár (2026),
+  \emph{Leniency Designs: An Operator's Manual}, \emph{JEP} 40(3). A
+  step-by-step guide --- including a weaker, more believable version of
+  monotonicity and a test for it --- with an \texttt{R} package
+  (\texttt{ManyIV}).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Stevenson's numbers (Remix, Table 7.12)}
+\protect\phantomsection\label{stevensons-numbers-remix-table-7.12}
+\begin{center}\small
+\begin{tabular}{lcccccc}
+\toprule
+ & OLS & OLS & 2SLS & 2SLS & JIVE & JIVE \\
+\midrule
+Detention & $-0.001$ & $0.029$ & $0.151$ & $0.186$ & $0.162$ & $0.212$ \\
+          & $(0.002)$ & $(0.002)$ & $(0.065)$ & $(0.064)$ & $(0.070)$ & $(0.076)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+\footnotesize
+
+\(N = 331{,}971\), eight bail judges. Outcome: guilty plea. Odd columns
+use time controls only; even columns add defendant and offence
+characteristics. \normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{OLS says detention does nothing.} IV says it raises guilty
+  pleas by \(15\)--\(21\) percentage points.
+\item
+  But Stevenson has only \textbf{eight} judges. To see what happens with
+  \emph{many}, we need a bigger pipeline.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A bigger pipeline: patent examiners}
+\protect\phantomsection\label{a-bigger-pipeline-patent-examiners}
+Goldsmith-Pinkham, Hull and Kolesár (2026) re-run Farre-Mensa, Hegde and
+Ljungqvist (2020): does getting your \textbf{first patent approved} help
+a startup innovate again?
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Treatment} \(D_i\): the application was \textbf{approved}.
+\item
+  \textbf{Instrument} \(Z_i\): \textbf{one dummy per examiner} ---
+  examiners differ in how freely they grant.
+\item
+  \textbf{Outcome} \(Y_i\): the startup's later innovation
+\item
+  \textbf{Controls} \(W_i\): \textbf{art unit} \(\times\) year. An
+  \emph{art unit} is the small group of examiners who specialise in one
+  technology; an application is assigned quasi-randomly to an examiner
+  \textbf{within} it. It is the patent office's court-and-period group
+  --- the place where the lottery actually happens.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The standard errors lie too (GPHK 2026)}
+\protect\phantomsection\label{the-standard-errors-lie-too-gphk-2026}
+\begin{center}\small
+\begin{tabular}{lccc}
+\toprule
+Effect of approval on & UJIVE & 2SLS (examiner dummies) & OLS \\
+\midrule
+Any later application & $0.173$ & $0.232$ & $0.234$ \\
+                      & $(0.055)$ & $(0.016)$ & $(0.006)$ \\
+Any later approval    & $0.259$ & $0.240$ & $0.223$ \\
+                      & $(0.050)$ & $(0.014)$ & $(0.005)$ \\
+$\log(1+\text{citations})$ & $0.419$ & $0.372$ & $0.339$ \\
+                      & $(0.125)$ & $(0.033)$ & $(0.011)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{2SLS has landed on OLS} --- That is the bias reproduced.
+\item
+  \textbf{And look at the standard errors.} 2SLS reports errors three to
+  four times \emph{smaller} than UJIVE.
 \end{itemize}
 \end{frame}
 
 \section{3. Bartik / Shift-Share IVs}\label{bartik-shift-share-ivs}
 
-\begin{frame}{The construction}
-\protect\phantomsection\label{the-construction}
+\begin{frame}{The question: what does immigration do to local wages?}
+\protect\phantomsection\label{the-question-what-does-immigration-do-to-local-wages}
 \begin{itemize}
 \tightlist
 \item
-  \textbf{The problem.} Regress local wages on local immigration (or
-  employment) flows and the regressor is simultaneously determined by
-  local supply and demand. Everything is endogenous.
+  \textbf{The question.} When immigrants arrive in a city, what happens
+  to the wages of the \textbf{native} workers already there? \[
+  Y_{l,t} = \alpha + \delta D_{l,t} + \rho X_{l,t} + \varepsilon_{l,t}
+  \]
+\end{itemize}
+
+\vspace{-0.2em}
+
+\begin{itemize}
+\tightlist
 \item
-  \textbf{The construction.} Combine \emph{national} industry- or
-  origin-specific growth with \emph{local} initial shares: \[
-  B_{l,t} \;=\; \sum_{k=1}^{K} z_{l,k,t_0}\, m_{k,t},
-  \] where \(z_{l,k,t_0}\) is location \(l\)'s \textbf{initial share} of
-  group \(k\) (the ``share'') and \(m_{k,t}\) is the \textbf{national
-  change} for group \(k\) (the ``shift'').
+  \(Y_{l,t}\): log native wages in city \(l\) in year \(t\).
+  \(D_{l,t}\): immigrant inflow. \(X_{l,t}\): controls, including city
+  and year fixed effects.
 \item
-  The predicted local flow is a weighted average of national rates, with
-  weights fixed by history.
+  \textbf{Why OLS cannot answer it.} Immigrants are not sprinkled over
+  cities at random. They go where the work is.
 \item
-  \textbf{Two incompatible justifications}, and you must pick one:
+  \textbf{What we need:} something that sends immigrants to a city for
+  reasons that have nothing to do with \emph{that city's} labour market.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The idea: you go where your people already are}
+\protect\phantomsection\label{the-idea-you-go-where-your-people-already-are}
+\begin{itemize}
+\tightlist
+\item
+  A new arrival from Mexico does not choose a city off a map. They go
+  where there is already a Mexican community.
+\item
+  So a \textbf{national} surge in migration from one country lands
+  disproportionately in the cities that already held people from that
+  country.
+\item
+  \(l\) = a \textbf{city}, \(k\) = a \textbf{source country}, \(t\) =
+  the year, \(t_0\) = a base year \emph{before} the flows we study. \[
+  \underbrace{B_{l,t}}_{\text{predicted inflow}} \;=\; \sum_{k=1}^{K} \underbrace{z_{l,k,t_0}}_{\substack{\text{\textbf{shares}} \\ \text{who was already there}}} \times \underbrace{m_{k,t}}_{\substack{\text{\textbf{shifts}} \\ \text{who left home}}}
+  \]
+\end{itemize}
+
+\vspace{0.2em}
+
+\begin{itemize}
+\tightlist
+\item
+  Los Angeles chose neither the surge out of Mexico nor, in anticipation
+  of it, its 1980 immigrants. The surge was decided in Mexico.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Shift-share, in equations}
+\protect\phantomsection\label{shift-share-in-equations}
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_{l,t}$ & log wages of \emph{native} workers in city $l$ \\
+$D_{l,t}$ & immigrant inflow into city $l$ --- the Remix writes this $I_{l,t}$ \\
+$Z_{l,t}$ & $B_{l,t} = \sum_k z_{l,k,t_0}\, m_{k,t}$ --- inflow predicted by the enclave map \\
+$X_{l,t}$ & controls: city and year fixed effects \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & D_{l,t} = \pi_0 + \pi_1 B_{l,t} + \rho_1 X_{l,t} + \nu_{l,t} \\
+\text{Second stage:}\quad & Y_{l,t} = \alpha + \delta D_{l,t} + \rho X_{l,t} + \varepsilon_{l,t}
+\end{align*}
+
+\vspace{-0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  First stage: do the cities whose enclaves \emph{should} have drawn
+  immigrants actually get them?
+\item
+  \(\delta\) is the effect of immigration on native wages --- an average
+  across source countries, weighted towards whichever ones actually move
+  the instrument.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Identification}
+\protect\phantomsection\label{identification}
+\textbf{Bartik IV requires exogeneity of either shares OR shifts}.
+
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+\begin{block}{Framework A: Shares Exogenous}
+\protect\phantomsection\label{framework-a-shares-exogenous}
+\textbf{Goldsmith-Pinkham, Sorkin, Swift (GPSS, 2020)}
+
+\begin{itemize}
+\tightlist
+\item
+  Identifies via baseline shares \(z_{ik}\).
+\item
+  Equivalent to using shares as individual instruments.
+\item
+  Shifts \(m_{k,t}\) act merely as a weighting matrix.
+\end{itemize}
+\end{block}
+\end{column}
+
+\begin{column}{0.5\linewidth}
+\begin{block}{Framework B: Shifts Exogenous}
+\protect\phantomsection\label{framework-b-shifts-exogenous}
+\textbf{Borusyak, Hull, Jaravel (BHJ, 2022)}
+
+\begin{itemize}
+\tightlist
+\item
+  Identifies via sectoral shocks \(m_{kt}\).
+\item
+  Shares \(z_{ik}\) can be completely endogenous.
+\item
+  Requires many independent shocks (\(K \to \infty\)).
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}{How identification fails: Framework A (exogenous shares)}
+\protect\phantomsection\label{how-identification-fails-framework-a-exogenous-shares}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Path dependence}
 
   \begin{itemize}
   \tightlist
   \item
-    \textbf{Shares view} (Goldsmith-Pinkham, Sorkin and Swift 2020): the
-    exogenous variation is in the \emph{initial shares}; the shifts only
-    supply first-stage power. The burden is to argue the shares are
-    exogenous conditional on controls.
+    Instrument: 1990 manufacturing shares → modern wage growth.
   \item
-    \textbf{Shifts view} (Borusyak, Hull and Jaravel 2022): with many
-    independent national shocks, identification can come from the
-    \emph{shocks}, whether or not the shares are exogenous.
+    Problem: high-share (Rust Belt) cities also saw decades of
+    population loss, weaker schools, and decaying infrastructure, all of
+    which affect wages directly.
   \end{itemize}
 \item
-  \textbf{Rotemberg weights} (GPSS) decompose the estimator into the
-  contribution of each share, telling you which few industries are
-  actually identifying your result --- and therefore which ones to
-  scrutinise.
+  \textbf{Agglomeration and amenities}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Instrument: tech employment share → local labor demand.
+  \item
+    Problem: tech clusters draw educated workers, costly housing, and
+    VC. If these drive the outcome directly, the share is not exogenous.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{How identification fails: Framework B (exogenous shocks)}
+\protect\phantomsection\label{how-identification-fails-framework-b-exogenous-shocks}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Common macro shocks}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    National auto growth spikes because interest rates were cut.
+  \item
+    Problem: if local spending responds to the rate cut itself, the
+    shock is endogenous.
+  \end{itemize}
+\item
+  \textbf{Few dominant shocks}
+
+  \begin{itemize}
+  \tightlist
+  \item
+    2 of 50 industries (e.g., oil \& gas, healthcare) drive most of the
+    shock variation.
+  \item
+    Problem: BHJ needs many independent shocks so unobservables average
+    out. With one or two dominant sectors, any confounder in those
+    sectors biases the estimate.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Choose your framework first}
+\protect\phantomsection\label{choose-your-framework-first}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{State your framework:} exogenous shares (GPSS) or exogenous
+  shocks (BHJ).
+\item
+  The framework determines the diagnostics:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    GPSS: Rotemberg weights; balance and pre-trends for the top-weighted
+    industries.
+  \item
+    BHJ: shock-level balance; effective number of shocks;
+    exposure-robust SEs.
+  \end{itemize}
+\end{itemize}
+
+\vspace{0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Read:} Breuer (2022), \emph{Bartik Instruments: An Applied
+  Introduction}, \emph{JFR} 7(1). Written for accounting and finance.
+\item
+  \textbf{Read:} Borusyak, Hull and Jaravel (2025), \emph{A Practical
+  Guide to Shift-Share Instruments}, \emph{JEP} 39(1).
 \end{itemize}
 \end{frame}
 
@@ -526,99 +1067,215 @@ Discontinuity}\label{fuzzy-regression-discontinuity}
                            {\lim_{x\downarrow c_0} E[D|X=x] - \lim_{x\uparrow c_0} E[D|X=x]} .
   \]
 \item
-  In practice: let \(Z_i = \mathbf{1}\{X_i \geq c_0\}\) and use it as an
-  \textbf{IV} for \(D_i\), with the running-variable polynomial as
-  covariates on both stages. Using \(Z_i\) alone is just-identified,
-  which has good finite-sample properties.
+  A ratio of two discontinuities is a Wald estimator. So a fuzzy RD
+  \textbf{is} an IV design.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Fuzzy RD is an IV design}
+\protect\phantomsection\label{fuzzy-rd-is-an-iv-design}
+\begin{itemize}
+\tightlist
 \item
-  \textbf{The assumptions are now IV's assumptions}, not just
-  continuity: exclusion, monotonicity, SUTVA, a strong first stage.
-  Hahn, Todd and van der Klaauw (2001) made this precise.
+  Fuzzy RD \textbf{is} IV, with the instrument
+  \(Z_i = \mathbf{1}\{X_i \geq c_0\}\):
+
+  \begin{itemize}
+  \tightlist
+  \item
+    Numerator = reduced-form jump in \(Y\); denominator = first-stage
+    jump in \(D\).
+  \item
+    Estimate by 2SLS within a bandwidth, instrumenting \(D\) with \(Z\)
+    and controlling for a local polynomial in \(X\) on each side.
+  \item
+    Same IV assumptions, holding locally at \(c_0\): crossing the cutoff
+    affects \(Y\) only through \(D\) (exclusion), and no one is pushed
+    \emph{out} of treatment by crossing it (monotonicity). Relevance.
+    SUTVA.
+  \item
+    So \(\delta_{\text{FRD}}\) is a LATE for \textbf{compliers at the
+    cutoff}: units whose treatment is switched by crossing \(c_0\).
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Fuzzy RD, in equations}
+\protect\phantomsection\label{fuzzy-rd-in-equations}
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+$Y_i$ & the outcome \\
+$D_i$ & treatment actually **received** --- not assignment \\
+$Z_i$ & $\mathbf{1}\{X_i \geq c_0\}$ --- crossing the cutoff \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & D_i = \pi_0 + \pi_1 Z_i + f(X_i - c_0) + \nu_i \\
+\text{Second stage:}\quad & Y_i = \alpha + \delta D_i + g(X_i - c_0) + \varepsilon_i
+\end{align*}
+
+\vspace{-0.3em}
+
+\begin{itemize}
+\tightlist
 \item
-  \textbf{Who are the compliers?} Units whose treatment status flips as
-  \(x\) moves from just below \(c_0\) to just above. This is why the
-  ``Design'' column of the finance table in Lecture 4 mattered.
+  \(f\) and \(g\) are the running-variable polynomials, fitted
+  \textbf{separately on each side} and only inside the bandwidth, with
+  Lecture 4's kernel weights.
+\item
+  \(\delta\) is a LATE \emph{at the cutoff}, for units whose treatment
+  flips there --- doubly local.
 \end{itemize}
 \end{frame}
 
 \section{5. The Elasticity of Demand}\label{the-elasticity-of-demand}
 
-\begin{frame}{Supply shifters}
-\protect\phantomsection\label{supply-shifters}
+\begin{frame}{The Identification Problem}
+\protect\phantomsection\label{the-identification-problem}
 \begin{itemize}
 \tightlist
 \item
-  IV was \textbf{invented} for this, by Philip Wright in the 1920s. A
-  demand curve is a causal object --- the effect of price on quantity
-  --- but every price you observe is an \textbf{equilibrium} price,
-  produced by supply \emph{and} demand.
+  \textbf{The Target:} A demand curve is a causal object---the effect of
+  price (\(P\)) on quantity demanded (\(Q\)).
 \item
-  To trace demand you need something that shifts \textbf{supply only}.
-  Economic theory even tells you where to look:
+  \textbf{The Obstacle:} Observed \((P, Q)\) pairs are
+  \textbf{equilibrium points} generated by simultaneous shifts in both
+  supply and demand.
+\item
+  Wright's Solution:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{History:} Instrumental variables were invented for this
+    exact problem by \textbf{Philip Wright (1928)}.
+  \item
+    \textbf{The Logic:} To trace out a fixed demand curve, you need
+    exogenous variation that shifts \textbf{supply only}.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The question: how price-sensitive are fish buyers?}
+\protect\phantomsection\label{the-question-how-price-sensitive-are-fish-buyers}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{The question.} What is the \textbf{price elasticity of demand}
+  for fish? \textbf{Kathryn Graddy} set out to measure it at the
+  \textbf{Fulton Fish Market}. \textbf{She hand-collected the data},
+  driving in from New Jersey before dawn each morning.
+\item
+  To hold the good fixed, she narrowed it to one product: \textbf{fresh
+  whiting of roughly the same size.}
 \end{itemize}
 
-\begin{center}
-\small
+\vspace{0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{The obstacle is Wright's.} Each trading day hands you a single
+  \((P,Q)\) pair, set by supply and demand \emph{at once}. Regressing
+  \(\log Q\) on \(\log P\) traces neither curve.
+\item
+  \textbf{The instrument:} the weather at sea in the days \emph{before}
+  the fish reached the market. (Graddy 1995, 2006)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Fulton Fish, in equations}
+\protect\phantomsection\label{fulton-fish-in-equations}
+\begin{center}\small
 \begin{tabular}{ll}
 \toprule
-Demand shifters & Supply shifters \\
-\midrule
-Household income & Input prices \\
-Prices of complements / substitutes & Technology \\
-Preferences & Prices of other goods using the same technology \\
-Buyers' beliefs about future prices & Sellers' beliefs about future prices \\
-Number of buyers & Number of sellers \\
+$Y_t$ & $\log Q_t$ --- log pounds of whiting sold on day $t$ \\
+$D_t$ & $\log P_t$ --- log average price that day \\
+$Z_t$ & $\texttt{Stormy}_t$ --- bad weather at sea over the previous two days \\
 \bottomrule
 \end{tabular}
 \end{center}
 
+\vspace{-0.3em}
+
+\begin{align*}
+\text{First stage:}\quad & \log P_t = \pi_0 + \pi_1 \texttt{Stormy}_t + \mathbf{d}_t'\gamma + \nu_t, \qquad \hat\pi_1 \approx 0.35 \\
+\text{Second stage:}\quad & \log Q_t = \alpha + \delta \log P_t + \mathbf{d}_t'\gamma + \varepsilon_t, \qquad \hat\delta \approx -1.12
+\end{align*}
+
+\vspace{-0.3em}
+
 \begin{itemize}
 \tightlist
 \item
-  You need a variable in the \textbf{right} column that is emphatically
-  \textbf{not} in the left one. Notice that this is the strangeness
-  principle, stated as economics.
+  \(\mathbf{d}_t\) are day-of-week dummies. The unit is a \textbf{day},
+  not a buyer.
+\item
+  Both variables are in \textbf{logs}, so \(\delta\) \emph{is} the
+  elasticity --- no conversion required.
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Fulton Fish Market}
-\protect\phantomsection\label{fulton-fish-market}
-\begin{Shaded}
-\begin{Highlighting}[]
-\FunctionTok{suppressMessages}\NormalTok{(\{}\FunctionTok{library}\NormalTok{(haven); }\FunctionTok{library}\NormalTok{(AER); }\FunctionTok{library}\NormalTok{(sandwich); }\FunctionTok{library}\NormalTok{(lmtest)\})}
-\NormalTok{fish }\OtherTok{\textless{}{-}} \FunctionTok{as.data.frame}\NormalTok{(}\FunctionTok{read\_dta}\NormalTok{(}\StringTok{"data/Fulton.dta"}\NormalTok{))}
-\NormalTok{f\_ols }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(q }\SpecialCharTok{\textasciitilde{}}\NormalTok{ p }\SpecialCharTok{+}\NormalTok{ Mon }\SpecialCharTok{+}\NormalTok{ Tue }\SpecialCharTok{+}\NormalTok{ Wed }\SpecialCharTok{+}\NormalTok{ Thu, }\AttributeTok{data =}\NormalTok{ fish)}
-\NormalTok{f\_iv  }\OtherTok{\textless{}{-}} \FunctionTok{ivreg}\NormalTok{(q }\SpecialCharTok{\textasciitilde{}}\NormalTok{ p }\SpecialCharTok{+}\NormalTok{ Mon }\SpecialCharTok{+}\NormalTok{ Tue }\SpecialCharTok{+}\NormalTok{ Wed }\SpecialCharTok{+}\NormalTok{ Thu }\SpecialCharTok{|}\NormalTok{ Stormy }\SpecialCharTok{+}\NormalTok{ Mon }\SpecialCharTok{+}\NormalTok{ Tue }\SpecialCharTok{+}\NormalTok{ Wed }\SpecialCharTok{+}\NormalTok{ Thu, }\AttributeTok{data =}\NormalTok{ fish)}
-\NormalTok{f\_1st }\OtherTok{\textless{}{-}} \FunctionTok{lm}\NormalTok{(p }\SpecialCharTok{\textasciitilde{}}\NormalTok{ Stormy }\SpecialCharTok{+}\NormalTok{ Mon }\SpecialCharTok{+}\NormalTok{ Tue }\SpecialCharTok{+}\NormalTok{ Wed }\SpecialCharTok{+}\NormalTok{ Thu, }\AttributeTok{data =}\NormalTok{ fish)}
-\NormalTok{c1 }\OtherTok{\textless{}{-}} \FunctionTok{coeftest}\NormalTok{(f\_1st, }\AttributeTok{vcov =} \FunctionTok{vcovHC}\NormalTok{(f\_1st, }\StringTok{"HC1"}\NormalTok{))[}\StringTok{"Stormy"}\NormalTok{, ]}
-\FunctionTok{round}\NormalTok{(}\FunctionTok{setNames}\NormalTok{(}\FunctionTok{unname}\NormalTok{(}\FunctionTok{c}\NormalTok{(}\FunctionTok{coef}\NormalTok{(f\_ols)[}\StringTok{"p"}\NormalTok{], }\FunctionTok{coef}\NormalTok{(f\_iv)[}\StringTok{"p"}\NormalTok{], c1[}\DecValTok{1}\NormalTok{],}
-\NormalTok{                        (c1[}\DecValTok{1}\NormalTok{] }\SpecialCharTok{/}\NormalTok{ c1[}\DecValTok{2}\NormalTok{])}\SpecialCharTok{\^{}}\DecValTok{2}\NormalTok{, }\FunctionTok{nrow}\NormalTok{(fish))),}
-               \FunctionTok{c}\NormalTok{(}\StringTok{"OLS elasticity"}\NormalTok{, }\StringTok{"IV elasticity"}\NormalTok{, }\StringTok{"first stage"}\NormalTok{,}
-                 \StringTok{"effective F"}\NormalTok{, }\StringTok{"N"}\NormalTok{)), }\DecValTok{3}\NormalTok{)}
-\end{Highlighting}
-\end{Shaded}
+\begin{frame}[fragile]{Fulton Fish Market (Remix, Table 7.14)}
+\protect\phantomsection\label{fulton-fish-market-remix-table-7.14}
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+Dependent variable: $\log Q$ & OLS & 2SLS \\
+\midrule
+$\log(\text{Price})$ & $-0.563$*** & $-1.119$** \\
+ & $(0.152)$ & $(0.443)$ \\
+ & & $[-2.273,\; -0.312]$ \\
+\midrule
+\multicolumn{3}{l}{\emph{First stage}} \\
+\texttt{Stormy} & & $0.346$*** \\
+ & & $(0.072)$ \\
+Effective $F$ & & $22.929$ \\
+\midrule
+$N$ & $111$ & $111$ \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\begin{verbatim}
-OLS elasticity  IV elasticity    first stage    effective F              N 
-        -0.563         -1.119          0.346         22.929        111.000 
-\end{verbatim}
-
-\vspace{-0.2em}
+\vspace{-0.4em}
 \footnotesize
+
+\textbf{Graddy (2006)}, 111 days at the Fulton Fish Market. \(Q\) = log
+pounds of whiting sold, \(P\) = log average daily price. \texttt{Stormy}
+records bad weather at sea over the previous two days. Robust standard
+errors in parentheses, Anderson--Rubin 95\% interval in brackets. All
+models control for day-of-week dummies. \(^{*}p<0.1\), \(^{**}p<0.05\),
+\(^{***}p<0.01\).
+
+\normalsize
+\end{frame}
+
+\begin{frame}{Reading the fish}
+\protect\phantomsection\label{reading-the-fish}
+\begin{itemize}
+\tightlist
+\item
+  Stormy weather raises price by about \textbf{35\%}. That is a
+  \textbf{supply} shock, not a demand shock --- storms make fish harder
+  to catch, they do not make New Yorkers hungrier.
+\item
+  \textbf{OLS says the elasticity is \(-0.56\). IV says \(-1.12\)} ---
+  twice as elastic.
+\end{itemize}
+
+\vspace{0.4em}
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Graddy (2006)}, 111 days at the Fulton Fish Market. \(Q\) =
-  log pounds of whiting sold, \(P\) = log average daily price. The IV
-  \texttt{Stormy} records bad weather at sea over the previous two days.
-\item
-  Stormy weather raises price by about \textbf{35\%} --- a supply shock,
-  not a demand shock. OLS says the elasticity is \(-0.56\); IV says
-  \(-1.12\).
-\item
-  Why does OLS understate it? Because the observed price--quantity pairs
-  are equilibria traced out by \emph{both} curves moving.
+  \textbf{Why does OLS understate it?} Because the observed
+  price--quantity pairs are \emph{equilibria}. Both curves move, so the
+  scatter traces out neither one.
 \end{itemize}
 \end{frame}
 
@@ -628,25 +1285,50 @@ OLS elasticity  IV elasticity    first stage    effective F              N
 \tightlist
 \item
   The IV elasticity of \(-1.12\) says: \textbf{for compliers}, a 10\%
-  storm-induced price rise cuts quantity by about 11\%. Angrist, Graddy
-  and Imbens (2000) made this precise.
+  storm-induced price rise cuts quantity by about 11\%.
 \item
   Now suppose a seller wants to use this number to set a
   profit-maximising price. Demand looks elastic, so cut prices and sell
   more --- right?
 \item
   \textbf{No.} That elasticity was identified by \emph{storms}. When the
-  firm lowers its price deliberately, it is not using a storm, and the
-  relevant elasticity may be entirely different. Buyers may read a
-  storm-driven price rise as temporary and a posted price cut as
-  permanent.
+  firm cuts its price deliberately, it is not using a storm.
 \item
-  This is the sobering version of LATE: \textbf{it does not tell you
-  what you want to know; it tells you what you can learn given your IV.}
+  Buyers read a storm-driven price rise as \textbf{temporary} and a
+  posted price cut as \textbf{permanent}. Different shock, different
+  response, different elasticity.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What a LATE is, and is not}
+\protect\phantomsection\label{what-a-late-is-and-is-not}
+\begin{itemize}
+\tightlist
 \item
-  The same warning applies to every design in this deck. Before
-  reporting a LATE, ask whether the policy you have in mind would move
-  the same people, in the same way, as your IV did.
+  This is the sobering version of LATE:
+\end{itemize}
+
+\vspace{0.2em}
+
+\begin{center}
+\emph{It does not tell you what you want to know.}\\
+\emph{It tells you what you can learn, given your instrument.}
+\end{center}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  The warning applies to \textbf{every} design --- the lottery, the
+  judge, the national shock, the threshold, the weather.
+\item
+  Before reporting a LATE, ask one question: \emph{would the policy I
+  have in mind move the same people, in the same way, as my instrument
+  did?}
+\item
+  If the answer is no, you have a clean estimate of something other than
+  what you were asked.
 \end{itemize}
 \end{frame}
 
@@ -659,9 +1341,9 @@ OLS elasticity  IV elasticity    first stage    effective F              N
 \toprule
 Design & The shock & Typical first stage & Hardest assumption \\
 \midrule
-Lotteries        & randomised offer        & strong, well below 1 & exclusion (usually fine) \\
+Lotteries        & randomised offer        & strong & exclusion (usually fine) \\
 Judge FE         & assigned decision-maker & many weak instruments & \textbf{monotonicity} \\
-Bartik           & national shock $\times$ local share & varies & exclusion (shares or shifts) \\
+Bartik           & national shock $\times$ local share & strong & exclusion (shares or shifts) \\
 Fuzzy RD         & crossing the cutoff     & jump in $\Pr(D=1)$ & exclusion at the cutoff \\
 Elasticity       & supply shifter          & price response & exclusion (demand channel) \\
 \bottomrule
@@ -672,15 +1354,24 @@ Elasticity       & supply shifter          & price response & exclusion (demand 
 
 \normalsize
 
+\begin{enumerate}
+\tightlist
+\item
+  \textbf{Instruments are physical events.} A lottery draw, a shift
+  schedule, a national policy, a storm. If you cannot describe the
+  physical event that assigns treatment in the real world, you do not
+  have an IV.
+\item
+  \textbf{Estimands are Local (LATE).} An IV only identifies the
+  treatment effect for the \textbf{compliers}---the specific people
+  moved by that exact shock.
+\end{enumerate}
+
 \begin{itemize}
 \tightlist
 \item
-  In every one, the IV is \textbf{something that physically happened in
-  the world}: a draw, an assignment, a national shock, a threshold, the
-  weather. That is not a coincidence --- it is the requirement.
-\item
-  And in every one, the estimand is a LATE for whoever that shock
-  happened to move. Name them before you interpret the number.
+  Always name the compliers in plain English before interpreting your
+  estimate.
 \end{itemize}
 \end{frame}
 
@@ -707,8 +1398,7 @@ sources are:
   aggregate shocks.
 \item
   \textbf{Randomly assigned decision-makers} --- bankruptcy judges, bank
-  examiners, auditors, analysts, patent examiners. Design 2 transplants
-  directly, monotonicity worry and all.
+  examiners, auditors, analysts, patent examiners.
 \item
   \textbf{Lotteries and quasi-lotteries} --- oversubscribed allocations,
   IPO allocation rules, random audits.
@@ -719,10 +1409,9 @@ sources are:
 \begin{itemize}
 \tightlist
 \item
-  The common failure is the same everywhere: in finance the agents are
-  \textbf{sophisticated, well advised and highly motivated}, so the
-  shock you think is exogenous is often anticipated, lobbied for, or
-  selected into.
+  In finance the agents are \textbf{sophisticated, well advised and
+  highly motivated}, so the shock you think is exogenous is often
+  anticipated, lobbied for, or selected into.
 \end{itemize}
 \end{frame}
 
@@ -747,19 +1436,40 @@ sources are:
   effect for small, constrained firms --- which may be the opposite of
   the effect for the firms the policy debate is about.
 \end{enumerate}
+\end{frame}
+
+\begin{frame}{The most useful habit}
+\protect\phantomsection\label{the-most-useful-habit}
+\begin{itemize}
+\tightlist
+\item
+  Write the exclusion restriction down as a \textbf{sentence, in words}
+  --- not as an equation, and not as a citation.
+\item
+  Show it to someone who knows the \textbf{institution} and not the
+  econometrics.
+\end{itemize}
 
 \vspace{0.4em}
 
 \begin{itemize}
 \tightlist
 \item
-  Wei Jiang (2017) surveys the use of IV in corporate finance and is
-  worth reading before you use one.
+  If they can name a second channel in under a minute, you have your
+  answer.
 \item
-  \textbf{The most useful habit:} write down the exclusion restriction
-  as a sentence, in words, and show it to someone who knows the
-  institution and not the econometrics. If they can name a second
-  channel in under a minute, you have your answer.
+  If you cannot write the sentence at all, you did not have an
+  instrument --- you had a variable that happened to be correlated with
+  your treatment.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  Read: Jiang, W. (2017). Have Instrumental Variables Brought Us Closer
+  to the Truth? \emph{Review of Corporate Finance Studies} 6, 127--140.
 \end{itemize}
 \end{frame}
 
@@ -787,31 +1497,48 @@ sources are:
   Borusyak, K., P. Hull and X. Jaravel (2022). Quasi-Experimental
   Shift-Share Research Designs. \emph{ReStud} 89, 181--213.
 \item
+  Borusyak, K., P. Hull and X. Jaravel (2025). A Practical Guide to
+  Shift-Share Instruments. \emph{JEP} 39(1), 181--204.
+\item
+  Breuer, M. (2022). Bartik Instruments: An Applied Introduction.
+  \emph{Journal of Financial Reporting} 7(1), 49--67. --- \textbf{read
+  this before building a shift-share instrument.}
+\item
   Cunningham, S. \emph{Causal Inference: The Remix}, §7.7 --- this deck
   follows it closely.
+\item
+  Farre-Mensa, J., D. Hegde and A. Ljungqvist (2020). What Is a Patent
+  Worth? Evidence from the U.S. Patent ``Lottery''. \emph{Journal of
+  Finance} 75(2), 639--682.
 \item
   Finkelstein, A. et al.~(2012). The Oregon Health Insurance Experiment:
   Evidence from the First Year. \emph{QJE} 127, 1057--1106.
 \item
-  Frandsen, B., L. Lefgren and E. Leslie (2023). Judging Judge Fixed
-  Effects. \emph{AER} 113, 253--277.
+  Gaudet, F., G. Harris and C. St.~John (1933). Individual Differences
+  in the Sentencing Tendencies of Judges. \emph{Journal of Criminal Law
+  and Criminology} 23, 811--818.
 \item
-  Gaudet, F., G. Harris and C. John (1933). Individual Differences in
-  the Sentencing Tendencies of Judges. \emph{Journal of Criminal Law and
-  Criminology} 23, 811--818.
+  Goldsmith-Pinkham, P., P. Hull and M. Kolesár (2026). Leniency
+  Designs: An Operator's Manual. \emph{JEP} 40(3), 213--240. ---
+  \textbf{read this before running a leniency design.}
 \item
   Goldsmith-Pinkham, P., I. Sorkin and H. Swift (2020). Bartik
   Instruments: What, When, Why, and How. \emph{AER} 110, 2586--2624.
 \item
+  Graddy, K. (1995). Testing for Imperfect Competition at the Fulton
+  Fish Market. \emph{RAND Journal of Economics} 26(1), 75--92.
+\item
   Graddy, K. (2006). Markets: The Fulton Fish Market. \emph{JEP} 20,
   207--220.
 \item
-  Hahn, J., P. Todd and W. van der Klaauw (2001). Identification and
-  Estimation of Treatment Effects with a RD Design. \emph{Econometrica}
-  69, 201--209.
+  Hansen, B. (2022). \emph{Econometrics}. Princeton University Press.
+  (§3.21, leave-one-out and leverage.)
 \item
   Imbens, G. and J. Angrist (1994). Identification and Estimation of
   Local Average Treatment Effects. \emph{Econometrica} 62, 467--475.
+\item
+  Kolesár, M. (2013). Estimation in an Instrumental Variables Model with
+  Treatment Effect Heterogeneity. Working paper. (UJIVE.)
 \item
   Jiang, W. (2017). Have Instrumental Variables Brought Us Closer to the
   Truth? \emph{Review of Corporate Finance Studies} 6, 127--140.

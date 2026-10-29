@@ -1,0 +1,1350 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  11pt,
+  ignorenonframetext,
+  aspectratio=169,
+]{beamer}
+\newif\ifbibliography
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% remove section numbering
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{241,243,245}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.40,0.45,0.13}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.28,0.35,0.67}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.46,0.62}{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.68,0.00,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{\textcolor[rgb]{0.00,0.23,0.31}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.07,0.07,0.07}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.13,0.47,0.30}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.37,0.37,0.37}{\textit{#1}}}
+
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+\usepackage{caption}
+% Make caption package work with longtable
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{itemize subitem}[triangle]
+\setbeamercolor{frametitle}{fg=black}
+\setbeamerfont{frametitle}{series=\bfseries}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
+\usepackage{fancyvrb}
+\fvset{fontsize=\scriptsize}
+\makeatletter
+\def\verbatim@font{\scriptsize\ttfamily}
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Dynamic Panels},
+  pdfauthor={Professor Ji-Woong Chung},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{\texorpdfstring{Dynamic Panels}{Dynamic Panels}}
+\subtitle{\texorpdfstring{BUSS975: Causal Inference in Financial
+Research}{BUSS975: Causal Inference in Financial Research}}
+\author{Professor Ji-Woong Chung}
+\date{}
+\institute{Korea University}
+
+\begin{document}
+\frame{\titlepage}
+
+
+\begin{frame}{Where we left off}
+\protect\phantomsection\label{where-we-left-off}
+\begin{itemize}
+\tightlist
+\item
+  The panel lecture rested on one claim: anything about a firm that
+  \textbf{does not change} cannot explain why its outcome changed.
+  Demean, and the firm effect is gone.
+\item
+  The price was \textbf{strict exogeneity}: today's shock must not feed
+  into tomorrow's regressors.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  Finance is full of outcomes that depend on \textbf{their own past}.
+  Leverage, payout, cash, investment --- each is where it is largely
+  because of where it was last year.
+\item
+  Put yesterday's \(Y\) on the right-hand side and strict exogeneity is
+  not merely doubtful. \textbf{It is false by construction.}
+\item
+  This lecture: what breaks, how badly, how to fix it --- and when the
+  fix does not work.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The plan}
+\protect\phantomsection\label{the-plan}
+\begin{enumerate}
+\tightlist
+\item
+  \textbf{Why the past belongs on the right-hand side} --- and one rule
+  that settles every calculation we will need.
+\item
+  \textbf{Two estimators, two wrong answers.} They err in opposite
+  directions, which turns out to be useful.
+\item
+  \textbf{The fix: instruments from the past.} Anderson--Hsiao, then
+  Arellano--Bond.
+\item
+  \textbf{Why the fix can fail}, and what people do then.
+\item
+  \textbf{In practice:} a case study from capital structure, the code,
+  and a checklist.
+\end{enumerate}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  Two running questions. \emph{Which comparison is this estimator
+  making?} And, new this week: \emph{which way is it wrong?}
+\end{itemize}
+\end{frame}
+
+\section{1. Why the Past Belongs on the Right-Hand
+Side}\label{why-the-past-belongs-on-the-right-hand-side}
+
+\begin{frame}{Most things in finance drift}
+\protect\phantomsection\label{most-things-in-finance-drift}
+They do not jump to a target. They close part of the gap each year.
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+Leverage & firms close only part of the gap to target each year \\
+Payout & managers smooth dividends, and cut only as a last resort \\
+Cash & drawn down quickly, rebuilt slowly \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\[
+Y_{it} \;=\; \rho\,Y_{i,t-1} + \delta D_{it} + u_i + \varepsilon_{it}, \qquad |\rho| < 1
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \(\rho\) is \textbf{not a nuisance parameter --- it is the economics.}
+  \(1-\rho\) is the share of the gap closed per year; a shock has
+  half-life \(\ln(0.5)/\ln\rho\).
+\item
+  \(\rho = 0.6\): close \(40\%\) a year, half-life \(1.4\) years.
+  \(\rho = 0.9\): half-life \(6.6\) years. \textbf{Those are different
+  theories of the firm}, and \(\hat\rho\) is supposed to tell them
+  apart.
+\item
+  \(\delta\) is still the treatment effect, but it is now the
+  \textbf{impact} effect. The long-run effect is \(\delta/(1-\rho)\) ---
+  so getting \(\rho\) wrong gets \emph{that} wrong too.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What a firm effect does to a series}
+\protect\phantomsection\label{what-a-firm-effect-does-to-a-series}
+\begin{center}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{06b_dynamic_panel_files/figure-beamer/two-firms-1.pdf}
+\end{center}
+
+Two firms, same \(\rho = 0.6\), same shocks in distribution ---
+different \(u_i\). Back-substitute the model into itself: \[
+Y_{it} \;=\; \frac{u_i}{1-\rho} \;+\; \delta\sum_{j\ge0}\rho^{\,j}D_{i,t-j} \;+\; \sum_{j\ge0}\rho^{\,j}\varepsilon_{i,t-j}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  The firm effect shifts the \textbf{level} --- not the volatility, not
+  the persistence. The series look alike and sit at different heights.
+\item
+  \textbf{Remember this picture.} An estimator that cannot tell
+  \emph{high because it was high last year} from \emph{high because this
+  firm is simply high} will get \(\rho\) wrong. Both usual estimators
+  fail exactly here.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{One rule settles every calculation}
+\protect\phantomsection\label{one-rule-settles-every-calculation}
+Read the back-substitution again: \(Y_{is}\) is assembled from \(u_i\)
+and from shocks \textbf{dated \(s\) and earlier} --- nothing later. If
+\(\varepsilon_{it}\) is serially uncorrelated and unrelated to \(u_i\),
+that gives one rule: \[
+\boxed{\;\mathbb{E}[Y_{is}\,\varepsilon_{it}] = 0 \;\;\text{whenever}\;\; t > s,
+\qquad
+\mathbb{E}[Y_{is}\,\varepsilon_{is}] = \sigma^2_\varepsilon\;}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  In words: \textbf{a later shock has nothing to do with an earlier
+  \(Y\)}; the same-date shock enters \(Y\) with coefficient one.
+\item
+  Every derivation in this lecture is a \textbf{date check} against this
+  rule. Write out a product, look at the two dates, and either it is
+  zero or it is \(\sigma^2_\varepsilon\).
+\item
+  One clause is doing quiet work: \emph{serially uncorrelated}. If
+  \(\varepsilon_{i,t-1}\) predicted \(\varepsilon_{it}\), a later shock
+  \emph{would} be related to an earlier \(Y\). We will come back to that
+  clause --- it is the identifying assumption of the whole enterprise.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The problem you cannot assume away}
+\protect\phantomsection\label{the-problem-you-cannot-assume-away}
+Lag the model one period and the difficulty is on the page: \[
+Y_{i,t-1} \;=\; \rho\,Y_{i,t-2} + \delta D_{i,t-1} + \underbrace{u_i}_{\text{\textbf{also in today's error}}} + \;\varepsilon_{i,t-1}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Every endogenous regressor so far was endogenous because of something
+  we \textbf{failed to measure}. This one is endogenous \textbf{by
+  construction} --- you can read it straight off the model.
+\item
+  \textbf{\(Y_{i,t-1}\) contains \(u_i\)}, and so does the error. Pooled
+  OLS is biased.
+\item
+  \textbf{Strict exogeneity is impossible.} \(\varepsilon_{it}\) moves
+  \(Y_{it}\), and \(Y_{it}\) \emph{is} the regressor next period. The
+  assumption fixed effects needs is contradicted by the model itself.
+\item
+  So pooled OLS fails and fixed effects fails. The useful part, which
+  takes the next section to show: \textbf{they fail in opposite
+  directions.}
+\end{itemize}
+\end{frame}
+
+\section{2. Two Estimators, Two Wrong
+Answers}\label{two-estimators-two-wrong-answers}
+
+\begin{frame}{Why OLS reads heterogeneity as persistence}
+\protect\phantomsection\label{why-ols-reads-heterogeneity-as-persistence}
+Strip the model to the bone. Set \(\rho = 0\) --- \textbf{no persistence
+whatsoever}, only permanent differences between firms: \[
+Y_{it} \;=\; u_i + \varepsilon_{it}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  A high-\(u_i\) firm has a high \(Y\) this year \textbf{and} had a high
+  \(Y\) last year. Not because the past caused the present --- because
+  the firm is simply like that.
+\item
+  Pooled OLS cannot tell those apart. It sees \(Y\) following \(Y\) and
+  calls it persistence: \[
+  \operatorname{plim} \hat\rho_{\text{OLS}} \;=\; \frac{\operatorname{Cov}(Y_{it}, Y_{i,t-1})}{\operatorname{Var}(Y_{i,t-1})} \;=\; \frac{\sigma^2_u}{\sigma^2_u + \sigma^2_\varepsilon} \;>\; 0 \;=\; \rho
+  \]
+\item
+  With \(\sigma_u = \sigma_\varepsilon = 1\) that is \(0.5\). Simulated
+  with \(T=5\) years and \(100{,}000\) firms, pooled OLS returns
+  \(\hat\rho = \mathbf{0.501}\) --- when the truth is \textbf{zero}.
+\item
+  \textbf{And it does not improve with \(T\).} More years of the same
+  firm being itself is more of the same evidence.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why demeaning manufactures mean reversion}
+\protect\phantomsection\label{why-demeaning-manufactures-mean-reversion}
+Fixed effects removes \(u_i\) by subtracting the firm mean --- and the
+firm mean contains the errors. \[
+\underbrace{Y_{i,t-1} - \bar Y_{i,-1}}_{\text{regressor}}
+\qquad\text{regressed on}\qquad
+\underbrace{\varepsilon_{it} - \bar\varepsilon_{i}}_{\text{error}}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \(\varepsilon_{i,t-1}\) pushes the \textbf{regressor up} --- it is
+  part of \(Y_{i,t-1}\). It also pushes \(\bar\varepsilon_i\) up, and
+  \(\bar\varepsilon_i\) is \textbf{subtracted} from the error. The two
+  sides are forced apart mechanically: \[
+  \operatorname{Cov}\big(Y_{i,t-1},\, -\bar\varepsilon_i\big) \;<\; 0, \qquad \text{of order } \sigma^2_\varepsilon/T
+  \]
+\item
+  So within a firm the data look \textbf{more mean-reverting than they
+  are}, and \(\hat\rho\) is biased \textbf{down}. This is
+  \textbf{Nickell (1981) bias}.
+\item
+  \textbf{The same \(\rho = 0\) experiment, now estimated with fixed
+  effects:} \(\hat\rho_{\text{FE}} = \mathbf{-0.251}\), almost exactly
+  \(-1/(T-1)\). Pooled OLS invented persistence; demeaning invents
+  \textbf{mean reversion}.
+\item
+  The sting: this happens \textbf{even if \(u_i\) does not exist} ---
+  demeaning alone does it. And it fades only at rate \(1/T\).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A derivation you can do at the board: \(T = 3\)}
+\protect\phantomsection\label{a-derivation-you-can-do-at-the-board-t-3}
+Take the smallest panel that admits the model: \(T = 3\) years,
+\textbf{one differenced observation per firm}. Then
+\(\hat\rho_{\text{FE}}\) is exactly least squares on
+\(\Delta Y_{i3} = \rho\,\Delta Y_{i2} + \Delta\varepsilon_{i3}\), and \[
+\operatorname{plim}(\hat\rho_{\text{FE}} - \rho) \;=\; \frac{\mathbb{E}[\Delta Y_{i2}\,\Delta\varepsilon_{i3}]}{\mathbb{E}[(\Delta Y_{i2})^2]}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Numerator, by the rule.} Expand
+  \((Y_{i2} - Y_{i1})(\varepsilon_{i3} - \varepsilon_{i2})\) into four
+  products and check dates. Three pair a \(Y\) with a \emph{later}
+  shock: zero. One pairs \(Y_{i2}\) with its \emph{own} shock
+  \(\varepsilon_{i2}\), with a minus sign: \(\;-\sigma^2_\varepsilon\).
+\item
+  \textbf{Denominator, from the picture.} \(u_i\) cancels in a
+  difference, so only the \(\sum\rho^j\varepsilon\) part matters, with
+  variance \(\sigma^2_\varepsilon/(1-\rho^2)\) and one-year
+  autocorrelation \(\rho\). A difference of two such terms has variance
+  \(2(1-\rho)\cdot\sigma^2_\varepsilon/(1-\rho^2) = 2\sigma^2_\varepsilon/(1+\rho)\).
+  \[
+  \operatorname{plim}(\hat\rho_{\text{FE}} - \rho) \;=\; \frac{-\sigma^2_\varepsilon}{2\sigma^2_\varepsilon/(1+\rho)} \;=\; -\,\frac{1+\rho}{2}
+  \]
+\item
+  \(-1/2\) at \(\rho=0\), approaching \(-1\) as \(\rho\to1\).
+  \textbf{For every \(\rho<1\) the plim of \(\hat\rho_{\text{FE}}\) is
+  negative}: a firm whose leverage is genuinely \(90\%\) persistent is
+  reported as mean-reverting. (Hansen 2022, §17.37.)
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Watching both biases at once}
+\protect\phantomsection\label{watching-both-biases-at-once}
+Simulate \(Y_{it} = \rho Y_{i,t-1} + u_i + \varepsilon_{it}\) with
+\(\rho = 0.6\) and \(4{,}000\) firms, varying the number of years \(T\).
+
+\begin{center}\small
+\begin{tabular}{lcccc}
+\toprule
+Years per firm & $T=3$ & $T=5$ & $T=10$ & $T=30$ \\
+\midrule
+Pooled OLS \quad(biased \textbf{up}) & $0.926$ & $0.919$ & $0.920$ & $0.921$ \\
+Fixed effects \quad(biased \textbf{down}) & $-0.181$ & $0.148$ & $0.399$ & $0.543$ \\
+\quad \emph{Nickell (1981) plim, for comparison} & \emph{-0.200} & \emph{0.153} & \emph{0.401} & \emph{0.542} \\
+\midrule
+Truth & $0.600$ & $0.600$ & $0.600$ & $0.600$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{The OLS row never moves.} Its bias confuses heterogeneity with
+  persistence, and more years cannot resolve it.
+\item
+  \textbf{At \(T = 3\) fixed effects reports a negative number} for a
+  process whose true persistence is \(+0.6\) --- exactly what
+  \(-(1+\rho)/2\) predicted.
+\item
+  The simulated FE row tracks Nickell's plim throughout, so this is
+  bias, not noise.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Does it fade with \(T\)? Slowly.}
+\protect\phantomsection\label{does-it-fade-with-t-slowly.}
+\begin{center}
+\includegraphics[width=0.85\linewidth,height=\textheight,keepaspectratio]{06b_dynamic_panel_files/figure-beamer/nickell-plot-1.pdf}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  The bias is \(O(1/T)\): doubling the panel halves it. Finance panels
+  are typically \(10\)--\(20\) years, and often unbalanced with much
+  shorter firm histories.
+\item
+  At \(T = 30\) the bias is still \(-0.058\) at \(\rho = 0.6\) and
+  \(-0.080\) at \(\rho = 0.9\). \textbf{The more persistent the series,
+  the slower the bias leaves.}
+\item
+  Hansen's verdict is blunt: \emph{fixed effects should not be used for
+  models with lagged dependent variables} \textbf{even when \(T\) is
+  large.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Two wrongs that bound the right answer}
+\protect\phantomsection\label{two-wrongs-that-bound-the-right-answer}
+Neither estimator is consistent. But you know the \textbf{sign of each
+bias}, so together they fence the truth in: \[
+\hat\rho_{\text{FE}} \;<\; \rho \;<\; \hat\rho_{\text{OLS}}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  In the table: \(0.15 < 0.60 < 0.92\) at \(T=5\). The bracket is wide,
+  and \textbf{honest}. A single number from either estimator would not
+  be.
+\item
+  \textbf{This is the standard first move in dynamic panel work} (Bond
+  2002). Run OLS and fixed effects \emph{before} anything clever, and
+  keep the two numbers. They are the goalposts.
+\item
+  \textbf{Any estimator you trust must land between them.} We will build
+  one in the next section; if it comes out above
+  \(\hat\rho_{\text{OLS}}\) or below \(\hat\rho_{\text{FE}}\), you have
+  learned something is wrong before interpreting a single coefficient.
+\item
+  A bracket is not a confidence interval. It is a statement about
+  \textbf{bias}, and says nothing about sampling noise.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bracketing, the other kind}
+\protect\phantomsection\label{bracketing-the-other-kind}
+The same trick works when you are unsure \textbf{which model} is right
+--- lagged \(Y\), or fixed effects --- and what you care about is
+\(\delta\).
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+If the truth is & and you estimate & then $\hat\delta$ is \\
+\midrule
+the lagged model & fixed effects      & too \textbf{high} \\
+the fixed effects model & the lagged model & too \textbf{low} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{-0.2em}
+\footnotesize
+
+As written, for \(\delta > 0\). If \(\delta < 0\) the two directions
+swap --- the bracket still holds, but read it the other way round.
+(Angrist and Pischke 2009, §§5.3--5.4.) \normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  Run both and report the bracket rather than picking the specification
+  you prefer. It is an honest statement of what the data support.
+\item
+  \textbf{If the bracket excludes every sensible value --- stop.} The
+  model is wrong in some other way, or finite-sample bias is severe.
+\end{itemize}
+\end{frame}
+
+\section{3. The Fix: Instruments from the
+Past}\label{the-fix-instruments-from-the-past}
+
+\begin{frame}{The fix, in one idea: Anderson--Hsiao}
+\protect\phantomsection\label{the-fix-in-one-idea-andersonhsiao}
+Difference the model to kill \(u_i\): \[
+\Delta Y_{it} \;=\; \rho\,\Delta Y_{i,t-1} + \delta\,\Delta D_{it} + \Delta\varepsilon_{it}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  It also \textbf{leaves a new problem behind}: \(Y_{i,t-1}\) contains
+  \(\varepsilon_{i,t-1}\), and so does \(\Delta\varepsilon_{it}\).
+  Regressor and error share a shock, and you can say exactly how much:
+  \[
+  \mathbb{E}\big[\Delta Y_{i,t-1}\,\Delta\varepsilon_{it}\big] \;=\; -\,\sigma^2_\varepsilon
+  \]
+\item
+  \textbf{So go back one more lag.} \(Y_{i,t-2}\) is \textbf{far enough
+  back to be clean} --- it was already determined before either
+  \(\varepsilon_{i,t-1}\) or \(\varepsilon_{it}\) happened --- yet
+  \textbf{close enough to still predict} \(\Delta Y_{i,t-1}\): \[
+  \mathbb{E}\big[Y_{i,t-2}\,\Delta\varepsilon_{it}\big] \;=\; 0
+  \]
+\item
+  That is \textbf{Anderson--Hsiao (1982)}: IV on the differenced
+  equation using \(Y_{i,t-2}\). It needs \(T \ge 3\).
+\item
+  Note what has happened. The lagged outcome caused the problem, and a
+  \emph{longer} lag of the same variable solves it --- no new data, only
+  the history you already have.
+\item
+  Those two lines carry the section. \textbf{The next two slides are the
+  arithmetic behind them.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why differencing alone fails: four terms, one survivor}
+\protect\phantomsection\label{why-differencing-alone-fails-four-terms-one-survivor}
+Expand
+\(\mathbb{E}\big[(Y_{i,t-1}-Y_{i,t-2})(\varepsilon_{it}-\varepsilon_{i,t-1})\big]\)
+and check the dates against the rule:
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+Term & Shock dated & Value \\
+\midrule
+$+\,\mathbb{E}[Y_{i,t-1}\varepsilon_{it}]$     & after the $Y$ & $0$ \\
+$-\,\mathbb{E}[Y_{i,t-1}\varepsilon_{i,t-1}]$  & \textbf{same as the }$\boldsymbol{Y}$ & $\boldsymbol{-\sigma^2_\varepsilon}$ \\
+$-\,\mathbb{E}[Y_{i,t-2}\varepsilon_{it}]$     & after & $0$ \\
+$+\,\mathbb{E}[Y_{i,t-2}\varepsilon_{i,t-1}]$  & after & $0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  One term survives --- the firm's \textbf{own shock}, which pushes the
+  regressor up and is \emph{subtracted} out of the error. Exactly
+  \(-\sigma^2_\varepsilon\), shrinking in neither \(N\), \(T\), nor
+  \(\rho\).
+\item
+  This is the same calculation as the \(T=3\) numerator two sections
+  ago. Differencing is not a fix; it is where the fixed-effects bias
+  \textbf{comes from}.
+\item
+  Compare the regressor to a hypothetical: if we could use \(Y_{i,t-2}\)
+  in place of \(\Delta Y_{i,t-1}\), the surviving row would read
+  ``after'', and the whole table would be zero. That is the next slide.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why \(Y_{i,t-2}\) is clean --- and still useful}
+\protect\phantomsection\label{why-y_it-2-is-clean-and-still-useful}
+The same rule, applied twice: \[
+\mathbb{E}\big[Y_{i,t-2}\,\Delta\varepsilon_{it}\big]
+= \underbrace{\mathbb{E}[Y_{i,t-2}\,\varepsilon_{it}]}_{t\,>\,t-2\;\Rightarrow\;0}
+\;-\; \underbrace{\mathbb{E}[Y_{i,t-2}\,\varepsilon_{i,t-1}]}_{t-1\,>\,t-2\;\Rightarrow\;0}
+\;=\; 0
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Both shocks are now in the instrument's future, so both terms die. The
+  only term that ever survived was the same-date one, and stepping back
+  a single period is precisely what removes it. \textbf{The difference
+  between a broken regressor and a valid instrument is one date.}
+\item
+  \textbf{Relevance, from the same picture.} \(u_i\) cancels inside
+  \(\Delta Y_{i,t-1}\), so only the \(\sum\rho^j\varepsilon\) part of
+  \(Y_{i,t-2}\) can covary with it: \[
+  \operatorname{Cov}\big(Y_{i,t-2},\,\Delta Y_{i,t-1}\big) \;=\; (\rho-1)\,\frac{\sigma^2_\varepsilon}{1-\rho^2} \;=\; -\,\frac{\sigma^2_\varepsilon}{1+\rho} \;\neq\; 0
+  \]
+\item
+  So the instrument is relevant and the IV is identified. Keep both
+  numbers. The first-stage coefficient is that covariance over
+  \(\operatorname{Var}(Y_{i,t-2}) = \sigma^2_u/(1-\rho)^2 + \sigma^2_\varepsilon/(1-\rho^2)\)
+  --- and \textbf{that ratio is where the fix falls apart} (Section 4).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Two assumptions doing all the work}
+\protect\phantomsection\label{two-assumptions-doing-all-the-work}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Validity.} \(\mathbb{E}[Y_{i,t-2}\Delta\varepsilon_{it}] = 0\)
+  holds \emph{only} because \(\varepsilon_{it}\) is serially
+  uncorrelated --- the quiet clause in the rule. Which is to say,
+  \textbf{only because the dynamics are correctly specified}. If the
+  truth is AR(2) and you fit AR(1), the leftover dynamics land in
+  \(\varepsilon_{it}\); now \(\varepsilon_{i,t-2}\) (inside
+  \(Y_{i,t-2}\)) predicts \(\varepsilon_{i,t-1}\), and the instrument is
+  contaminated.
+\item
+  So the lag length is not a specification detail you tune at the end.
+  It is the \textbf{identifying assumption}. It is testable, and we will
+  test it.
+\item
+  \textbf{Relevance.} On paper it holds --- we showed
+  \(\operatorname{Cov}(Y_{i,t-2},\Delta Y_{i,t-1}) = -\sigma^2_\varepsilon/(1+\rho) \neq 0\).
+  What matters in practice is the first-stage \emph{coefficient}, and
+  that collapses in exactly the cases finance cares about.
+\item
+  The same two assumptions, applied to \(D\): if \(D\) is
+  \textbf{strictly exogenous}, \(\Delta D_{it}\) is its own instrument.
+  If \(D\) is only \textbf{predetermined} --- responds to past shocks
+  but not to today's --- then \(D_{i,t-1}, D_{i,t-2},\dots\) are valid
+  instruments for \(\Delta D_{it}\), by the same date check.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Arellano--Bond: use every lag you have}
+\protect\phantomsection\label{arellanobond-use-every-lag-you-have}
+Anderson--Hsiao uses one moment condition out of many. If
+\(\varepsilon_{it}\) is serially uncorrelated, then at date \(t\)
+\textbf{every} \(Y\) dated \(t-2\) or earlier passes the date check
+(Holtz-Eakin, Newey and Rosen 1988; Arellano and Bond 1991):
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+Differenced equation at & valid instruments for $\Delta Y_{i,t-1}$ & how many \\
+\midrule
+$t = 3$ & $Y_{i1}$ & 1 \\
+$t = 4$ & $Y_{i1},\, Y_{i2}$ & 2 \\
+$t = 5$ & $Y_{i1},\, Y_{i2},\, Y_{i3}$ & 3 \\
+$\;\;\vdots$ & & \\
+$t = T$ & $Y_{i1},\, \dots,\, Y_{i,T-2}$ & $T-2$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Each period gets its own block: a \textbf{block-diagonal} instrument
+  matrix with \((T-1)(T-2)/2\) columns. Overidentified once \(T > 3\),
+  so the estimator is \textbf{GMM} rather than IV.
+\item
+  \textbf{Gain:} efficiency and stability --- one-instrument
+  Anderson--Hsiao can be very noisy. \textbf{Cost:} the count grows with
+  \(T^2\): \(91\) instruments at \(T = 15\), \(406\) at \(T = 30\). Next
+  slide.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Too many instruments}
+\protect\phantomsection\label{too-many-instruments}
+Roodman (2009): a GMM estimator with many instruments relative to \(N\)
+is quietly a bad estimator.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{It overfits the endogenous regressor.} With enough
+  instruments, the first stage can reproduce \(\Delta Y_{i,t-1}\) almost
+  exactly --- including the part correlated with
+  \(\Delta\varepsilon_{it}\). The estimator drifts back toward the
+  biased OLS answer it was built to avoid.
+\item
+  \textbf{It disarms the overidentification test.} The Hansen \(J\)
+  statistic becomes too weak to reject anything; a \(p\)-value of
+  \(0.99\) is a warning sign, not a clean bill of health.
+\item
+  \textbf{Two remedies, both standard.} \emph{Limit the lag depth} ---
+  use \(Y_{i,t-2}\) and \(Y_{i,t-3}\) only, say. \emph{Collapse} ---
+  replace the block-diagonal matrix by one column per lag, so the count
+  grows with \(T\) instead of \(T^2\).
+\item
+  Rule of thumb: keep the instrument count \textbf{well below \(N\)},
+  and \textbf{report it}. A referee who cannot see the count cannot
+  evaluate the estimate.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{One step, two steps, and the standard errors}
+\protect\phantomsection\label{one-step-two-steps-and-the-standard-errors}
+GMM needs a weighting matrix, and the choice matters in small samples.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{One-step} uses a weighting matrix built from the known
+  structure of \(\Delta\varepsilon\) --- adjacent differences share a
+  shock, so they are correlated \(-\tfrac12\). It does not depend on
+  residuals, so it is \emph{less random}. Fine under homoskedasticity.
+\item
+  \textbf{Two-step} re-weights using first-step residuals.
+  Asymptotically efficient under heteroskedasticity --- but its standard
+  errors are \textbf{badly biased downward} in finite samples, because
+  they ignore the noise in the estimated weights.
+\item
+  \textbf{Windmeijer (2005)} corrects the two-step standard errors, and
+  the correction is large. Stata applies it by default with
+  \texttt{twostep\ vce(robust)}. Never report uncorrected two-step
+  standard errors.
+\item
+  Practical reading: with a few hundred firms and a dozen years,
+  one-step with robust standard errors and two-step with Windmeijer
+  should agree. If they do not, something is weak.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Diagnostics you must report}
+\protect\phantomsection\label{diagnostics-you-must-report}
+Every one of these is a check on an assumption the estimator cannot
+verify for itself.
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{AR(1) in the differenced residuals --- expected.}
+  \(\Delta\varepsilon_{it}\) and \(\Delta\varepsilon_{i,t-1}\) share
+  \(\varepsilon_{i,t-1}\), so first-order correlation of about
+  \(-\tfrac12\) is a sign the model is behaving.
+\item
+  \textbf{AR(2) in the differenced residuals --- must be absent.}
+  \(\Delta\varepsilon_{it}\) and \(\Delta\varepsilon_{i,t-2}\) share
+  nothing \emph{unless \(\varepsilon\) itself is serially correlated}.
+  If it is, \(Y_{i,t-2}\) fails the date check and \textbf{every
+  instrument is invalid}. This is the test of the identifying
+  assumption. It is not optional.
+\item
+  \textbf{Hansen \(J\) test of overidentifying restrictions} --- with
+  the instrument count beside it, for the reason on the previous slide.
+\item
+  \textbf{The bracket.} Does the estimate sit between
+  \(\hat\rho_{\text{FE}}\) and \(\hat\rho_{\text{OLS}}\)? If it drifts
+  toward the OLS end, suspect too many instruments; if toward the FE
+  end, suspect weak ones.
+\item
+  \textbf{The first stage}, as for any IV. The next section explains why
+  it is usually the problem.
+\end{itemize}
+\end{frame}
+
+\section{4. Why the Fix Can Fail}\label{why-the-fix-can-fail}
+
+\begin{frame}{Weak instruments: the first stage, in closed form}
+\protect\phantomsection\label{weak-instruments-the-first-stage-in-closed-form}
+Blundell and Bond (1998) wrote the first stage,
+\(\Delta Y_{i,t-1} = \gamma\,Y_{i,t-2} + v_{it}\), and divided the two
+quantities from Section 3: \[
+\begin{aligned}
+\gamma \;&=\; \frac{\operatorname{Cov}(Y_{i,t-2},\Delta Y_{i,t-1})}{\operatorname{Var}(Y_{i,t-2})}
+\;=\; \frac{-\sigma^2_\varepsilon/(1+\rho)}{\sigma^2_u/(1-\rho)^2 + \sigma^2_\varepsilon/(1-\rho^2)} \\[0.3em]
+&=\; (\rho - 1)\,\frac{k}{k + \sigma^2_u/\sigma^2_\varepsilon},
+\qquad k = \frac{1-\rho}{1+\rho}
+\end{aligned}
+\]
+
+\vspace{-0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  The covariance on top never goes to zero; \textbf{the damage is all in
+  the denominator.} The \emph{level} \(Y_{i,t-2}\) gets swamped by
+  things that say nothing about the \emph{change} \(\Delta Y_{i,t-1}\).
+\item
+  \textbf{As \(\rho \to 1\)}, the level wanders without bound while
+  changes stay the same size --- a random walk's level says nothing
+  about its next step.
+\item
+  \textbf{As \(\sigma^2_u/\sigma^2_\varepsilon\) grows}, the level is
+  mostly the firm's permanent height, which cancels out of the change.
+  In the two-firm picture: the heights tell you nothing about the
+  wiggles.
+\item
+  Both are the normal case in corporate finance: \textbf{persistent
+  series, large firm effects.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A picture of the first stage}
+\protect\phantomsection\label{a-picture-of-the-first-stage}
+\begin{center}
+\includegraphics[width=0.85\linewidth,height=\textheight,keepaspectratio]{06b_dynamic_panel_files/figure-beamer/gamma-plot-1.pdf}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  At \(\rho = 0.6\) with equal variances, \(\gamma = -0.08\): a usable
+  first stage. At \(\rho = 0.95\), \(\gamma = -0.0013\) --- essentially
+  nothing.
+\item
+  Leverage ratios, payout ratios and cash holdings all sit in the
+  right-hand third of this plot. \textbf{The instrument is weakest
+  exactly where you most need it.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Watching it fail}
+\protect\phantomsection\label{watching-it-fail}
+Same simulation design, now with four estimators. \(500\) firms,
+\(T = 6\), \(200\) replications; the table reports the \textbf{median}
+and the \textbf{10th--90th percentile range} across replications.
+
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & $\rho = 0.6$ & $\rho = 0.95$ \\
+\midrule
+Pooled OLS & $0.92$ \;{\footnotesize[$0.91$, $0.93$]} & $1.00$ \;{\footnotesize[$1.00$, $1.00$]} \\
+Fixed effects & $0.23$ \;{\footnotesize[$0.20$, $0.26$]} & $0.47$ \;{\footnotesize[$0.44$, $0.50$]} \\
+Anderson--Hsiao (one instrument) & $0.59$ \;{\footnotesize[$0.50$, $0.71$]} & $0.86$ \;{\footnotesize[$-0.41$, $2.16$]} \\
+Arellano--Bond (all lags, one-step) & $0.58$ \;{\footnotesize[$0.51$, $0.67$]} & $0.55$ \;{\footnotesize[$0.19$, $0.93$]} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{At \(\rho = 0.6\) the fix works.} Both IV estimators sit
+  inside the bracket, close to the truth; Arellano--Bond is the tighter
+  of the two.
+\item
+  \textbf{At \(\rho = 0.95\) it does not.} Anderson--Hsiao is scattered
+  across the number line. Arellano--Bond is biased \textbf{down toward
+  fixed effects} with an enormous spread --- the textbook signature of
+  weak instruments.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{System GMM: the idea, and its price}
+\protect\phantomsection\label{system-gmm-the-idea-and-its-price}
+Blundell and Bond's repair: keep the differenced equation, and
+\textbf{add the levels equation back}, instrumented the other way round:
+\[
+Y_{it} = \rho\,Y_{i,t-1} + u_i + \varepsilon_{it}, \qquad \text{instrument } Y_{i,t-1} \text{ with } \Delta Y_{i,t-1}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Why it helps.} The change predicts the level even when the
+  level cannot predict the change:
+  \(\operatorname{Cov}(\Delta Y_{i,t-1}, Y_{i,t-1})\) stays bounded away
+  from zero as \(\rho \to 1\). The first stage no longer dies.
+\item
+  \textbf{What it costs.} The levels error still contains \(u_i\), so
+  you need \(\mathbb{E}[\Delta Y_{i,t-1}\,u_i] = 0\): \textbf{changes
+  must be unrelated to the firm's permanent level.} That is exactly what
+  the two-firm picture shows --- \emph{if both firms started at their
+  own long-run levels}.
+\item
+  The formal name is \textbf{mean stationarity}: a firm's distance from
+  its own long-run level in year \(1\) is unrelated to that level.
+\item
+  \textbf{When to doubt it.} Firms observed from IPO are typically
+  \emph{below} long-run leverage and converging up; a panel that starts
+  after a crisis has everyone off target in a correlated way. There the
+  extra instruments are invalid, and system GMM rests on an assumption
+  you do not believe. Say which case you are in.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Long panels: a different route}
+\protect\phantomsection\label{long-panels-a-different-route}
+When \(T\) is large the problem is milder and a different tool is
+available.
+
+\begin{itemize}
+\tightlist
+\item
+  The fixed-effects bias is \(O(1/T)\) \textbf{and its formula is known}
+  (Nickell 1981). So correct it: estimate FE, compute the bias at
+  \(\hat\rho\), subtract, iterate. Kiviet (1995); Bruno (2005) for
+  unbalanced panels --- Stata's \texttt{xtlsdvc}. No instruments, no
+  weak-instrument problem.
+\item
+  Hahn and Kuersteiner (2002) show the corrected estimator is efficient
+  as \(N, T \to \infty\) together; Hahn, Hausman and Kuersteiner (2007)
+  use \textbf{long differences} --- \(Y_{it} - Y_{i,t-k}\) --- which
+  keeps the instruments strong even for persistent series.
+\item
+  Flannery and Hankins (2013) ran a horse race on finance-like panels
+  --- short, persistent, unbalanced, with endogenous controls --- and
+  found the bias-corrected FE and system GMM estimators generally
+  reliable, and difference GMM frequently not.
+\item
+  \textbf{Rule of thumb.} \(T \le 10\) and \(\rho\) moderate:
+  Arellano--Bond, with the diagnostics. \(\rho\) near one: system GMM,
+  stating the initial-condition assumption. \(T \ge 20\): bias-corrected
+  FE, which has fewer ways to go wrong.
+\end{itemize}
+\end{frame}
+
+\section{5. In Practice}\label{in-practice}
+
+\begin{frame}{A case study: how fast do firms adjust leverage?}
+\protect\phantomsection\label{a-case-study-how-fast-do-firms-adjust-leverage}
+The partial-adjustment model is our equation with \(Y\) = leverage and
+\(1-\rho\) the \textbf{speed of adjustment}. The literature's estimates:
+
+\begin{center}\small
+\begin{tabular}{llcc}
+\toprule
+Paper & Estimator & $\hat\rho$ & speed $1-\hat\rho$ \\
+\midrule
+Fama and French (2002) & pooled (Fama--MacBeth) & $\approx 0.85$ & $\approx 7$--$18\%$ a year \\
+Flannery and Rangan (2006) & fixed effects & $\approx 0.66$ & $\approx 34\%$ \\
+Lemmon, Roberts and Zender (2008) & system GMM & $\approx 0.75$ & $\approx 25\%$ \\
+Huang and Ritter (2009) & long differencing & $\approx 0.80$ & $\approx 17$--$23\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  A decade of disagreement about whether firms have targets at all ---
+  and \textbf{the ordering is the bracket}. Fixed effects is biased down
+  in \(\rho\), so it reports the \emph{fastest} adjustment; pooled
+  estimation is biased up, so the \emph{slowest}. The IV-type estimates
+  sit between.
+\item
+  The substantive question (do firms rebalance toward targets, or does
+  leverage just drift?) \textbf{turned on the bias this lecture is
+  about.} A half-life of \(1.7\) years and one of \(5\) years are
+  different theories of the firm.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Try it: simulate the panel}
+\protect\phantomsection\label{try-it-simulate-the-panel}
+Truth known, so every estimator can be graded. Full do-file:
+\texttt{06b\_dynamic\_panel\_sim.do}.
+
+\small
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{clear} \OtherTok{all}
+\KeywordTok{set} \DecValTok{seed}\NormalTok{ 20260202}
+\KeywordTok{local} \KeywordTok{N}\NormalTok{ = 500            }\CommentTok{// firms}
+\KeywordTok{local}\NormalTok{ T = 8              }\CommentTok{// years kept per firm}
+\KeywordTok{local}\NormalTok{ rho = 0.6          }\CommentTok{// true persistence {-}{-} change to 0.95 later}
+\KeywordTok{set} \KeywordTok{obs} \OtherTok{\textasciigrave{}N\textquotesingle{}}
+\KeywordTok{gen}\NormalTok{ firm = }\DataTypeTok{\_n}
+\KeywordTok{gen}\NormalTok{ u = rnormal()                                        }\CommentTok{// firm effect}
+\KeywordTok{gen} \FunctionTok{y}\NormalTok{ = u/(1{-}}\OtherTok{\textasciigrave{}rho\textquotesingle{}}\NormalTok{) + rnormal(0, 1/}\FunctionTok{sqrt}\NormalTok{(1{-}}\OtherTok{\textasciigrave{}rho\textquotesingle{}}\NormalTok{\^{}2))     }\CommentTok{// stationary start}
+\KeywordTok{forvalues} \FunctionTok{s}\NormalTok{ = 1/30 \{}
+    \KeywordTok{replace} \FunctionTok{y}\NormalTok{ = }\OtherTok{\textasciigrave{}rho\textquotesingle{}}\NormalTok{*}\FunctionTok{y}\NormalTok{ + u + rnormal()                  }\CommentTok{// burn in to the long{-}run level}
+\NormalTok{\}}
+\NormalTok{expand }\OtherTok{\textasciigrave{}T\textquotesingle{}}
+\KeywordTok{bysort}\NormalTok{ firm: }\KeywordTok{gen} \FunctionTok{year}\NormalTok{ = }\DataTypeTok{\_n}
+\NormalTok{xtset firm }\FunctionTok{year}
+\KeywordTok{bysort}\NormalTok{ firm (}\FunctionTok{year}\NormalTok{): }\KeywordTok{replace} \FunctionTok{y}\NormalTok{ = }\OtherTok{\textasciigrave{}rho\textquotesingle{}}\NormalTok{*}\FunctionTok{y}\NormalTok{[}\DataTypeTok{\_n}\NormalTok{{-}1] + u + rnormal() }\KeywordTok{if} \DataTypeTok{\_n}\NormalTok{ \textgreater{} 1}
+\end{Highlighting}
+\end{Shaded}
+
+\normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  The burn-in starts every firm at its own long-run level --- the
+  \textbf{mean-stationarity} condition system GMM needs. Delete it, and
+  system GMM is misspecified.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Try it: estimate, grade, and watch it fail}
+\protect\phantomsection\label{try-it-estimate-grade-and-watch-it-fail}
+\small
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{reg}   \FunctionTok{y}\NormalTok{ L.}\FunctionTok{y}\NormalTok{, }\KeywordTok{vce}\NormalTok{(}\KeywordTok{cluster}\NormalTok{ firm)                       }\CommentTok{// biased up}
+\KeywordTok{estimates} \KeywordTok{store}\NormalTok{ OLS}
+\KeywordTok{xtreg} \FunctionTok{y}\NormalTok{ L.}\FunctionTok{y}\NormalTok{, }\KeywordTok{fe} \KeywordTok{vce}\NormalTok{(}\KeywordTok{cluster}\NormalTok{ firm)                    }\CommentTok{// biased down (Nickell)}
+\KeywordTok{estimates} \KeywordTok{store}\NormalTok{ FE}
+\NormalTok{ivregress 2sls D.}\FunctionTok{y}\NormalTok{ (LD.}\FunctionTok{y}\NormalTok{ = L2.}\FunctionTok{y}\NormalTok{), }\KeywordTok{vce}\NormalTok{(}\KeywordTok{cluster}\NormalTok{ firm)  }\CommentTok{// Anderson{-}Hsiao}
+\KeywordTok{estimates} \KeywordTok{store}\NormalTok{ AH}
+\KeywordTok{xtabond} \FunctionTok{y}\NormalTok{, lags(1) maxldep(3) twostep }\KeywordTok{vce}\NormalTok{(}\KeywordTok{robust}\NormalTok{)    }\CommentTok{// Arellano{-}Bond, lags 2{-}4}
+\KeywordTok{estimates} \KeywordTok{store}\NormalTok{ AB}
+\KeywordTok{estat}\NormalTok{ abond                                          }\CommentTok{// AR(1) expected, AR(2) must be absent}
+\NormalTok{xtdpdsys }\FunctionTok{y}\NormalTok{, lags(1) maxldep(3) twostep }\KeywordTok{vce}\NormalTok{(}\KeywordTok{robust}\NormalTok{)   }\CommentTok{// Blundell{-}Bond system GMM}
+\KeywordTok{estimates} \KeywordTok{store}\NormalTok{ BB}
+\KeywordTok{estimates} \KeywordTok{table}\NormalTok{ OLS FE AH AB BB, }\KeywordTok{keep}\NormalTok{(L.}\FunctionTok{y}\NormalTok{ LD.}\FunctionTok{y}\NormalTok{) b(\%7.3f) se(\%7.3f)}
+\end{Highlighting}
+\end{Shaded}
+
+\normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{What to expect at \(\rho = 0.6\):} OLS near \(0.92\), fixed
+  effects near \(0.34\) (Nickell's plim at \(T = 8\)), and the three
+  IV/GMM estimates near \(0.6\) --- inside the bracket, with
+  Anderson--Hsiao the noisiest.
+\item
+  \textbf{Then set \(\rho = 0.95\) and run it again.} Anderson--Hsiao
+  scatters; Arellano--Bond drifts down toward fixed effects with a wide
+  standard error; system GMM holds up --- because the burn-in made its
+  assumption true. That is the whole lecture in one table.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The code, on real data}
+\protect\phantomsection\label{the-code-on-real-data}
+\small
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{* 1. The bracket first {-}{-} and }\KeywordTok{keep}\NormalTok{ both numbers}
+\KeywordTok{reg}   \FunctionTok{y}\NormalTok{ L.}\FunctionTok{y}\NormalTok{ x i.}\FunctionTok{year}\NormalTok{, }\KeywordTok{cluster}\NormalTok{(firm)}
+\KeywordTok{xtreg} \FunctionTok{y}\NormalTok{ L.}\FunctionTok{y}\NormalTok{ x i.}\FunctionTok{year}\NormalTok{, }\KeywordTok{fe} \KeywordTok{cluster}\NormalTok{(firm)}
+
+\NormalTok{* 2. Difference GMM (Arellano{-}Bond): }\KeywordTok{two}\NormalTok{{-}step, Windmeijer SEs, lag depth capped }\FunctionTok{at}\NormalTok{ 3}
+\KeywordTok{xtabond} \FunctionTok{y}\NormalTok{ x i.}\FunctionTok{year}\NormalTok{, lags(1) maxldep(3) twostep }\KeywordTok{vce}\NormalTok{(}\KeywordTok{robust}\NormalTok{)}
+\KeywordTok{estat}\NormalTok{ abond                       }\CommentTok{// AR(1) expected; AR(2) must be absent}
+
+\NormalTok{* 3. Same, with collapsed instruments and the Hansen }\KeywordTok{test}\NormalTok{ (Roodman\textquotesingle{}s xtabond2)}
+\KeywordTok{ssc}\NormalTok{ install xtabond2}
+\NormalTok{xtabond2 }\FunctionTok{y}\NormalTok{ L.}\FunctionTok{y}\NormalTok{ x i.}\FunctionTok{year}\NormalTok{, gmm(L.}\FunctionTok{y}\NormalTok{, lag(2 4) }\KeywordTok{collapse}\NormalTok{) iv(x i.}\FunctionTok{year}\NormalTok{) twostep }\KeywordTok{robust}
+
+\NormalTok{* 4. System GMM {-}{-} only after you have stated the initial{-}condition assumption}
+\NormalTok{xtdpdsys }\FunctionTok{y}\NormalTok{ x i.}\FunctionTok{year}\NormalTok{, lags(1) maxldep(3) twostep }\KeywordTok{vce}\NormalTok{(}\KeywordTok{robust}\NormalTok{)}
+
+\NormalTok{* 5. Long T: bias{-}corrected fixed }\KeywordTok{effects}
+\KeywordTok{ssc}\NormalTok{ install xtlsdvc}
+\NormalTok{xtlsdvc }\FunctionTok{y}\NormalTok{ x, initial(ab) bias(3) vcov(50)}
+\end{Highlighting}
+\end{Shaded}
+
+\normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  In R: \texttt{plm::pgmm()} with \texttt{transformation\ =\ "d"}
+  (difference) or \texttt{"ld"} (system); \texttt{pdynmc} for the
+  Roodman-style options.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{A reporting checklist}
+\protect\phantomsection\label{a-reporting-checklist}
+\begin{center}\small
+\begin{tabular}{R{4.3cm}R{7.6cm}}
+\toprule
+Report & Because \\
+\midrule
+$\hat\rho_{\text{OLS}}$ and $\hat\rho_{\text{FE}}$ & the bracket; your estimate must sit inside it \\
+AR(1) and AR(2) tests & AR(2) is the identifying assumption \\
+Hansen $J$ \emph{and} the instrument count & the test is only informative when the count is small relative to $N$ \\
+lag depth, and whether collapsed & so the reader can judge the count \\
+one-step and two-step (Windmeijer) side by side & disagreement signals weakness \\
+difference vs.\ system GMM, with the initial-condition assumption stated & they are identified by different assumptions \\
+what $D$ is assumed to be (exogenous / predetermined / endogenous) & it determines which lags of $D$ are valid instruments \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  None of this is decoration. Each row is a place where the estimator
+  can silently fail, and each is a number the reader needs to decide
+  whether it did.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+\protect\phantomsection\label{conclusion}
+\begin{enumerate}
+\tightlist
+\item
+  \textbf{A lagged \(Y\) is endogenous by construction}, not by
+  omission. You can read the problem off the model.
+\item
+  \textbf{One rule does every calculation}: later shocks are unrelated
+  to earlier \(Y\); the same-date shock enters with coefficient one.
+  Check dates.
+\item
+  \textbf{OLS is biased up and fixed effects down.} Neither improves
+  with \(N\); FE improves only at rate \(1/T\). Run both first ---
+  \textbf{the bracket is the goalposts.}
+\item
+  \textbf{The fix is a longer lag of the same variable.} \(Y_{i,t-2}\)
+  is one date too early to be contaminated. Arellano--Bond uses all such
+  lags; cap and collapse them.
+\item
+  \textbf{The fix fails when the series is persistent or firm effects
+  are large} --- the normal case in finance. Then: system GMM with its
+  assumption stated, or bias-corrected FE if \(T\) allows.
+\end{enumerate}
+
+\vspace{0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  The question to carry out: \textbf{which way is this estimator wrong?}
+  If you can say that, you can say what the truth is between.
+\item
+  \textbf{Next:} difference-in-differences --- when the switching has a
+  \emph{date}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{References}
+\protect\phantomsection\label{references}
+\tiny
+
+\begin{itemize}
+\tightlist
+\item
+  Anderson, T. W. and C. Hsiao (1982). Formulation and Estimation of
+  Dynamic Models Using Panel Data. \emph{Journal of Econometrics} 18(1),
+  47--82.
+\item
+  Angrist, J. and J.-S. Pischke (2009). \emph{Mostly Harmless
+  Econometrics}, §§5.3--5.4 (bracketing lagged-dependent-variable and
+  fixed-effects models).
+\item
+  Arellano, M. and S. Bond (1991). Some Tests of Specification for Panel
+  Data: Monte Carlo Evidence and an Application to Employment Equations.
+  \emph{Review of Economic Studies} 58(2), 277--297.
+\item
+  Blundell, R. and S. Bond (1998). Initial Conditions and Moment
+  Restrictions in Dynamic Panel Data Models. \emph{Journal of
+  Econometrics} 87(1), 115--143.
+\item
+  Bond, S. (2002). Dynamic Panel Data Models: A Guide to Micro Data
+  Methods and Practice. \emph{Portuguese Economic Journal} 1(2),
+  141--162.
+\item
+  Bruno, G. (2005). Approximating the Bias of the LSDV Estimator for
+  Dynamic Unbalanced Panel Data Models. \emph{Economics Letters} 87(3),
+  361--366.
+\item
+  Fama, E. and K. French (2002). Testing Trade-Off and Pecking Order
+  Predictions about Dividends and Debt. \emph{RFS} 15(1), 1--33.
+\item
+  Flannery, M. and K. Hankins (2013). Estimating Dynamic Panel Models in
+  Corporate Finance. \emph{Journal of Corporate Finance} 19, 1--19.
+\item
+  Flannery, M. and K. Rangan (2006). Partial Adjustment toward Target
+  Capital Structures. \emph{JFE} 79(3), 469--506.
+\item
+  Hahn, J. and G. Kuersteiner (2002). Asymptotically Unbiased Inference
+  for a Dynamic Panel Model with Fixed Effects when Both \(n\) and \(T\)
+  Are Large. \emph{Econometrica} 70(4), 1639--1657.
+\item
+  Hahn, J., J. Hausman and G. Kuersteiner (2007). Long Difference
+  Instrumental Variables Estimation for Dynamic Panel Models with Fixed
+  Effects. \emph{Journal of Econometrics} 140(2), 574--617.
+\item
+  Hansen, B. (2022). \emph{Econometrics}, ch.~17, §§17.36--17.40 --- the
+  source for the \(T=3\) derivation and the weak-instrument formula.
+\item
+  Holtz-Eakin, D., W. Newey and H. Rosen (1988). Estimating Vector
+  Autoregressions with Panel Data. \emph{Econometrica} 56(6),
+  1371--1395.
+\item
+  Huang, R. and J. Ritter (2009). Testing Theories of Capital Structure
+  and Estimating the Speed of Adjustment. \emph{JFQA} 44(2), 237--271.
+\item
+  Kiviet, J. (1995). On Bias, Inconsistency, and Efficiency of Various
+  Estimators in Dynamic Panel Data Models. \emph{Journal of
+  Econometrics} 68(1), 53--78.
+\item
+  Lemmon, M., M. Roberts and J. Zender (2008). Back to the Beginning:
+  Persistence and the Cross-Section of Corporate Capital Structure.
+  \emph{JF} 63(4), 1575--1608.
+\item
+  Nickell, S. (1981). Biases in Dynamic Models with Fixed Effects.
+  \emph{Econometrica} 49(6), 1417--1426.
+\item
+  Roodman, D. (2009a). How to Do xtabond2: An Introduction to Difference
+  and System GMM in Stata. \emph{Stata Journal} 9(1), 86--136.
+\item
+  Roodman, D. (2009b). A Note on the Theme of Too Many Instruments.
+  \emph{Oxford Bulletin of Economics and Statistics} 71(1), 135--158.
+\item
+  Windmeijer, F. (2005). A Finite Sample Correction for the Variance of
+  Linear Efficient Two-Step GMM Estimators. \emph{Journal of
+  Econometrics} 126(1), 25--51.
+\end{itemize}
+\end{frame}
+
+
+
+
+\end{document}

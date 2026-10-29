@@ -1,0 +1,249 @@
+---
+title: "Problem Set: Instrumental Variables"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+<!--
+*Five required problems, plus two optional ones at the end. Plan on about four hours for the required set. Problem 3 asks you to fit models in R (or Stata); attach your code and output. The rest need only a pen.*
+
+*Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
+
+*Problem 3 uses `card.dta`, which you can read directly from*
+`https://raw.github.com/scunning1975/mixtape/master/card.dta`.
+-->
+
+## Problem 1 (The Wald estimator, and what it rests on)
+
+Throughout, the true model is $Y_i = \alpha + \delta D_i + \gamma A_i + \varepsilon_i$, where $A$ is unobserved ability, $C(D,A) \neq 0$, and $Z$ is a candidate instrument.
+
+(a) Starting from $C(Y,Z)$ and the model above, derive $\hat\delta_{\text{Wald}} = C(Y,Z)/C(D,Z)$. State at which line of your derivation each of the three conditions --- exclusion, independence, a nonzero first stage --- is used.
+
+(b) Exclusion is often stated as "$Z$ is **excluded from** the $Y$ equation." Say what that means literally --- excluded from what, and with what coefficient --- and why the Vietnam draft lottery, which really was random, secures independence but **not** exclusion.
+
+(c) The strangeness principle says a valid instrument produces a $Z$--$Y$ association that looks *inexplicable* on its face. Explain why strangeness is a symptom of validity rather than a defect. Then state the diagnostic in reverse: what should you suspect when the reduced form looks perfectly natural?
+
+(d) Name the numerator and the denominator of the Wald ratio, and say what each one is doing in the argument. Then explain the following claim: *the reduced form is just a calculation --- being able to compute it tells you nothing about whether the instrument is valid.*
+
+(e) Of the three conditions in (a), exactly one is testable. Which, why, and what does the untestability of the other two imply about how an IV paper must be written?
+
+\newpage
+
+## Problem 2 (2SLS, and what an over-identification test can tell you)
+
+(a) Starting from the Wald ratio, multiply through by $V(Z)/V(Z)$ and show that
+$$
+\hat\delta_{\text{Wald}} \;=\; \frac{C(\hat D, Y)}{V(\hat D)},
+$$
+where $\hat D$ is the fitted value from the first stage $D = \pi_0 + \pi_1 Z + \nu$. Explain what this says about *which part* of the variation in $D$ is being used.
+
+(b) You may compute 2SLS by hand in two steps, but you must never report the second-stage standard errors. Say precisely what is wrong with them, and in which direction they err.
+
+(c) You have two instruments for the same treatment, and each one used *on its own* gives a perfectly good Wald estimate. Suppose they come out at $\hat\delta_1 = 0.05$ and $\hat\delta_2 = 0.31$, each with a standard error of about $0.03$.
+
+    First satisfy yourself that the gap of $0.26$ is **not** sampling noise. If the two estimates were independent, the difference would have standard error $\sqrt{0.03^2 + 0.03^2} \approx 0.042$, making the gap about six standard errors. They are not independent --- both are computed from the same $Y$ and $D$ --- but that does not rescue it: $V(\hat\delta_1 - \hat\delta_2) = 2(0.03)^2(1-\rho)$, so even at the worst case $\rho = -1$ the gap is still more than **four** standard errors. Something systematic is going on.
+
+    Name **three** distinct explanations for it. At least one of your three must be an explanation in which **both instruments are valid**. For each, say what you would look at next to tell it apart from the others.
+
+(d) The over-identification test (Sargan, or Hansen's $J$ with robust standard errors) is a formal version of exactly the comparison in (c): it asks whether the instrument-specific estimates agree more closely than sampling noise alone would allow. Using that description, and no algebra, explain each of the following.
+
+   i. A design with a **single** instrument admits no such test at all. Why not --- and what does that imply about how exclusion has to be defended in the great majority of IV papers?
+   ii. A rejection does not tell you *which* instrument is the bad one.
+   iii. Two instruments that are both invalid **in the same direction** will pass the test comfortably.
+
+(e) A referee writes: *"The Hansen $J$ test does not reject ($p = 0.42$), so the exclusion restriction is satisfied."* Write a three-sentence reply.
+
+\newpage
+
+## Problem 3 (Card (1995), hands on)
+
+**Computational.** Use `card.dta`. The outcome $Y$ is `lwage` (log wages), the endogenous regressor $D$ is `educ` (years of schooling), and the instrument $Z$ is `nearc4` (an indicator for growing up in a county with a four-year college). Drop rows missing any of the three, and use heteroskedasticity-robust standard errors throughout.
+
+(a) **The first stage.** Regress `educ` on `nearc4` and report the coefficient and its robust standard error. State in words what the coefficient means, in the units of the data. Then answer two questions about its status: is this number a *causal* effect, and if so what has to be true for it to be one? And why must this regression appear in the paper even though it is not the result anyone cares about?
+
+(b) **The reduced form.** Regress `lwage` directly on `nearc4` and report the coefficient. Explain what question this coefficient answers --- note that it is *not* the question Card is asking --- and verify numerically that the ratio of the reduced form to the first stage reproduces the 2SLS estimate.
+
+(c) **Instrument strength.** Compute the Olea--Pflueger **effective $F$**. In the just-identified case it equals the squared robust $t$-statistic on the instrument in the first stage, so you can get it from (a). Then explain the intuition in your own words:
+
+   i. What is the quantity actually measuring? Describe it as a ratio of two things.
+   ii. Why is the relevant question "is the first stage strong?" rather than "is the first stage statistically significant?" --- given that a first stage can be significant at any sample size.
+   iii. Why does the profession now prefer the *effective* $F$ to the classical first-stage $F$, and why is $F > 10$ no longer regarded as a safe threshold?
+
+(d) **The estimates.** Report OLS and 2SLS side by side, with robust standard errors, laid out as the table an IV paper owes its reader. Say why OLS belongs in that table at all. Then: 2SLS comes in more than three times OLS. If the problem were ability bias the inequality should run the other way. The slide **"Why is 2SLS *larger* than OLS?"** (§7.6) offers three candidate explanations: state each one, say what measurement error can and cannot carry, and explain why the surviving explanation is an *interpretation* rather than a finding.
+
+(e) **Anderson--Rubin.** Construct a 95\% AR confidence interval **by hand**, inverting the test over a grid: for each candidate $\delta_0$, form $Y - \delta_0 D$, regress it on the instrument, and keep those $\delta_0$ for which the instrument's coefficient is *not* significant at $5\%$.
+
+    Search over $\delta_0 \in [0,\ 0.50]$ in steps of $0.001$. Then check that your grid was wide enough: the test must **reject at both endpoints**. If it does not, the interval runs off the edge of your grid and what you have reported is the grid, not the interval --- widen it and repeat.
+
+    Report the interval, and then explain the intuition:
+
+   i. Why does "the instrument no longer explains $Y - \delta_0 D$" mean "$\delta_0$ is consistent with the data"?
+   ii. A conventional interval is $\hat\delta \pm 1.96\,\widehat{SE}$ and is therefore symmetric by construction. Your AR interval is not symmetric about $\hat\delta$. Why is that not a mistake?
+   iii. Compare the two intervals here. They nearly agree --- say why, and say what would have to be different about this design for them to diverge sharply.
+   iv. In practice you would not code this yourself. Using the commands listed at the end of this problem, name the one you would use, and say what it would give you **beyond** the interval you just built by hand.
+
+(f) **The estimand.** Who are the compliers in this design? Name them concretely, and say whether they are the group a policymaker asking about the returns to education would care about.
+
+\vspace{0.5em}
+
+**Commands for part (e)(iv).** You are not required to install either package --- the point of the grid is that an AR interval needs nothing but a regression --- but these are what you would reach for in practice.
+
+\vspace{-0.3em}
+
+\begin{center}
+\small
+\begin{tabular}{ll}
+\toprule
+Stata & \texttt{ssc install weakiv} \\
+      & \texttt{weakiv ivregress 2sls lwage (educ = nearc4), robust} \\
+      & \texttt{twostepweakiv 2sls lwage (educ = nearc4), robust} \\
+\midrule
+R     & \texttt{ivDiag::AR\_test(data = card, Y = "lwage", D = "educ",} \\
+      & \texttt{\phantom{ivDiag::AR\_test(}Z = "nearc4", CI = TRUE)} \\
+      & \texttt{ivmodel::AR.test(ivmodel(Y = y, D = d, Z = z))} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\newpage
+
+## Problem 4 (LATE)
+
+(a) List the five assumptions of the LATE theorem, one line each, and say which single one is testable and why.
+
+(b) Two binary potential treatment statuses $(D^0_i, D^1_i)$ partition the population into four types. Name them.
+
+    Then explain a distinction that is easy to blur. Recall that the numerator and denominator of the Wald ratio are $E[\Delta_i (D^1_i - D^0_i)]$ and $E[D^1_i - D^0_i]$. Always-takers and never-takers contribute nothing to either --- and **the arithmetic alone removes them; no assumption about them is made or needed.** Defiers are not removed by any arithmetic: they have to be *assumed* out of existence. Work out the value of $D^1_i - D^0_i$ for each of the four types, and use it to explain exactly where the difference comes from.
+
+(c) Prove the LATE theorem. Write $\Delta_i = Y^1_i - Y^0_i$, substitute the first-stage switching equation into the outcome equation, and work through to
+$$
+\delta_{\text{Wald}} = E\big[\Delta_i \mid D^1_i - D^0_i = 1\big].
+$$
+Label every step with the assumption it uses. State clearly which step monotonicity is doing, and what it converts $D^1_i - D^0_i$ into.
+
+(d) Suppose monotonicity fails. Writing $C$ for compliers and $F$ for defiers, derive
+$$
+\delta_{\text{Wald}} = \frac{P(C)\,E[\Delta_i \mid C] - P(F)\,E[\Delta_i \mid F]}{P(C) - P(F)} .
+$$
+Then construct a numerical example --- choose $P(C)$, $P(F)$ and the two conditional means --- in which **every individual treatment effect is strictly positive** but $\delta_{\text{Wald}}$ is negative. Explain what has gone wrong in terms of the weights.
+
+(e) Angrist and Krueger (1991) instrument schooling with quarter of birth and obtain roughly $0.09$; Card (1995) instruments it with college proximity and obtains $0.188$. Both instruments are valid, and the treatment and outcome are the same. Explain why the estimates differ, in terms of *whose* effects are being averaged and *which* years of schooling are being priced. What does this imply about a $J$ test that rejects when both instruments are used together?
+
+\newpage
+
+## Problem 5 (Refereeing a finance IV)
+
+Below are three IV designs of the kind that appear in finance seminars. **They are stylised composites, not summaries of particular papers** --- you are refereeing a design, not an author. Each is drawn from a real literature, listed at the end of the problem; read those *after* you have formed your own view.
+
+For **each**, answer in a short structured block:
+
+> *What is the shock? What is the first stage? Who are the compliers? Where is exclusion most likely to break?* Then state whether you would accept, ask for revision, or reject --- and name the single piece of evidence that would most change your mind.
+
+  i. **Distance to the nearest commercial bank branch** as an instrument for a small firm's access to credit, with firm investment as the outcome.
+  ii. **Random assignment of bankruptcy judges**, who differ in how often they convert Chapter 11 filings to Chapter 7, as an instrument for liquidation, with supplier outcomes as the outcome.
+  iii. **A regulatory threshold** at \$10bn in assets that triggers enhanced supervision, used as an instrument for supervisory intensity, with bank risk-taking as the outcome.
+
+<!-- 
+(a) Work through the three blocks.
+
+(b) One of the three is a design you have already met under another name, and one has a monotonicity problem that the lecture warned about specifically. Identify both, and explain.
+
+\vspace{0.6em}
+
+**Where each design comes from.** The vignettes are mine; the literatures are real.
+
+\vspace{-0.2em}
+
+\begin{itemize}\small
+\item[(i)] \textbf{Distance and local credit.} Petersen and Rajan (2002) is the classic statement that borrower--lender distance carries information, and the reason distance became a popular instrument. Nguyen (2019) is the credible modern design: rather than using distance itself, she instruments local branch presence with \emph{branch closings generated by bank mergers}, so the variation comes from a decision taken at headquarters rather than from where the firm chose to locate. Compare the two and you have the answer to "what would change my mind".
+\item[(ii)] \textbf{Bankruptcy judges.} Bernstein, Colonnelli, Giroud and Iverson (2019) use randomly assigned bankruptcy judges as an instrument for liquidation, and trace the spillovers to \emph{nearby establishments} --- the real paper's outcome, rather than the supplier outcomes in the vignette. Frandsen, Lefgren and Leslie (2023) is the monotonicity problem, and a test for it.
+\item[(iii)] \textbf{The \$10bn threshold.} Bouwman, Hu and Johnson (2018) document how bank behaviour differs around the Dodd--Frank size thresholds; Alvero, Ando and Xiao estimate regulatory costs from the \emph{bunching} of banks just below \$10bn. Both bear directly on whether this threshold can serve as an instrument at all. *(These two are working papers at the time of writing --- check the current version before citing.)*
+\end{itemize}
+-->  
+
+
+<!-- 
+\newpage
+
+# Optional problems - Not required
+
+
+## Optional A (The algebra behind the over-identification test)
+
+This problem derives what Problem 2(c)--(d) described in words.
+
+Take two instruments $Z_1, Z_2$ for one treatment $D$. Write $\tilde Z_{ji} = Z_{ji} - \bar Z_j$ for the demeaned instrument, and let $\hat\delta_j$ denote the Wald estimate that uses $Z_j$ alone.
+
+(a) Show that $\hat\delta_j = \sum_i \tilde Z_{ji} Y_i \big/ \sum_i \tilde Z_{ji} D_i$. *(Start from $\widehat{C}(Z_j,Y)/\widehat{C}(Z_j,D)$ and use $\sum_i \tilde Z_{ji} = 0$ to drop the means.)*
+
+(b) Rearrange (a) to show that $\sum_i \tilde Z_{ji} Y_i = \hat\delta_j \sum_i \tilde Z_{ji} D_i$, and interpret: what is special about $\hat\delta_j$ among all candidate values of $\delta$?
+
+(c) Hence show that for **any** candidate $\delta$,
+$$
+\frac{1}{n}\sum_i \tilde Z_{ji}\big(Y_i - \delta D_i\big)
+\;=\;
+\widehat{C}(Z_j, D) \times \big(\hat\delta_j - \delta\big).
+$$
+Explain how this identity makes the claim in Problem 2(d) precise: $J$ is the smallest weighted distance from the instrument-specific estimates to any single common $\delta$.
+
+(d) The Sargan statistic regresses the residual $\hat u_i = Y_i - \hat\alpha - \hat\delta_{\text{2SLS}} D_i$ on all the instruments and takes $J = nR^2$. A student objects that the residual should use $\hat D_i$, since that is what the second stage regressed $Y$ on. Explain why the student is wrong. State the degrees of freedom of $J$ and what they count.
+
+\newpage
+
+## Optional B (Weak instruments, by simulation)
+
+**Setting up the data-generating process.** We simulate the design Bound, Jaeger and Baker analysed. There are $K$ instruments and
+$$
+Y_i = \delta D_i + \varepsilon_i, \qquad D_i = Z_i'\pi + \nu_i .
+$$
+Endogeneity is the statement $\sigma_{\varepsilon\nu} \equiv C(\varepsilon_i, \nu_i) \neq 0$: the part of $D$ the instruments cannot explain moves with the structural error.
+
+You do not *estimate* $\sigma_\nu$ and $\sigma_\varepsilon$ here --- you **choose** them, because you are building the world. Draw $\nu_i \sim N(0,1)$ and an independent $w_i \sim N(0,1)$, and set
+$$
+\varepsilon_i \;=\; \rho\,\nu_i \;+\; \sqrt{1-\rho^2}\;w_i .
+$$
+
+(a) Verify by hand that this construction gives $\sigma^2_\nu = 1$, $\sigma^2_\varepsilon = 1$ and $\sigma_{\varepsilon\nu} = \rho$. Conclude that the quantity $\sigma_{\varepsilon\nu}/\sigma^2_\nu$ --- the OLS bias --- is exactly $\rho$ in this design, and explain why that makes $\rho$ a convenient dial to turn.
+
+\vspace{0.4em}
+
+Now set $\delta = 1$, $\rho = 0.7$, $K = 10$, $n = 20{,}000$, let $Z$ be $K$ independent standard normals, and give every element of $\pi$ the same value $p$.
+
+(b) For $p \in \{0,\ 0.01,\ 0.03,\ 0.08,\ 0.30\}$, report the first-stage $F$, the OLS bias and the 2SLS bias, averaging over at least $20$ replications. Describe what happens to 2SLS as the first stage weakens, and compare it with the OLS bias you computed in (a).
+
+(c) **Two different $F$'s.** The Bound--Jaeger--Baker approximation is
+$$
+E[\hat\delta_{2SLS} - \delta] \;\approx\; \frac{\sigma_{\varepsilon\nu}}{\sigma^2_\nu} \cdot \frac{1}{F+1},
+$$
+where $F$ is the **population** first-stage $F$,
+$$
+F \;=\; \frac{\pi'\,E[Z'Z]\,\pi}{K\,\sigma^2_\nu} .
+$$
+   i. Explain the formula as a ratio. What is $\pi' E[Z'Z] \pi$ measuring, what is $K\sigma^2_\nu$ measuring, and why is the whole thing a signal-to-noise ratio *per instrument*? Why does dividing by $K$ penalise adding instruments that carry no signal?
+   ii. Show that in **this** design the formula collapses to $F = n p^2$. *(Use $E[Z'Z] = n I_K$ and $\pi = p\mathbf{1}_K$.)* This is why the predicted bias is $\rho / (np^2 + 1)$ --- write that out and confirm it against your simulation.
+   iii. The population $F$ is a property of the world and contains no estimation error; the $\hat F$ you compute from a sample is an estimate of it. Compare your simulated $\hat F$ with $np^2$ across the five values of $p$, and state the empirical relationship.
+
+(d) **Why $E[\hat F] \approx F + 1$.** The first-stage statistic satisfies $K\hat F \overset{a}{\sim} \chi^2_K(\mu^2)$, where $\mu^2 = \pi' E[Z'Z]\pi / \sigma^2_\nu$ is the **concentration parameter** --- so that $F = \mu^2/K$.
+   i. Using $E[\chi^2_K(\lambda)] = K + \lambda$, derive $E[\hat F] \approx 1 + \mu^2 / K = 1 + F$.
+   ii. Give the intuition for the "$+1$" without the distribution theory: when $\pi = 0$ and the instruments are pure noise, what does fitting $K$ coefficients to $n$ observations buy you by chance, and why is the $F$ statistic scaled so that this chance fit registers as $1$ rather than $0$?
+   iii. State the practical consequence: roughly what fraction of the OLS bias survives in 2SLS when you observe $\hat F = 10$?
+
+(e) Now set $p = 0$ exactly, so the instruments contain **no information whatsoever** about $D$, and estimate 2SLS using $K = 5$, $50$ and $150$ of them. Report the estimate, its standard error, the 95\% confidence interval and the first-stage $F$ in each case. Which of these four numbers is the only one that warns you, and what does that imply about reading a second stage?
+
+(f) **Coverage.** For $p = 0.01$, $0.03$ and $0.30$, simulate at least $200$ samples and record in each whether $\hat\delta \pm 1.96\,\widehat{SE}$ contains the true $\delta = 1$, and whether an Anderson--Rubin test of $H_0: \delta = 1$ fails to reject at $5\%$. Report the two coverage rates at each strength. Which procedure keeps the promise its $95\%$ label makes, and what does that cost?
+--> 

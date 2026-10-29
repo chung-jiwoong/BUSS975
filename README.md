@@ -17,7 +17,10 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 3a. Unconfoundedness: Subclassification and Matching | [Slides][unc-a-pdf] | |
 | 3b. Unconfoundedness: Propensity Scores and Regression | [Slides][unc-b-pdf] | [Problem][unc-ps] |
 | 4. Regression Discontinuity | [Slides][rd-pdf] | [Problem][rd-ps] |
-| 5a. Instrumental Variables | [Slides][iv-a-pdf] | |
+| 5a. Instrumental Variables | [Slides][iv-a-pdf] | [Problem][iv-a-ps] |
+| 5b. Five IV Designs | [Slides][iv-b-pdf] | [Problem][iv-b-ps] |
+| 6a. Causal Panel Designs | [Slides][panel-a-pdf] | |
+| 6b. Dynamic Panels | [Slides][dpanel-pdf] | |
 
 
 ---
@@ -41,7 +44,12 @@ Course materials for BUSS975, including lecture slides and problem sets.
 [rd-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/04_RD/04_rd_PS.pdf
 
 [iv-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05a_instrumental_variables.pdf
+[iv-a-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05a_iv_PS.pdf
 [iv-b-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05b_iv_designs.pdf
+[iv-b-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05b_iv_PS.pdf
+
+[panel-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06a_panel_data.pdf
+[dpanel-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06b_dynamic_panel.pdf
 
 <!--
 
