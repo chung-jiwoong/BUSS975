@@ -17,8 +17,8 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 3a. Unconfoundedness: Subclassification and Matching | [Slides][unc-a-pdf] | |
 | 3b. Unconfoundedness: Propensity Scores and Regression | [Slides][unc-b-pdf] | [Problem][unc-ps] |
 | 4. Regression Discontinuity | [Slides][rd-pdf] | [Problem][rd-ps] |
-| 5a. Instrumental Variables | [Slides][iv-a-pdf] | [Problem][iv-a-ps] |
-| 5b. Five IV Designs | [Slides][iv-b-pdf] | [Problem][iv-b-ps] |
+| 5a. Instrumental Variables | [Slides][iv-a-pdf] | |
+| 5b. Five IV Designs | [Slides][iv-b-pdf] |  |
 | 6a. Causal Panel Designs | [Slides][panel-a-pdf] | |
 
 
