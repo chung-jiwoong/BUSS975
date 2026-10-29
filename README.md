@@ -20,7 +20,7 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 5a. Instrumental Variables | [Slides][iv-a-pdf] | [Problem][iv-a-ps] |
 | 5b. Five IV Designs | [Slides][iv-b-pdf] | [Problem][iv-b-ps] |
 | 6a. Causal Panel Designs | [Slides][panel-a-pdf] | |
-| 6b. Dynamic Panels | [Slides][dpanel-pdf] | |
+
 
 
 ---
