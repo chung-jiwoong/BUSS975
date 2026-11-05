@@ -1,0 +1,1028 @@
+---
+title: "Dynamic Panel Models"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+author: "Professor Ji-Woong Chung"
+institute: "Korea University"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    slide-level: 2
+    toc: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \setbeamertemplate{navigation symbols}{}
+        \setbeamertemplate{footline}[frame number]
+        \setbeamertemplate{itemize items}[circle]
+        \setbeamertemplate{itemize subitem}[triangle]
+        \setbeamercolor{frametitle}{fg=black}
+        \setbeamerfont{frametitle}{series=\bfseries}
+        \usepackage{amsmath}
+        \usepackage{booktabs}
+        \usepackage{array}
+        \newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\scriptsize}
+        \makeatletter
+        \def\verbatim@font{\scriptsize\ttfamily}
+        \makeatother
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+knitr:
+  opts_chunk:
+    dev: cairo_pdf
+---
+
+```{r setup}
+suppressPackageStartupMessages(library(plm))
+f2 <- function(x) sprintf("%.2f", x)
+f3 <- function(x) sprintf("%.3f", x)
+
+# y_it = a y_{i,t-1} + mu_i + e_it.  stationary = TRUE starts each firm at its
+# own long-run level mu_i/(1-a); FALSE starts every firm at the same level.
+gen <- function(N, T, a, s_mu = 1, s_eps = 1, stationary = TRUE) {
+  mu <- rnorm(N, 0, s_mu)
+  y0 <- if (stationary) mu / (1 - a) + rnorm(N, 0, s_eps / sqrt(1 - a^2)) else rnorm(N, 0, s_eps)
+  Y <- matrix(0, N, T + 1); Y[, 1] <- y0
+  for (t in 2:(T + 1)) Y[, t] <- a * Y[, t - 1] + mu + rnorm(N, 0, s_eps)
+  data.frame(id = rep(1:N, each = T + 1), t = rep(0:T, N), y = as.vector(t(Y)))
+}
+est <- function(d, gmm = TRUE, collapse = FALSE) {
+  pd <- pdata.frame(d, index = c("id", "t")); pd$ly <- plm::lag(pd$y, 1)
+  out <- c(OLS = unname(coef(lm(y ~ ly, data = pd))["ly"]),
+           FE  = unname(coef(plm(y ~ ly, data = pd, model = "within"))["ly"]),
+           FD  = unname(coef(plm(y ~ ly, data = pd, model = "fd"))["ly"]))
+  if (gmm) {
+    ab <- pgmm(y ~ plm::lag(y, 1) | plm::lag(y, 2:99), data = pd, effect = "individual",
+               model = "twosteps", transformation = "d", collapse = collapse)
+    bb <- pgmm(y ~ plm::lag(y, 1) | plm::lag(y, 2:99), data = pd, effect = "individual",
+               model = "twosteps", transformation = "ld", collapse = collapse)
+    out <- c(out, AB = unname(coef(ab)[1]), BB = unname(coef(bb)[1]), nZ = ncol(ab$W[[1]]))
+  }
+  out
+}
+# with a strictly exogenous but persistent regressor x: y = a y_{-1} + b x + mu + e
+gen_x <- function(N, T, a = 0.8, b = 1, rho = 0.9, s_mu = 1, burn = 50) {
+  mu <- rnorm(N, 0, s_mu); TT <- T + 1 + burn
+  X <- matrix(0, N, TT); Y <- matrix(0, N, TT)
+  X[, 1] <- rnorm(N, 0, 1 / sqrt(1 - rho^2)); Y[, 1] <- mu / (1 - a) + b * X[, 1] + rnorm(N)
+  for (t in 2:TT) { X[, t] <- rho * X[, t - 1] + rnorm(N); Y[, t] <- a * Y[, t - 1] + b * X[, t] + mu + rnorm(N) }
+  keep <- (burn + 1):TT
+  data.frame(id = rep(1:N, each = T + 1), t = rep(0:T, N), y = as.vector(t(Y[, keep])), x = as.vector(t(X[, keep])))
+}
+est_x <- function(d) {
+  pd <- pdata.frame(d, index = c("id", "t")); pd$ly <- plm::lag(pd$y, 1)
+  ols <- coef(lm(y ~ ly + x, data = pd))[c("ly", "x")]
+  fe  <- coef(plm(y ~ ly + x, data = pd, model = "within"))[c("ly", "x")]
+  ab  <- pgmm(y ~ plm::lag(y, 1) + x | plm::lag(y, 2:99), data = pd, effect = "individual", model = "twosteps", transformation = "d")
+  bb  <- pgmm(y ~ plm::lag(y, 1) + x | plm::lag(y, 2:99), data = pd, effect = "individual", model = "twosteps", transformation = "ld")
+  c(OLS_a = unname(ols[1]), OLS_b = unname(ols[2]), FE_a = unname(fe[1]), FE_b = unname(fe[2]),
+    AB_a = unname(coef(ab)[1]), AB_b = unname(coef(ab)[2]), BB_a = unname(coef(bb)[1]), BB_b = unname(coef(bb)[2]))
+}
+set.seed(975)
+R <- 100
+Ts <- c(3, 4, 5, 7, 10, 15, 20, 30, 40)
+# The simulations take 4-5 minutes. Results are cached next to this file;
+# delete 06b_dynamic_panel_models_sims.rds to recompute from scratch.
+sim_cache <- "06b_dynamic_panel_models_sims.rds"
+if (file.exists(sim_cache)) {
+  S <- readRDS(sim_cache)
+} else {
+  S <- list()
+  S$nick <- sapply(Ts, function(T) est(gen(1500, T, 0.8), gmm = FALSE))
+  S$sims <- list(mod = replicate(R, est(gen(500, 6, 0.5))),
+                 hi  = replicate(R, est(gen(500, 6, 0.9))),
+                 off = replicate(R, est(gen(500, 6, 0.9, stationary = FALSE))))
+  S$tmi_full <- replicate(R, est(gen(100, 12, 0.8), collapse = FALSE))
+  S$tmi_coll <- replicate(R, est(gen(100, 12, 0.8), collapse = TRUE))
+  S$bx <- apply(replicate(R, est_x(gen_x(500, 6))), 1, median)
+  # fixed effects with no persistence and no firm effect at all: pure Nickell bias
+  S$fe0 <- sapply(c(2, 3, 5, 10), function(T) est(gen(4000, T, 0, s_mu = 0), gmm = FALSE)["FE"])
+  saveRDS(S, sim_cache)
+}
+nick <- S$nick; sims <- S$sims; bx <- S$bx; fe0 <- S$fe0
+med <- lapply(sims, function(s) apply(s, 1, median))
+tf <- apply(S$tmi_full, 1, median); tc <- apply(S$tmi_coll, 1, median)
+# Anderson-Hsiao: just-identified IV on the differenced equation, by hand.
+# Columns of Y are t = 0..T; equations at t = 2..T (level instrument) or t = 3..T (difference instrument).
+ah <- function(d) {
+  Y <- matrix(d$y, ncol = max(d$t) + 1, byrow = TRUE); T <- ncol(Y) - 1
+  dY <- Y[, 3:(T + 1)] - Y[, 2:T]; dY1 <- Y[, 2:T] - Y[, 1:(T - 1)]; Z <- Y[, 1:(T - 1)]
+  Zd <- Z[, -1] - Y[, 1:(T - 2)]
+  c(AH_lev = sum(Z * dY) / sum(Z * dY1), AH_dif = sum(Zd * dY[, -1]) / sum(Zd * dY1[, -1]))
+}
+set.seed(11)
+ahs <- lapply(c(0.5, 0.9), function(a) replicate(R, ah(gen(500, 6, a))))
+fq <- function(x) sprintf("%.2f \\;\\; [%.2f,\\, %.2f]", median(x), quantile(x, .1), quantile(x, .9))
+# two firms for the pooled-OLS picture
+set.seed(7); a2 <- 0.5; T2 <- 30; mus2 <- c(-2, 2)
+two <- do.call(rbind, lapply(1:2, function(i) {
+  y <- numeric(T2 + 1); y[1] <- mus2[i] / (1 - a2) + rnorm(1, 0, 1 / sqrt(1 - a2^2))
+  for (t in 2:(T2 + 1)) y[t] <- a2 * y[t - 1] + mus2[i] + rnorm(1)
+  data.frame(firm = i, y = y[-1], ly = y[-(T2 + 1)])
+}))
+sl_pool <- coef(lm(y ~ ly, two))["ly"]
+sl_within <- coef(lm(y ~ ly + factor(firm), two))["ly"]
+# mean stationarity picture: average change by target group, two starting points
+set.seed(5)
+avg_change <- function(stationary, a = 0.9, T = 20, N = 400) {
+  mu <- rep(c(0.5, -0.5), each = N / 2)
+  y <- if (stationary) mu / (1 - a) + rnorm(N, 0, 1 / sqrt(1 - a^2)) else rnorm(N)
+  D <- matrix(0, N, T)
+  for (t in 1:T) { yn <- a * y + mu + rnorm(N); D[, t] <- yn - y; y <- yn }
+  rbind(hi = colMeans(D[mu > 0, ]), lo = colMeans(D[mu < 0, ]))
+}
+ms_on <- avg_change(TRUE); ms_off <- avg_change(FALSE)
+# GMM toy example: one parameter, two moment conditions
+mzx <- c(2, 1); mzy <- c(1.6, 0.6)
+gmm_min <- function(W) sum(mzx * (W %*% mzy)) / sum(mzx * (W %*% mzx))
+Jfun <- function(a, W) { g <- mzy - a * mzx; as.numeric(t(g) %*% W %*% g) }
+W1 <- diag(2); W2 <- diag(c(1, 4))
+# instrument-regressor correlation in difference GMM, k = s_mu^2 / s_eps^2
+corr_iv <- function(a, k) { v <- k / (1 - a)^2 + 1 / (1 - a^2); -1 / (1 + a) / sqrt(2 / (1 + a) * v) }
+# Arellano and Bond's employment equation
+data("EmplUK", package = "plm")
+ab_uk <- pgmm(log(emp) ~ plm::lag(log(emp), 1:2) + plm::lag(log(wage), 0:1) + log(capital) +
+                plm::lag(log(output), 0:1) | plm::lag(log(emp), 2:99),
+              data = EmplUK, effect = "twoways", model = "twosteps")
+uk <- summary(ab_uk, robust = TRUE)$coefficients
+m1 <- mtest(ab_uk, order = 1, vcov = vcovHC); m2 <- mtest(ab_uk, order = 2, vcov = vcovHC)
+sj <- sargan(ab_uk)
+```
+
+## Where this lecture sits
+
+- Fixed effects removes everything permanent about a firm. The price: *strict exogeneity*, no regressor may respond to past shocks.
+- The regressor that responds to past shocks by construction: the outcome's own lag. Leverage, payout, cash, investment and bank capital all depend on their own past.
+
+<!-- 
+\vspace{0.5em}
+
+- Three questions for the hour:
+  1. *Why* is the lagged outcome still endogenous after the fixed-effects transformations, within and first differencing?
+  2. *What* replaces strict exogeneity, and how does the firm's own past become an instrument?
+  3. *When* do those instruments fail, and what does system GMM buy, at what price?
+
+## Roadmap
+
+\begin{tabular}{R{0.9cm}R{9.6cm}l}
+\toprule
+ & & minutes \\
+\midrule
+1 & \textbf{Why the lagged outcome is endogenous.} Removing $\mu_i$ by demeaning or by first differencing leaves a shock shared by regressor and error & 15 \\
+2 & \textbf{Internal instruments.} Sequential exogeneity; Anderson--Hsiao; difference GMM; why the instruments are weak when the series is persistent; system GMM and the assumption it adds; a simulation of all five estimators & 45 \\
+\bottomrule
+\end{tabular}
+-->
+
+# 1. Why the Lagged Outcome Is Endogenous
+
+## The model
+
+$$
+Y_{it} \;=\; \alpha\,Y_{i,t-1} + X_{it}'\beta + v_{it}, \qquad v_{it} = \mu_i + \varepsilon_{it}
+$$
+
+- **$\alpha$: state dependence.** In partial-adjustment models (leverage targets, dividends, cash, bank capital), $1-\alpha$ is the speed of adjustment.
+- **$\mu_i$: the firm being itself.** Permanent; in leverage it explains most of the variation (Lemmon, Roberts and Zender 2008).
+- **$\varepsilon_{it}$: news.** Mean zero, serially uncorrelated, unpredictable from anything known the year before.
+
+\vspace{0.3em}
+
+- $Y_{i,t-1}$ is built from $\mu_i$ at every past date, so pooled OLS, which leaves $\mu_i$ in the error, is biased **up**. Last week's remedy: transform $\mu_i$ away, by demeaning or by differencing. Does that settle it? 
+<!-- - **This week's problem: the transformation itself makes $Y_{i,t-1}$ endogenous.** Both transformations put $\varepsilon_{i,t-1}$ into the error, and $Y_{i,t-1}$ contains $\varepsilon_{i,t-1}$ by construction. Set $\beta = 0$ below; nothing changes with $X$. -->
+
+## Within estimator: demeaning borrows from the future
+
+Observations $t = 1, \dots, T$, so $Y_{i0}$ is the first lag. Subtract each firm's time average from every variable:
+$$
+\begin{gathered}
+(Y_{it} - \bar Y_i) \;=\; \alpha\,(Y_{i,t-1} - \bar Y_{i,-1}) + (\varepsilon_{it} - \bar\varepsilon_i), \\[0.3em]
+\bar Y_i = \tfrac{1}{T}\textstyle\sum_{s=1}^{T} Y_{is},\qquad
+\bar Y_{i,-1} = \tfrac{1}{T}\textstyle\sum_{s=1}^{T} Y_{i,s-1},\qquad
+\bar\varepsilon_i = \tfrac{1}{T}\textstyle\sum_{s=1}^{T} \varepsilon_{is}.
+\end{gathered}
+$$
+
+- $\mu_i$ is gone. But for $t \ge 2$, $\bar\varepsilon_i$ contains $\tfrac{1}{T}\varepsilon_{i,t-1}$, so the demeaned error contains $-\tfrac{1}{T}\varepsilon_{i,t-1}$, while the regressor $Y_{i,t-1}$ contains $+\varepsilon_{i,t-1}$:
+$$
+\operatorname{Cov}\!\big(Y_{i,t-1},\; \varepsilon_{it} - \bar\varepsilon_i\big) \;=\; -\frac{\sigma^2_\varepsilon}{T} \;<\; 0 \;\Longrightarrow\; \hat\alpha_{\text{FE}} \text{ biased \textbf{down}}.
+$$
+- A good shock last year raised $Y_{i,t-1}$ *and* raised the mean subtracted from every error. The regressor is high exactly when the transformed error has been pushed down. Demeaning uses the firm's whole history, future years included.
+
+
+<!-- 
+- **Nickell (1981) bias.** Order $1/T$: it fades as $T$ grows, not as $N$ grows. More firms make it precise, not right.
+- **Stripped to the bone.** $\alpha = 0$, no firm effect, two years: whichever year is above the firm's mean, the other is below it by the same amount. Demeaning alone manufactures a slope of $-1$. Simulated FE $\hat\alpha$ at $T = 2, 3, 5, 10$: $`R f2(fe0[1])`,\, `R f2(fe0[2])`,\, `R f2(fe0[3])`,\, `R f2(fe0[4])`$, i.e. $-1/(T-1)$.
+- **Nickell (1981).** Bias of order $1/T$, about $-(1+\alpha)/(T-1)$: $-0.2$ at $\alpha = 0.8$, $T = 10$, so adjustment looks twice as fast as it is. It fades with $T$, not with $N$. More firms make it precise, not right. -->
+
+
+<!--
+- **$\alpha$: state dependence.** In partial-adjustment models (leverage targets, Lintner dividends, cash, bank capital), $1-\alpha$ is the speed of adjustment.
+ ; half-life $\ln 0.5/\ln\alpha$ is $3.1$ years at $\alpha = 0.8$, $6.6$ at $0.9$. 
+- **$\beta$: impact effect.** Long-run effect $\beta/(1-\alpha)$, so it inherits any error in $\hat\alpha$.
+- **$\mu_i$: the firm being itself.** Lemmon, Roberts and Zender (2008): a permanent firm component explains most of the variation in leverage.
+- **$\varepsilon_{it}$: news.** Mean zero, unpredictable from anything known the year before.
+
+\vspace{0.4em}
+
+\begin{center}
+\emph{Is a firm high this year because it was high last year ($\alpha$), or because it is always high ($\mu_i$)?}
+\end{center}
+
+
+## Mechanism 1. The lag carries the firm effect: pooled OLS
+
+Substitute backwards: $Y_{i,t-1}$ is built from $\mu_i$ at *every* past date,
+$$
+Y_{i,t-1} \;=\; \mu_i \sum_{j \ge 0} \alpha^j \;+\; \sum_{j \ge 0} \alpha^j \varepsilon_{i,t-1-j}
+\qquad\Longrightarrow\qquad
+\operatorname{Cov}(Y_{i,t-1}, \mu_i) \;=\; \frac{\sigma^2_\mu}{1-\alpha} \;>\; 0.
+$$
+
+Pooled OLS leaves $\mu_i$ in the error $v_{it} = \mu_i + \varepsilon_{it}$, so regressor and error share $\mu_i$:
+$$
+\hat\alpha_{\text{OLS}} \;=\; \alpha + \frac{\sum_{i,t}(Y_{i,t-1} - \bar Y_{-1})(v_{it} - \bar v)}{\sum_{i,t}(Y_{i,t-1} - \bar Y_{-1})^2} \;\Longrightarrow\; \text{biased \textbf{up}}.
+$$
+
+- **Intuition.** A high-$\mu_i$ firm is high this year *and* was high last year. OLS cannot tell "high because it was high" from "high because it is always high", and books all of it as persistence.
+- **Cleanest case, $\alpha = 0$.** No persistence at all, yet $\operatorname{plim}\hat\alpha = \sigma^2_\mu/(\sigma^2_\mu + \sigma^2_\varepsilon)$: $0.5$ with equal variances.
+
+
+## Mechanism 1 in a picture: height is not persistence
+
+```r
+#| fig-width: 8
+#| fig-height: 2.3
+#| out-width: 68%
+#| fig-align: center
+par(mar = c(2.6, 3.0, 0.3, 0.3), mgp = c(1.6, 0.5, 0), cex = 0.9)
+plot(two$ly, two$y, pch = c(16, 1)[two$firm], xlab = expression(Y[i*","*t-1]), ylab = expression(Y[it]), las = 1)
+abline(lm(y ~ ly, two), lwd = 2)
+for (i in 1:2) { s <- two[two$firm == i, ]; abline(lm(y ~ ly, s), lty = 2) }
+legend("topleft", bty = "n", cex = 0.85, lwd = c(2, 1), lty = c(1, 2),
+       legend = c(sprintf("pooled OLS, slope %.2f", sl_pool), sprintf("within each firm, slope about %.2f", sl_within)))
+```
+
+Two firms, same $\alpha = 0.5$, targets $\mu_i = \pm 2$, thirty years each.
+
+- Each firm's own cloud has the true slope. The pooled line is steep because it runs from the low firm's corner to the high firm's corner: **it reads the distance between firms as momentum within a firm.**
+- **Fama--MacBeth is pooled OLS here**: leverage on lagged leverage, cross-section by cross-section, carries the same bias. Firms look slower to adjust than they are.
+- More years do not help, and neither do more firms.
+
+
+## Mechanism 2. Demeaning borrows from the future: fixed effects
+
+$$
+(Y_{it} - \bar Y_i) \;=\; \alpha\,(Y_{i,t-1} - \bar Y_{i,-1}) + (\varepsilon_{it} - \bar\varepsilon_i),
+\qquad \bar\varepsilon_i = \tfrac{1}{T}\textstyle\sum_{s} \varepsilon_{is}.
+$$
+
+- $\mu_i$ is gone. But $\bar\varepsilon_i$ contains $\tfrac{1}{T}\varepsilon_{i,t-1}$, so the demeaned error contains $-\tfrac{1}{T}\varepsilon_{i,t-1}$, while the regressor $Y_{i,t-1}$ contains $+\varepsilon_{i,t-1}$:
+$$
+\operatorname{Cov}\!\big(Y_{i,t-1},\; \varepsilon_{it} - \bar\varepsilon_i\big) \;=\; -\frac{\sigma^2_\varepsilon}{T} \;<\; 0 \;\Longrightarrow\; \hat\alpha_{\text{FE}} \text{ biased \textbf{down}}.
+$$
+- **Intuition.** A good shock last year raised $Y_{i,t-1}$ *and* raised the mean subtracted from every error. The regressor is high exactly when the transformed error has been pushed down. Demeaning uses the firm's whole history, future years included.
+- **Nickell (1981) bias**, order $1/T$: it vanishes as $T \to \infty$, not as $N \to \infty$. More firms make it precise, not right.
+
+
+## Mechanism 2, stripped to the bone
+
+Switch off everything except demeaning: $\alpha = 0$, no firm effect, $Y_{it} = \varepsilon_{it}$. The true coefficient on $Y_{i,t-1}$ is zero.
+
+\begin{center}\small
+\begin{tabular}{lcccc}
+\toprule
+years per firm $T$ & 2 & 3 & 5 & 10 \\
+\midrule
+fixed-effects $\hat\alpha$, simulated ($4{,}000$ firms) & $`R f2(fe0[1])`$ & $`R f2(fe0[2])`$ & $`R f2(fe0[3])`$ & $`R f2(fe0[4])`$ \\
+Nickell's formula, $-1/(T-1)$ & $-1.00$ & $-0.50$ & $-0.25$ & $-0.11$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **Demeaning alone manufactures mean reversion.** With two years, whichever year is above the firm's mean, the other is below it by the same amount: slope $-1$ by construction.
+- With persistence, $\alpha = 0.8$, the bias is roughly $-(1+\alpha)/(T-1)$:
+
+\begin{center}\small
+\begin{tabular}{lcccc}
+\toprule
+years per firm $T$ & 5 & 10 & 20 & 40 \\
+\midrule
+bias in $\hat\alpha_{\text{FE}}$ & $-0.45$ & $-0.20$ & $-0.09$ & $-0.05$ \\
+implied speed of adjustment (truth $20\%$) & $65\%$ & $40\%$ & $29\%$ & $25\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- At $T = 10$, a typical Compustat spell, fixed effects reports adjustment **twice as fast** as it is.
+-->
+
+## First differencing: the overlap shrinks to one date
+
+$$
+\Delta Y_{it} \;=\; \alpha\,\Delta Y_{i,t-1} + \Delta\varepsilon_{it}
+$$
+
+$\mu_i$ is gone again. Every remaining object is a bundle of dated shocks; write down which dates are inside each:
+
+\begin{center}\footnotesize
+\begin{tabular}{llc}
+\toprule
+Object & shocks dated & shares a date with $\Delta\varepsilon_{it}$? \\
+\midrule
+error $\Delta\varepsilon_{it} = \varepsilon_{it} - \varepsilon_{i,t-1}$ & $t,\; t-1$ & \\
+regressor $\Delta Y_{i,t-1} = Y_{i,t-1} - Y_{i,t-2}$ & $t-1,\; t-2,\; \dots$ & \textbf{yes}: $t-1$ \\
+$Y_{i,t-2}$ & $t-2,\; t-3,\; \dots$ & no \\
+$\Delta Y_{i,t-2}$ & $t-2,\; t-3,\; \dots$ & no \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- $\operatorname{Cov}(\Delta Y_{i,t-1}, \Delta\varepsilon_{it}) = -\operatorname{Var}(\varepsilon_{i,t-1}) = -\sigma^2_\varepsilon$: a shock at $t-1$ raises the regressor and lowers the error. Biased **down**; more years do not help.
+
+<!--  (Appendix A1).
+- **Intuition.** A good shock at $t-1$ raises $\Delta Y_{i,t-1}$ and, by the same amount, lowers $\Delta\varepsilon_{it}$. Within uses $1/T$ of that shock; differencing uses all of it. -->
+- Not the fix, but **where the fix starts**: $\mu_i$ is gone and only a *one-date* overlap remains. The last two rows share no date with the error. 
+
+<!--
+## All three in one picture
+
+```r
+#| fig-width: 8
+#| fig-height: 2.5
+#| out-width: 80%
+#| fig-align: center
+par(mar = c(2.6, 3.2, 0.3, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
+plot(NA, xlim = c(3, 40), ylim = c(-0.3, 1.05), log = "x", xaxt = "n", las = 1,
+     xlab = "years per firm, T (log scale)", ylab = expression(hat(alpha)))
+axis(1, at = c(3, 5, 10, 20, 40))
+abline(h = 0.8, lty = 2); abline(h = 0, col = "grey80")
+lines(Ts, nick["OLS", ], type = "b", pch = 16, lwd = 2)
+lines(Ts, nick["FE", ],  type = "b", pch = 17, lwd = 2)
+lines(Ts, nick["FD", ],  type = "b", pch = 15, lwd = 2, col = "grey45")
+text(40, nick["OLS", 9] + 0.09, "pooled OLS", adj = 1, cex = 0.9)
+text(40, nick["FE", 9] - 0.10, "fixed effects (within)", adj = 1, cex = 0.9)
+text(40, nick["FD", 9] + 0.09, "first differences, OLS", adj = 1, cex = 0.9, col = "grey30")
+text(3.05, 0.87, expression("truth " * alpha == 0.8), adj = 0, cex = 0.9)
+```
+
+$\alpha = 0.8$, $1{,}500$ firms, $\sigma_\mu = \sigma_\varepsilon$.
+
+- **Mechanism 1 never fades**: OLS is $`R f2(nick["OLS", 1])`$ at every $T$.
+- **Mechanism 2 fades slowly**: FE is $`R f2(nick["FE", 3])`$ at $T = 5$, still $`R f2(nick["FE", 7])`$ at $T = 20$. Finance panels live on the left.
+- **Mechanism 3 never fades either**: first-difference OLS sits at $`R f2(nick["FD", 5])`$.
+
+
+## The sign of the bias is information: the bracket
+
+$$
+\mathbb{E}[\hat\alpha_{\text{FE}}] \;<\; \alpha \;<\; \mathbb{E}[\hat\alpha_{\text{OLS}}]
+$$
+
+- Neither is consistent, but each is wrong in a **known direction** (Bond 2002). Run both first; anything you trust more must land between them, whatever its $t$-statistic.
+- **The leverage literature, read through the bracket.** Speed of adjustment $1 - \hat\alpha$ per year:
+
+\begin{center}\footnotesize
+\begin{tabular}{llc}
+\toprule
+Paper & Estimator & $1-\hat\alpha$ \\
+\midrule
+Fama and French (2002) & Fama--MacBeth (pooled) & $7$--$18\%$ \\
+Flannery and Rangan (2006) & fixed effects, lagged leverage instrumented & $\approx 34\%$ \\
+Lemmon, Roberts and Zender (2008) & system GMM & $\approx 25\%$ \\
+Huang and Ritter (2009) & long differencing & $17$--$23\%$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Pooled slowest, fixed effects fastest, instrument-based estimates between. **A decade of disagreement is, to first order, the bracket.**
+
+## What happens to $\beta$? The bias spills over
+
+Partial-regression (Frisch--Waugh--Lovell) algebra in $Y = \alpha Y_{-1} + \beta X + \text{error}$:
+$$
+\operatorname{Bias}(\hat\beta) \;=\; \underbrace{\text{direct bias from } X}_{0 \text{ if } X \text{ strictly exogenous}} \;-\; \operatorname{Bias}(\hat\alpha)\cdot\gamma,
+\qquad \gamma = \text{slope of } Y_{i,t-1} \text{ on } X_{it}.
+$$
+
+- **Intuition: two regressors share the credit.** Over-credit the lag and whatever moves with it is under-credited. Regressors almost always move with the lagged state: profitability with lagged leverage, cash flow with lagged investment.
+
+\begin{center}\footnotesize
+\begin{tabular}{R{2.2cm}R{2.0cm}R{7.6cm}}
+\toprule
+Estimator & bias in $\hat\alpha$ & effect on $\hat\beta$ when $\gamma > 0$ \\
+\midrule
+pooled OLS & up & \textbf{down}: the inflated lag steals explanatory power from $X$ \\
+fixed effects & down (Nickell) & \textbf{up}: $X$ compensates for the understated state dependence \\
+GMM (Part 2) & none & none \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- The coefficient you care about is usually $\beta$: a tax change, a reform, a cash-flow shock. **Getting $\alpha$ wrong gets that wrong too.**
+
+## Check it: a strictly exogenous, persistent regressor
+
+$Y_{it} = 0.8\,Y_{i,t-1} + 1.0\,X_{it} + \mu_i + \varepsilon_{it}$ with $X_{it} = 0.9\,X_{i,t-1} + \nu_{it}$ independent of everything else. $500$ firms, $T = 6$, medians over $`R R`$ draws.
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+ & $\hat\alpha$ (truth $0.8$) & $\hat\beta$ (truth $1.0$) \\
+\midrule
+pooled OLS & $`R f2(bx["OLS_a"])`$ & $`R f2(bx["OLS_b"])`$ \\
+fixed effects & $`R f2(bx["FE_a"])`$ & $`R f2(bx["FE_b"])`$ \\
+difference GMM & $`R f2(bx["AB_a"])`$ & $`R f2(bx["AB_b"])`$ \\
+system GMM & $`R f2(bx["BB_a"])`$ & $`R f2(bx["BB_b"])`$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- $X$ is strictly exogenous, and $\hat\beta$ is still wrong in OLS and FE. The only route is through $\hat\alpha$, in the directions the formula predicts.
+- The leak scales with $\gamma$: a more persistent $X$ makes it larger.
+- Both GMM estimators recover both coefficients. That is the case for Part 2.
+-->
+
+
+# 2. Internal Instruments
+
+## The assumption we can afford: sequential exogeneity
+
+- **Strict exogeneity**: shocks unrelated to every regressor at *all* dates, past and future,
+$$
+\mathbb{E}\big[\varepsilon_{it} \,\big|\, X_{i1}, \dots, X_{iT}, \mu_i\big] = 0 \quad \text{(and likewise for } Y_{i,t-1}, \dots, Y_{i,T-1}).
+$$
+Fails by construction: $\varepsilon_{it}$ moves $Y_{it}$, tomorrow's regressor.
+
+- **Sequential exogeneity**: shocks unrelated to the *past* of $Y$ and the *past and present* of $X$,
+$$
+\mathbb{E}\big[\varepsilon_{it} \,\big|\, Y_{i,t-1}, \dots, Y_{i1},\; X_{it}, \dots, X_{i1},\; \mu_i\big] = 0.
+$$
+**$\varepsilon_{it}$ is news**: it may change everything *after* it (feedback allowed) but cannot be forecast from what was known *before* it, that is, $\varepsilon_{it}$ is serially uncorrelated.
+
+- Everything dated $t-2$ or earlier was known before the news in $\Delta\varepsilon_{it}$ arrived:
+$$
+\mathbb{E}\big[\,Y_{i,t-s}\,\Delta\varepsilon_{it}\,\big] = 0, \qquad s \ge 2.
+$$
+These **moment conditions** are the basis of what follows.
+
+## Anderson and Hsiao (1981): the first fix
+
+Difference away $\mu_i$, then instrument the one bad regressor, $\Delta Y_{i,t-1}$, by **2SLS**:
+$$
+\Delta Y_{it} = \alpha\,\Delta Y_{i,t-1} + \Delta X_{it}'\beta + \Delta\varepsilon_{it}.
+$$
+
+\begin{center}\footnotesize
+\begin{tabular}{R{2.6cm}R{4.3cm}R{4.6cm}l}
+\toprule
+instrument $z_{it}$ & relevant because & valid because & equations \\
+\midrule
+level $Y_{i,t-2}$ & it is part of $\Delta Y_{i,t-1} = Y_{i,t-1} - Y_{i,t-2}$ & dated $t-2$: $\mathbb{E}[Y_{i,t-2}\Delta\varepsilon_{it}] = 0$ & $t \ge 2$ \\
+difference $\Delta Y_{i,t-2}$ & past changes predict recent changes & ends at $t-2$: $\mathbb{E}[\Delta Y_{i,t-2}\Delta\varepsilon_{it}] = 0$ & $t \ge 3$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Apply 2SLS with one of the two as the instrument: just-identified, consistent as $N \to \infty$ with $T$ fixed.
+- **Its limits.** One instrument per equation, when at $t = 5$ the levels $Y_{i0}, \dots, Y_{i3}$ are all valid; and plain 2SLS ignores that $\Delta\varepsilon_{it}$ and $\Delta\varepsilon_{i,t-1}$ share a shock. Consistent but imprecise, which is why GMM replaced it.
+
+<!-- 
+One instrument, one endogenous regressor: just-identified IV ($\Delta X_{it}$ instruments itself),
+$$
+\hat\alpha_{\text{AH}} \;=\; (Z'\Delta Y_{-1})^{-1} Z'\Delta Y \;=\; \frac{\sum_{i,t} z_{it}\,\Delta Y_{it}}{\sum_{i,t} z_{it}\,\Delta Y_{i,t-1}} \qquad (\beta = 0).
+$$
+
+- Consistent as $N \to \infty$ with $T$ fixed, needing only that $\varepsilon$ be news. **Transparent**: the shock-dating table *is* the whole argument.
+-->
+
+<!-- 
+## Anderson--Hsiao: what it leaves on the table
+
+- **Information.** One instrument per equation. At $t = 5$, $Y_{i0}, \dots, Y_{i3}$ are all valid; AH keeps only $Y_{i3}$.
+- **The MA(1) error.** $\operatorname{Var}(\Delta\varepsilon_{it}) = 2\sigma^2_\varepsilon$, $\operatorname{Cov}(\Delta\varepsilon_{it}, \Delta\varepsilon_{i,t-1}) = -\sigma^2_\varepsilon$; plain 2SLS weights the equations as if i.i.d.
+- **Sample.** The difference instrument needs $t \ge 3$: one more year lost, a quarter of a $T = 5$ panel.
+- **Weak instruments.** $\operatorname{Corr}(\Delta Y_{i,t-1}, \Delta Y_{i,t-2}) = (\alpha-1)/2$ for a stationary AR(1): $-0.05$ at $\alpha = 0.9$. The level instrument fades as $\alpha \to 1$ too (proved later).
+
+\begin{center}\footnotesize
+\begin{tabular}{lcc}
+\toprule
+$500$ firms, $T = 6$, $`R R`$ draws: median $\hat\alpha$ [10th, 90th pct.] & $\alpha = 0.5$ & $\alpha = 0.9$ \\
+\midrule
+AH, instrument $Y_{i,t-2}$ & $`R fq(ahs[[1]]["AH_lev", ])`$ & $`R fq(ahs[[2]]["AH_lev", ])`$ \\
+AH, instrument $\Delta Y_{i,t-2}$ & $`R fq(ahs[[1]]["AH_dif", ])`$ & $`R fq(ahs[[2]]["AH_dif", ])`$ \\
+difference GMM, all lags, two-step & $`R fq(sims$mod["AB", ])`$ & $`R fq(sims$hi["AB", ])`$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **$\alpha = 0.5$: same assumption, same data, far tighter.** Arellano and Bond keep every valid lag and weight for the MA(1) error. **$\alpha = 0.9$:** the lags are weak for everyone; AH is wide, GMM is tighter but biased down (why, later).
+-->
+
+
+
+## Difference GMM (Arellano and Bond 1991)
+
+**Step 1.** Difference away $\mu_i$: $\;\Delta Y_{it} = \alpha\,\Delta Y_{i,t-1} + \Delta X_{it}'\beta + \Delta\varepsilon_{it}$.
+
+**Step 2.** Instrument $\Delta Y_{i,t-1}$ with lagged *levels*. Anderson--Hsiao used $Y_{i,t-2}$ alone; every earlier $Y$ is just as **valid** (dated before any shock in $\Delta\varepsilon_{it}$) and still **relevant**, so use them all:
+
+:::: {.columns}
+::: {.column width="42%"}
+
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+equation at & instruments for $\Delta Y_{i,t-1}$ \\
+\midrule
+$t = 2$ & $Y_{i0}$ \\
+$t = 3$ & $Y_{i0},\, Y_{i1}$ \\
+$t = 4$ & $Y_{i0},\, Y_{i1},\, Y_{i2}$ \\
+$t$ & $Y_{i0}, \dots, Y_{i,t-2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+:::
+::: {.column width="56%"}
+
+$$
+Z_i = \begin{pmatrix}
+Y_{i0} & 0 & 0 & 0 & 0 & 0 \\
+0 & Y_{i0} & Y_{i1} & 0 & 0 & 0 \\
+0 & 0 & 0 & Y_{i0} & Y_{i1} & Y_{i2}
+\end{pmatrix}
+\quad
+\begin{matrix} t = 2 \\ t = 3 \\ t = 4 \end{matrix}
+$$
+
+:::
+::::
+
+<!-- - Each nonzero entry of $Z_i$ pairs one instrument with one equation: one moment condition $\mathbb{E}[Y_{i,t-s}\Delta\varepsilon_{it}] = 0$. With data at $t = 0, \dots, T$ the equation at $t$ has $t-1$ instruments, $T(T-1)/2$ in all: $1+2+3 = 6$ at $T = 4$, $105$ at $T = 15$. --> 
+- Anderson--Hsiao had one condition per equation; now there are many more conditions than parameters. What do you *do* with them?
+
+## What GMM does with the moment conditions
+
+Stack the instruments and the differenced residuals of firm $i$ and average over firms:
+$$
+\bar g(\alpha) \;=\; \frac{1}{N}\sum_{i=1}^N Z_i'\,\Delta\varepsilon_i(\alpha), \qquad
+\hat\alpha \;=\; \arg\min_\alpha\; J(\alpha) = N\,\bar g(\alpha)'\,W\,\bar g(\alpha).
+$$
+
+- Each entry of $\bar g(\alpha)$ is the sample covariance between one instrument and the residual. 
+- **The Overidentification Problem:** Validity says the *population* covariances are zero. But with more instruments than parameters, no single $\alpha$ can zero out all the *sample* covariances at once.
+- **The GMM Solution:** Pick the $\alpha$ that makes them *jointly as close to zero as possible*. 
+- Each instrument on its own gives a "just-identified" estimate. GMM is simply a weighted average of these estimates. The matrix $W$ downweights the noisy, high-variance instruments (1-step vs 2-step GMM).
+
+<!-- 
+## What to do with the moment conditions
+
+Stack instruments and differenced residuals for firm $i$, average over firms:
+$$
+\bar g(\theta) \;=\; \frac{1}{N}\sum_{i=1}^N Z_i'\,\Delta\varepsilon_i(\theta), \qquad \theta = (\alpha, \beta')'.
+$$
+
+- $\bar g$ has $L$ entries (one per instrument), $\theta$ has $K < L$: **overidentified**. No $\theta$ zeroes all $L$ sample moments.
+- GMM makes them **as close to zero as possible** in a weighted norm:
+$$
+\hat\theta \;=\; \arg\min_\theta\; J(\theta) \;=\; N\,\bar g(\theta)'\,W\,\bar g(\theta), \qquad W \text{ positive definite}.
+$$
+- **Intuition.** $L$ equations, $K$ unknowns: like fitting a line through five points. GMM is least squares *in moment space*, and $W$ says which points are measured precisely.
+- Linear model, closed form: $\hat\theta = (X'ZWZ'X)^{-1}X'ZWZ'Y$ in stacked notation.
+
+## Weights, steps, and the $J$ statistic
+
+- **$W$ decides which moments to trust.** A precisely estimated moment deserves more weight; the efficient $W$ is the inverse variance of $\bar g$.
+- **One-step GMM**: $W$ from the known structure of $\Delta\varepsilon$ (adjacent differences share a shock). Consistent; robust standard errors are reliable.
+- **Two-step GMM**: $W$ re-estimated from one-step residuals. Efficient, but the usual standard errors are far too small. Always use the **Windmeijer (2005)** correction; report both steps, and worry if they disagree.
+- **At the minimum $J(\hat\theta) > 0$**: how far above zero measures how much the moments disagree. Under valid instruments $J \sim \chi^2_{L-K}$: the **Hansen test** of Part 3. A rejection says the instruments contradict one another, not which one is wrong.
+
+\begin{center}\footnotesize
+\begin{tabular}{lll}
+\toprule
+ & Anderson--Hsiao (1981) & Arellano--Bond difference GMM (1991) \\
+\midrule
+estimator & 2SLS, just-identified ($L = K$) & GMM, overidentified ($L > K$) \\
+instruments & one lag per equation & all available lags $Y_{i,t-2}, \dots, Y_{i0}$ \\
+weighting & none & $W$ built for the MA(1) error, then re-estimated \\
+result & consistent, imprecise, no $J$ & consistent, efficient, $J$ tests the extra moments \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+## A numerical example: two instruments that disagree
+
+One parameter $\alpha$, two instruments $z_1, z_2$ for $\Delta Y_{i,t-1}$ in $\Delta Y_{it} = \alpha\,\Delta Y_{i,t-1} + \Delta\varepsilon_{it}$. Each instrument gives one sample moment, linear in $\alpha$:
+$$
+\bar g(\alpha) \;=\; \underbrace{\tfrac{1}{N}\textstyle\sum_i z_i\,\Delta Y_i}_{m_{zY}} \;-\; \alpha\,\underbrace{\tfrac{1}{N}\textstyle\sum_i z_i\,\Delta Y_{i,-1}}_{m_{zX}},
+\qquad \text{suppose } m_{zY} = \begin{pmatrix} 1.6 \\ 0.6 \end{pmatrix},\; m_{zX} = \begin{pmatrix} 2 \\ 1 \end{pmatrix}.
+$$
+
+- **Instrument 1 alone** is zeroed at $\alpha = 1.6/2 = 0.8$; **instrument 2 alone** at $0.6/1 = 0.6$.
+- No single $\alpha$ zeroes both. With sampling noise two *valid* instruments always disagree a little; the question is by how much.
+- The compromise rule is the weighted objective
+$$
+J(\alpha) \;=\; N\big[\,w_1(1.6 - 2\alpha)^2 + w_2(0.6 - \alpha)^2\,\big], \qquad W = \operatorname{diag}(w_1, w_2).
+$$
+
+## A numerical example: the weighted compromise
+
+```r
+#| fig-width: 8
+#| fig-height: 1.8
+#| out-width: 62%
+#| fig-align: center
+ag <- seq(0.45, 1, by = 0.005)
+par(mar = c(2.6, 3.2, 0.3, 0.3), mgp = c(1.6, 0.5, 0), cex = 0.9)
+plot(ag, sapply(ag, Jfun, W = W1), type = "l", lwd = 2, las = 1, xlab = expression(alpha), ylab = expression(J(alpha)), ylim = c(0, 1.2))
+lines(ag, sapply(ag, Jfun, W = W2), lwd = 2, lty = 2)
+abline(v = c(gmm_min(W1), gmm_min(W2)), col = "grey60", lty = 3)
+legend("top", bty = "n", lwd = 2, lty = 1:2, legend = c("W = I", "W = diag(1, 4)"), cex = 0.9, horiz = TRUE)
+```
+
+$J(\alpha)$ is a parabola ($N = 1$ here) with minimiser
+$\;\hat\alpha = \dfrac{m_{zX}'\,W\,m_{zY}}{m_{zX}'\,W\,m_{zX}}.$
+
+- **Equal weights,** $W = I$: $\hat\alpha = (2\cdot1.6 + 1\cdot0.6)/(2^2 + 1^2) = `R f2(gmm_min(W1))`$. Closer to $0.8$: instrument 1 has the larger $m_{zX}$, it is more *relevant*.
+- **Trust instrument 2 more,** $W = \operatorname{diag}(1, 4)$: $\hat\alpha = (3.2 + 4\cdot0.6)/(4 + 4) = `R f2(gmm_min(W2))`$.
+- **Read it.** GMM is a weighted average of the just-identified estimates; relevance and $W$ set the weights. The minimised $J$ stays above zero, and that height is the overidentification statistic.
+-->
+
+<!--
+## Weak instruments: the intuition before the proof
+
+The instrument $Y_{i,t-2}$ has to **predict a change**. Rewrite the model at $t-1$ around the firm's long-run level $\mu_i/(1-\alpha)$:
+$$
+\Delta Y_{i,t-1} \;=\; -(1-\alpha)\,\underbrace{\Big(Y_{i,t-2} - \frac{\mu_i}{1-\alpha}\Big)}_{\text{gap to target}} \;+\; \varepsilon_{i,t-1}.
+$$
+
+- A firm closes a fraction $(1-\alpha)$ of its **gap** each year. That is the *only* way a past level predicts a future change. **Height** ($\mu_i/(1-\alpha)$) predicts nothing: a permanently high firm is not about to fall.
+- The instrument is the whole level, height plus gap. Two ways to lose it:
+  - **$\alpha \to 1$**: the gap closes at rate $(1-\alpha) \to 0$. In a near random walk, last year's level says nothing about this year's change.
+  - **$\sigma^2_\mu \gg \sigma^2_\varepsilon$**: the level is mostly height, and height does not predict change.
+- Both describe corporate finance: $\alpha \approx 0.8$--$0.95$ and large firm effects. **The instrument is weakest exactly where you need it most.**
+
+## Weak instruments in difference GMM: the proof
+
+\small
+**Claim.** In $Y_{it} = \alpha Y_{i,t-1} + \mu_i + \varepsilon_{it}$ with firms at their long-run levels, $\;\operatorname{Cov}(\Delta Y_{i,t-1},\, Y_{i,t-2}) = -\sigma^2_\varepsilon/(1+\alpha)$.
+
+**Proof.** Subtract $Y_{i,t-2}$ from both sides of the equation at $t-1$:
+$$
+\Delta Y_{i,t-1} = (\alpha - 1)\,Y_{i,t-2} + \mu_i + \varepsilon_{i,t-1}
+\;\;\Longrightarrow\;\;
+\operatorname{Cov}(\Delta Y_{i,t-1}, Y_{i,t-2}) = (\alpha-1)\operatorname{Var}(Y_{i,t-2}) + \operatorname{Cov}(\mu_i, Y_{i,t-2}).
+$$
+Under stationarity $\operatorname{Var}(Y) = \sigma^2_\mu/(1-\alpha)^2 + \sigma^2_\varepsilon/(1-\alpha^2)$ and $\operatorname{Cov}(\mu_i, Y) = \sigma^2_\mu/(1-\alpha)$, so the $\mu$ terms cancel exactly: $-\sigma^2_\mu/(1-\alpha) + \sigma^2_\mu/(1-\alpha) = 0$. What survives is
+$$
+\operatorname{Cov}(\Delta Y_{i,t-1}, Y_{i,t-2}) \;=\; (\alpha - 1)\,\frac{\sigma^2_\varepsilon}{(1-\alpha)(1+\alpha)} \;=\; -\frac{\sigma^2_\varepsilon}{1+\alpha}. \qquad\blacksquare
+$$
+Without a firm effect the middle step is simply $(\alpha-1)\operatorname{Var}(Y_{i,t-2})$.
+
+**Why it is bad news.** The covariance is bounded, but $\operatorname{Var}(Y_{i,t-2})$ explodes as $\alpha \to 1$ or as $\sigma^2_\mu$ grows. With $\operatorname{Var}(\Delta Y_{i,t-1}) = 2\sigma^2_\varepsilon/(1+\alpha)$,
+$$
+\operatorname{Corr}(\Delta Y_{i,t-1}, Y_{i,t-2}) = -\sqrt{\frac{\sigma^2_\varepsilon}{2(1+\alpha)\operatorname{Var}(Y_{i,t-2})}}
+\;\xrightarrow[\alpha \to 1]{}\; 0, \qquad = -\sqrt{\tfrac{1-\alpha}{2}} \;\text{ if } \sigma^2_\mu = 0.
+$$
+\normalsize
+-->
+
+## Weak instruments: when a level cannot predict a change
+
+\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+Difference GMM asks a *level* $Y_{i,t-2}$ to predict a *change* $\Delta Y_{i,t-1}$. But if
+
+<!-- That works only through **mean reversion**: a firm above its long-run level $\mu_i/(1-\alpha)$ tends to fall back. -->
+
+- **$\alpha \to 1$**: little mean reversion; where a firm *is* says nothing about where it is *going*.
+- **$\sigma^2_\mu$ large**: firms differ *permanently*, and permanent differences predict no change.
+
+So $\operatorname{Cov}(\Delta Y_{i,t-1}, Y_{i,t-2}) = -\sigma^2_\varepsilon/(1+\alpha)$ stays bounded while $\operatorname{Var}(Y_{i,t-2}) = \sigma^2_\mu/(1-\alpha)^2 + \sigma^2_\varepsilon/(1-\alpha^2)$ explodes; the first-stage correlation collapses:
+
+\begin{center}\footnotesize
+\begin{tabular}{lccccc}
+\toprule
+$\sigma^2_\mu / \sigma^2_\varepsilon$ & $\alpha = 0.5$ & $0.8$ & $0.9$ & $0.95$ & $0.99$ \\
+\midrule
+0 (no firm effect) & $`r f2(corr_iv(0.5, 0))`$ & $`r f2(corr_iv(0.8, 0))`$ & $`r f2(corr_iv(0.9, 0))`$ & $`r f2(corr_iv(0.95, 0))`$ & $`r f2(corr_iv(0.99, 0))`$ \\
+1 & $`r f2(corr_iv(0.5, 1))`$ & $`r f2(corr_iv(0.8, 1))`$ & $`r f2(corr_iv(0.9, 1))`$ & $`r f2(corr_iv(0.95, 1))`$ & $`r f2(corr_iv(0.99, 1))`$ \\
+4 & $`r f2(corr_iv(0.5, 4))`$ & $`r f2(corr_iv(0.8, 4))`$ & $`r f2(corr_iv(0.9, 4))`$ & $`r f2(corr_iv(0.95, 4))`$ & $`r f2(corr_iv(0.99, 4))`$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Bottom-right is finance: large standard errors, bias toward the within estimate.
+- **Blundell and Bond's answer.** A change **always predicts a level**: swap roles.
+
+## System GMM (Blundell and Bond 1998)
+
+Keep the differenced equation and **bring back the levels equation**:
+
+\begin{center}\footnotesize
+\begin{tabular}{lll}
+\toprule
+equation & regressor & instruments \\
+\midrule
+differences: $\Delta Y_{it} = \alpha\Delta Y_{i,t-1} + \Delta\varepsilon_{it}$ & $\Delta Y_{i,t-1}$ & lagged \emph{levels} $Y_{i,t-2}, Y_{i,t-3}, \dots$ \\
+levels: $Y_{it} = \alpha Y_{i,t-1} + \mu_i + \varepsilon_{it}$ & $Y_{i,t-1}$ & lagged \emph{differences} $\Delta Y_{i,t-1}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **Relevance does not fade.** The regressor contains the instrument, $Y_{i,t-1} = Y_{i,t-2} + \Delta Y_{i,t-1}$: a firm that just moved up is now higher, whatever $\alpha$ and $\sigma^2_\mu$; no mean reversion needed. 
+<!-- First-stage slope $\operatorname{Cov}(Y_{i,t-1}, \Delta Y_{i,t-1})/\operatorname{Var}(\Delta Y_{i,t-1}) = \tfrac12$ always, against $- \sigma^2_\varepsilon/\big((1+\alpha)\operatorname{Var}(Y)\big) \to 0$ in differences. -->
+- **Requires a new assumption:** The levels error still contains the firm fixed effect $\mu_i$. We need $\operatorname{Cov}(\Delta Y_{i,t-1}, \mu_i) = 0$. 
+  - A firm's recent change says nothing about its permanent level. <!-- (**mean stationarity**). -->
+  - *It fails:* When firms are still converging to their steady state (e.g., IPOs, post-crisis panels, post-deregulation). 
+- **The trade:** Difference GMM needs *news* (low persistence). System GMM needs *settled firms* (steady state).
+
+
+<!--
+## Mean stationarity, in a picture
+
+```r
+#| fig-width: 9
+#| fig-height: 1.9
+#| out-width: 90%
+#| fig-align: center
+par(mfrow = c(1, 2), mar = c(2.6, 3.2, 1.4, 0.4), mgp = c(1.6, 0.5, 0), cex = 0.9)
+yl <- range(c(ms_on, ms_off)) + c(-0.05, 0.05)
+for (k in 1:2) {
+  M <- list(ms_on, ms_off)[[k]]
+  plot(1:ncol(M), M["hi", ], type = "l", lwd = 2, ylim = yl, las = 1, xlab = "year in sample", ylab = expression("average " * Delta * Y[it]),
+       main = c("firms start at their own long-run levels", "every firm starts at the same level")[k], cex.main = 0.95)
+  lines(1:ncol(M), M["lo", ], lwd = 2, lty = 2); abline(h = 0, col = "grey70")
+  if (k == 1) legend("topright", bty = "n", lwd = 2, lty = 1:2, legend = c("high-target firms", "low-target firms"), cex = 0.85)
+}
+```
+
+$\alpha = 0.9$; $200$ firms with $\mu_i = +0.5$, $200$ with $\mu_i = -0.5$; lines are the average yearly change in each group.
+
+- **Left: holds.** Watch a firm's changes for as long as you like; you learn nothing about its target. $\Delta Y_{i,t-1}$ is a valid instrument for the level.
+- **Right: fails.** Everyone starts at zero, so high-target firms rise and low-target firms fall for years. A recent change *reveals* $\mu_i$, and $\hat\alpha$ is pushed up.
+- **In finance the right panel is**: panels starting at IPO (young firms converge from below; Lemmon, Roberts and Zender 2008), after a crisis, or after a rule change that moved every target at once.
+-->
+
+
+## The simulation: five estimators in three worlds
+
+```{r worlds}
+#| fig-width: 9
+#| fig-height: 1.95
+#| out-width: 100%
+#| fig-align: center
+labs <- c("OLS", "FE", "FD", "Diff GMM", "Sys GMM"); rows <- c("OLS", "FE", "FD", "AB", "BB")
+ttl <- c(expression(alpha == 0.5), expression(alpha == 0.9), expression(alpha == 0.9 * ", firms start off target"))
+tru <- c(0.5, 0.9, 0.9); xl <- c(-0.4, 1.3)
+par(mfrow = c(1, 3), mar = c(2.4, 4.4, 1.4, 0.4), mgp = c(1.4, 0.4, 0), cex = 1)
+for (k in 1:3) {
+  s <- sims[[k]][rows, ]; q <- apply(s, 1, quantile, c(.1, .5, .9)); y <- 5:1
+  plot(NA, xlim = xl, ylim = c(0.5, 5.5), yaxt = "n", xlab = expression(hat(alpha)), ylab = "", main = ttl[k], cex.main = 1)
+  axis(2, at = y, labels = labs, las = 1, tick = FALSE)
+  abline(v = tru[k], lty = 2, lwd = 1.5)
+  segments(pmax(q[1, ], xl[1]), y, pmin(q[3, ], xl[2]), y, lwd = 2)
+  points(q[2, ], y, pch = 19, cex = 1.1); box()
+}
+```
+
+\scriptsize $500$ firms, $T = 6$, $`r R`$ replications. Dots: medians; bars: 10th--90th percentiles; dashed: truth. OLS biased up, FE and FD down. 
+\normalsize
+
+- **$\alpha = 0.5$.** Both GMM estimators sit on the truth (difference $`r f2(med$mod["AB"])`$, system $`r f2(med$mod["BB"])`$).
+- **$\alpha = 0.9$.** Difference GMM wide and low ($`r f2(med$hi["AB"])`$): weak instruments. System GMM tight and right ($`r f2(med$hi["BB"])`$).
+- Firms start away from steady state $\mu_i$. Difference GMM recovers ($`r f2(med$off["AB"])`$); system GMM lands at $`r f2(med$off["BB"])`$, above even OLS
+- Report OLS and FE beside GMM; outside their range is a warning.
+
+
+<!-- 
+# 3. Diagnostics and Practice
+
+## The AR(1) and AR(2) tests
+
+The moments need $\varepsilon_{it}$ serially uncorrelated. We only see *differenced* residuals, so look at how adjacent ones overlap:
+$$
+\begin{array}{lcl}
+\Delta\varepsilon_{it}   & = & \varepsilon_{it} \;-\; \boxed{\varepsilon_{i,t-1}} \\[0.2em]
+\Delta\varepsilon_{i,t-1} & = & \phantom{\varepsilon_{it} \;-\;} \boxed{\varepsilon_{i,t-1}} \;-\; \varepsilon_{i,t-2} \\[0.2em]
+\Delta\varepsilon_{i,t-2} & = & \phantom{\varepsilon_{it} \;-\; \varepsilon_{i,t-1} \;-\;} \varepsilon_{i,t-2} \;-\; \varepsilon_{i,t-3}
+\end{array}
+$$
+
+- **Intuition: differencing creates an echo exactly one period long.** Each shock appears twice, with opposite signs, in adjacent years. Adjacent differenced errors are negatively correlated *by construction*; two years apart they are not.
+- **AR(1): rejection expected.** $\mathbb{E}[\Delta\varepsilon_{it}\Delta\varepsilon_{i,t-1}] = -\sigma^2_\varepsilon \ne 0$. A non-rejection signals a small sample or misspecification, not good news.
+- **AR(2): must not reject.** $\mathbb{E}[\Delta\varepsilon_{it}\Delta\varepsilon_{i,t-2}] = 0$ *if* $\varepsilon$ is white noise. An echo two years long can only come from the original shocks being correlated.
+
+## Why an AR(2) rejection is fatal, and what to do
+
+A rejection means $\varepsilon_{i,t-1}$ and $\varepsilon_{i,t-2}$ are correlated. Follow the chain:
+
+\begin{center}\small
+\begin{tabular}{lcl}
+\toprule
+instrument $Y_{i,t-2}$ & contains & $\varepsilon_{i,t-2}$ \\
+error $\Delta\varepsilon_{it}$ & contains & $-\varepsilon_{i,t-1}$ \\
+\midrule
+if $\varepsilon_{i,t-2}$ and $\varepsilon_{i,t-1}$ are correlated & then & $\mathbb{E}[\,Y_{i,t-2}\,\Delta\varepsilon_{it}\,] \ne 0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- The lag-2 instrument is **invalid**, and with it every moment built on it.
+- **Intuition.** The news is not all news: part of this year's shock was visible last year, so it was already inside the instrument.
+- **Remedy.** Start the instrument set at lag 3, $Y_{i,t-3}, Y_{i,t-4}, \dots$, and test AR(3). Each step back costs relevance, so go no deeper than the tests require.
+- **AR(2) is the test of the identifying assumption.** Everything else guards the implementation.
+
+## The Hansen test, and too many instruments
+
+- **Hansen $J$** (Sargan in its non-robust form): $J(\hat\theta) \sim \chi^2_{L-K}$ under $H_0$ that all overidentifying restrictions hold. You want **not** to reject; $p$ between $0.10$ and $0.25$ is comfortable.
+- **$p = 1.000$ is a warning, not a pass.** With as many instruments as firms, the first stage reproduces the endogenous regressor *exactly*, endogenous part included, and IV turns back into OLS. The moments then fit almost perfectly and $J$ cannot object (Roodman 2009).
+
+\begin{center}\footnotesize
+\begin{tabular}{lccc}
+\toprule
+$100$ firms, $T = 12$, $\alpha = 0.8$; medians over $`R R`$ draws & instruments (diff.\ GMM) & Diff GMM & Sys GMM \\
+\midrule
+full instrument set & $`R tf["nZ"]`$ & $`R f2(tf["AB"])`$ & $`R f2(tf["BB"])`$ \\
+collapsed & $`R tc["nZ"]`$ & $`R f2(tc["AB"])`$ & $`R f2(tc["BB"])`$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- With $`R tf["nZ"]`$ instruments for $100$ firms, system GMM drifts toward pooled OLS; collapsing (one column per lag depth) brings it back to $`R f2(tc["BB"])`$.
+- **Rules.** Instruments well below $N$; cap lag depth; collapse; report the count beside $J$; in system GMM report the **difference-in-Hansen** test of the level moments.
+
+## The other regressors: what are you assuming about $X$?
+
+Every $X$ needs a rule about **which shocks can move it**; the rule fixes which lags are valid instruments:
+
+\begin{center}\footnotesize
+\begin{tabular}{R{2.4cm}R{3.4cm}R{3.0cm}R{3.6cm}}
+\toprule
+$X_{it}$ is & moved by & instruments in diff.\ GMM & finance examples \\
+\midrule
+strictly exogenous & no shock, at any date & $\Delta X_{it}$ itself & year effects, industry shocks \\
+predetermined & past shocks only & $X_{i,t-1},\, X_{i,t-2}, \dots$ & profitability, size, tangibility \\
+endogenous & the current shock too & $X_{i,t-2},\, X_{i,t-3}, \dots$ & market-to-book, payout \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **Same rule as for the lag:** step back until the instrument predates any shock it could share with the error. One step for lagged feedback, two when $X$ and $Y$ are set together.
+- **Strictly exogenous is rarely honest**: a bad year lowers profits *and* next year's investment. Predetermined is the usual default.
+- Each GMM-style regressor multiplies the instrument count: collapse, and **state the assumption**.
+
+## Alternatives, and choosing among them
+
+- **Anderson--Hsiao (1981).** Just-identified 2SLS on the differenced equation (Part 2). Transparent, consistent, imprecise; useful as a check on the GMM estimate.
+- **Bias-corrected fixed effects, LSDVC (Kiviet 1995; Bruno 2005).** Nickell's bias has a formula: estimate FE, subtract it, iterate. No instruments to be weak, but $X$ must be strictly exogenous. Stata `xtlsdvc`.
+
+\begin{center}\footnotesize
+\begin{tabular}{R{5.4cm}R{7.0cm}}
+\toprule
+Situation & Reasonable default \\
+\midrule
+$T \le 10$, $\alpha$ moderate ($\lesssim 0.8$) & difference GMM, collapsed, lags capped, full diagnostics \\
+$\alpha$ high; firms observed at long-run levels & system GMM, with difference-in-Hansen and a stated defence of mean stationarity \\
+$T \ge 15$--$20$, regressors close to exogenous & bias-corrected fixed effects \\
+Only $\beta$ matters, dynamics a nuisance & FE with the lag included, provided $T$ is long enough for the Nickell bias in $\hat\beta$ to be second order \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Flannery and Hankins (2013), Compustat-like panels: LSDVC and system GMM most reliable. **Whatever you choose, the first table is still OLS and FE.**
+
+## Reading a real table: Arellano and Bond's own application
+
+Employment on its own lags, wages, capital and output; $`R length(ab_uk$W)`$ UK firms, 1976--84; two-step difference GMM, year effects, Windmeijer-robust standard errors (R `plm::pgmm`).
+
+:::: {.columns}
+::: {.column width="46%"}
+
+\begin{center}\small
+\begin{tabular}{lrr}
+\toprule
+ & coef. & s.e. \\
+\midrule
+$\log n_{t-1}$ & $`R f3(uk[1, 1])`$ & $`R f3(uk[1, 2])`$ \\
+$\log n_{t-2}$ & $`R f3(uk[2, 1])`$ & $`R f3(uk[2, 2])`$ \\
+$\log w_t$ & $`R f3(uk[3, 1])`$ & $`R f3(uk[3, 2])`$ \\
+$\log k_t$ & $`R f3(uk[5, 1])`$ & $`R f3(uk[5, 2])`$ \\
+$\log y_t$ & $`R f3(uk[6, 1])`$ & $`R f3(uk[6, 2])`$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+:::
+::: {.column width="52%"}
+
+\begin{center}\small
+\begin{tabular}{lrr}
+\toprule
+Diagnostic & statistic & $p$ \\
+\midrule
+AR(1) & $`R f2(m1$statistic)`$ & $`R f2(m1$p.value)`$ \\
+AR(2) & $`R f2(m2$statistic)`$ & $`R f2(m2$p.value)`$ \\
+Sargan $J$ ($`R sj$parameter`$ df) & $`R f2(sj$statistic)`$ & $`R f2(sj$p.value)`$ \\
+instruments / firms & $`R ncol(ab_uk$W[[1]])`$ / $`R length(ab_uk$W)`$ & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+:::
+::::
+
+- **Read it in this order.** Instrument count a quarter of $N$: the tests have power. AR(2) does not reject: lag-2 instruments survive. $J$ does not reject. Only then $\hat\alpha \approx `R f2(uk[1, 1])`$, with a wide standard error from a short, moderately persistent panel.
+- AR(1) is weaker than in the published table: two-step robust tests lose power in small samples. Report both steps.
+
+## The code
+
+```stata
+* Leverage on its own lag; prof, size, tang predetermined; mb endogenous; year effects exogenous
+* 0. The bracket first
+reg   lev L.lev prof size tang mb i.year, vce(cluster firm)
+xtreg lev L.lev prof size tang mb i.year, fe vce(cluster firm)
+
+* 1. Difference GMM, collapsed, lags 2-4, two-step Windmeijer SEs  (Roodman's xtabond2)
+xtabond2 lev L.lev prof size tang mb i.year,                        ///
+    gmm(L.lev, lag(2 4) collapse) gmm(prof size tang, lag(1 3) collapse) ///
+    gmm(mb, lag(2 4) collapse) iv(i.year) noleveleq twostep robust
+
+* 2. System GMM: drop noleveleq; the output then also reports the difference-in-Hansen test
+xtabond2 lev L.lev prof size tang mb i.year, gmm(L.lev, lag(2 4) collapse) ///
+    gmm(prof size tang, lag(1 3) collapse) gmm(mb, lag(2 4) collapse) iv(i.year) twostep robust
+
+* 3. Long T, regressors close to exogenous: bias-corrected fixed effects
+xtlsdvc lev prof size tang mb, initial(ab) bias(3) vcov(50)
+```
+
+- R: `plm::pgmm(lev ~ lag(lev, 1) + prof + size + tang + mb | lag(lev, 2:4) + lag(prof, 1:3) + ... , effect = "twoways", model = "twosteps", transformation = "d"` or `"ld"`, `collapse = TRUE)`.
+- Read the output in this order: instrument count, AR(2), Hansen, then the coefficient.
+-->
+
+
+## Summary
+
+1. **Removing $\mu_i$ makes the lagged outcome endogenous.** 
+<!-- Demeaning puts $-\varepsilon_{i,t-1}/T$ into the error (within, Nickell bias, down); differencing leaves a shared $\varepsilon_{i,t-1}$ (first differences, down). The bias fades with $T$, not with $N$. -->
+2. **Sequential exogeneity replaces strict exogeneity**: every $Y$ dated $t-2$ or earlier is orthogonal to $\Delta\varepsilon_{it}$. Anderson--Hsiao uses one such lag by 2SLS; difference GMM uses them all and makes the sample moments as close to zero as $W$ allows.
+3. **The instruments are weak when the series is persistent or firm effects are large**. System GMM instruments the level with the change instead, at the price of mean stationarity, an assumption you must defend.
+4. **In practice**: report OLS and FE beside the GMM column. OLS is biased up and FE down, so a GMM estimate outside their range signals a failed assumption. The diagnostics that test the assumptions directly, AR(2), Hansen and the instrument count, are in Roodman (2009) and Flannery and Hankins (2013).
+
+## References
+
+\tiny
+
+- Anderson, T. W. and C. Hsiao (1981). Estimation of Dynamic Models with Error Components. *Journal of the American Statistical Association* 76, 598--606.
+- Arellano, M. and S. Bond (1991). Some Tests of Specification for Panel Data: Monte Carlo Evidence and an Application to Employment Equations. *Review of Economic Studies* 58, 277--297.
+- Blundell, R. and S. Bond (1998). Initial Conditions and Moment Restrictions in Dynamic Panel Data Models. *Journal of Econometrics* 87, 115--143.
+- Flannery, M. and K. Hankins (2013). Estimating Dynamic Panel Models in Corporate Finance. *Journal of Corporate Finance* 19, 1--19.
+- Lemmon, M., M. Roberts and J. Zender (2008). Back to the Beginning: Persistence and the Cross-Section of Corporate Capital Structure. *JF* 63, 1575--1608.
+- Nickell, S. (1981). Biases in Dynamic Models with Fixed Effects. *Econometrica* 49, 1417--1426.
+- Roodman, D. (2009). How to Do xtabond2: An Introduction to Difference and System GMM in Stata. *Stata Journal* 9, 86--136; and A Note on the Theme of Too Many Instruments. *Oxford Bulletin of Economics and Statistics* 71, 135--158.
+
+<!-- 
+# Appendix
+
+## A1. Why first-difference OLS gives $(\alpha - 1)/2$
+
+OLS on $\Delta Y_{it} = \alpha\,\Delta Y_{i,t-1} + \Delta\varepsilon_{it}$ has
+$$
+\operatorname{plim}(\hat\alpha_{\text{FD}} - \alpha) = \frac{\mathbb{E}[\Delta Y_{i,t-1}\,\Delta\varepsilon_{it}]}{\mathbb{E}[(\Delta Y_{i,t-1})^2]}.
+$$
+
+- **Numerator.** Expand $(Y_{i,t-1} - Y_{i,t-2})(\varepsilon_{it} - \varepsilon_{i,t-1})$. Any $Y$ paired with a *later* shock has expectation zero. The only surviving term is $-Y_{i,t-1}\varepsilon_{i,t-1}$, with expectation $-\sigma^2_\varepsilon$.
+- **Denominator.** $\mu_i$ cancels in a difference; for a stationary AR(1), $\operatorname{Var}(\Delta Y) = 2\sigma^2_\varepsilon/(1+\alpha)$.
+- So the bias is $-(1+\alpha)/2$ and $\operatorname{plim}\hat\alpha_{\text{FD}} = (\alpha - 1)/2$: negative for every $\alpha < 1$, independent of $T$. At $\alpha = 0.9$: $-0.05$, as in the simulation of Part 2.
+- The within bias has the same source spread over $T$ periods instead of two, which is why it shrinks with $T$ while this one does not.
+
+## A2. The simulation, in twelve lines of R
+
+```r
+library(plm)
+gen <- function(N, T, a, s_mu = 1, s_eps = 1, stationary = TRUE) {
+  mu <- rnorm(N, 0, s_mu)
+  y0 <- if (stationary) mu/(1-a) + rnorm(N, 0, s_eps/sqrt(1-a^2)) else rnorm(N, 0, s_eps)
+  Y <- matrix(0, N, T+1); Y[, 1] <- y0
+  for (t in 2:(T+1)) Y[, t] <- a*Y[, t-1] + mu + rnorm(N, 0, s_eps)
+  data.frame(id = rep(1:N, each = T+1), t = rep(0:T, N), y = as.vector(t(Y)))
+}
+pd <- pdata.frame(gen(500, 6, 0.9), index = c("id", "t"))
+ols <- lm(y ~ lag(y, 1), data = pd)                                         # biased up
+fe  <- plm(y ~ lag(y, 1), data = pd, model = "within")                      # biased down
+ab  <- pgmm(y ~ lag(y, 1) | lag(y, 2:99), data = pd, model = "twosteps", transformation = "d")
+bb  <- pgmm(y ~ lag(y, 1) | lag(y, 2:99), data = pd, model = "twosteps", transformation = "ld")
+summary(bb, robust = TRUE); mtest(bb, 2, vcov = vcovHC); sargan(bb)
+```
+
+- Change `a`, `s_mu`, `T` and `stationary` and watch which estimator moves. Set `collapse = TRUE` in `pgmm` to see the instrument count fall.
+- Every number in this deck was produced by this code at render time; the seed is in the source file.
+--> 

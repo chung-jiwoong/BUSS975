@@ -1096,7 +1096,7 @@ Industry & Firm & Year 1 & Year 2 & Change \\
 \end{tabular}
 \end{center}
 
-- **Firm $+$ year:** A's change against the *average* of the other three: $6 - \tfrac{4+1+1}{3} = 4$. Two-thirds of the industry shock is credited to $D$.
+- **Firm $+$ year:** A's change against the *average* of the other three: $6 - \tfrac{4+1+1}{3} = 4$. Two-thirds of the industry shock is credited to $D_{it}$.
 - **Firm $+$ industry$\times$year:** A against its *industry peer*: $6 - 4 = 2$. The industry shock is a tide that lifts every boat in the industry; firm effects measure each boat against its own waterline.
 - **Treat all of industry 1**, and firm $+$ industry$\times$year has nothing left to compare: $D$ is collinear with the fixed effects. An industry-wide treatment looks exactly like an industry-wide shock.
 
@@ -1155,7 +1155,9 @@ summarize D D_tilde              // (sd D_tilde / sd D)^2 = share of variance su
 
 ## The habit, in output
 
-Simulated (\texttt{06a\_panel\_habit\_sim.do}): $500$ firms in $20$ industries, 2011--2020; true effect of $D$ is $0.5$. A quarter of firms are always treated, $36$ switch on mid-sample, the rest never.
+
+$500$ firms in $20$ industries, 2011--2020; true effect of $D$ is $0.5$. A quarter of firms are always treated, $36$ switch on mid-sample, the rest never.
+<!-- Simulated (\texttt{06a\_panel\_habit\_sim.do}): -->
 
 \begin{center}\footnotesize
 \begin{minipage}[t]{0.30\linewidth}\centering

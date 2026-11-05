@@ -961,75 +961,49 @@ $X_{l,t}$ & controls: city and year fixed effects \\
 
 \begin{frame}{How identification fails: Framework A (exogenous shares)}
 \protect\phantomsection\label{how-identification-fails-framework-a-exogenous-shares}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Path dependence}
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Instrument: 1990 manufacturing shares → local labor demand.
-  \item
-    Problem: Rust Belt cities with high manufacturing shares were
-    already declining, so the shares correlate with \(\varepsilon\)
-  \end{itemize}
-\end{itemize}
-
-\vspace{0.3em}
+\(Y_{l,t}\) = wage growth in city \(l\), \(D_{l,t}\) = local employment
+growth (labour demand), and \[
+Z_{l,t} \;=\; \sum_{k=1}^{K} \underbrace{z_{l,k,1990}}_{\substack{\text{city } l\text{'s 1990 employment}\\ \text{share in industry } k}} \times \underbrace{m_{k,t}}_{\substack{\text{national employment}\\ \text{growth of industry } k}}
+\]
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Agglomeration and amenities}
-
-  \begin{itemize}
-  \tightlist
-  \item
-    Instrument: tech employment share → local labor demand.
-  \item
-    Problem: tech-heavy cities have educated workers, costly housing and
-    VC that move \(Y\) directly, so the shares correlate with
-    \(\varepsilon\)
-  \end{itemize}
+  \textbf{Path dependence.} Cleveland's 1990 manufacturing share is
+  high, so its \(Z\) moves whenever national manufacturing moves. But
+  Rust Belt cities were already on a declining wage path for reasons
+  that have nothing to do with this year's national shock --- the share
+  is correlated with \(\varepsilon_{l,t}\).
+\item
+  \textbf{Agglomeration and amenities.} Seattle's tech share is high, so
+  its \(Z\) loads on national tech growth. But a tech-heavy city also
+  has educated workers, costly housing and venture capital, which move
+  wages directly. The share is a proxy for all of that.
 \end{itemize}
 \end{frame}
 
 \begin{frame}{How identification fails: Framework B (exogenous shocks)}
 \protect\phantomsection\label{how-identification-fails-framework-b-exogenous-shocks}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Common macro shocks}
-
-  \begin{itemize}
-  \tightlist
-  \item
-    National auto growth spikes because interest rates were cut.
-  \item
-    Problem: a rate cut raises national auto growth (the shift), and
-    auto-heavy cities' spending also responds to the cut directly, so
-    the shift correlates with those cities' \(\varepsilon\)
-  \end{itemize}
-\end{itemize}
-
-\vspace{0.3em}
+Same \(D_{l,t}\) and the same
+\(Z_{l,t} = \sum_k z_{l,k,1990}\, m_{k,t}\).
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Few dominant shocks}
-
-  \begin{itemize}
-  \tightlist
-  \item
-    2 of 50 industries (e.g., oil \& gas, healthcare) drive most of the
-    shock variation.
-  \item
-    Problem: BHJ needs many independent shocks so unobservables average
-    out. With one or two dominant sectors, any confounder in those
-    sectors biases the estimate.
-  \end{itemize}
+  \textbf{Common macro shocks.} \(Y_{l,t}\) = growth in local consumer
+  spending. National auto employment jumps because the Fed cut rates.
+  The shift \(m_{\text{auto},t}\) is then not an auto-industry shock; it
+  \emph{is} the rate cut. Auto-heavy cities' spending responds to the
+  rate cut directly, so \(m_{k,t}\) is correlated with
+  \(\varepsilon_{l,t}\) exactly in the cities where \(Z_{l,t}\) is
+  large.
+\item
+  \textbf{Few dominant shocks.} \(Y_{l,t}\) = local wage growth,
+  \(K = 50\) industries --- but oil \& gas and healthcare account for
+  most of the variation in \(m_{k,t}\). You effectively have two
+  instruments, not fifty. BHJ needs a law of large numbers across \(k\)
+  so that any one shock's endogeneity washes out; with two, whatever
+  confounds oil or healthcare \emph{is} the estimate.
 \end{itemize}
 \end{frame}
 

@@ -20,6 +20,8 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 5a. Instrumental Variables | [Slides][iv-a-pdf] | |
 | 5b. Five IV Designs | [Slides][iv-b-pdf] |  |
 | 6a. Causal Panel Designs | [Slides][panel-a-pdf] | |
+| 6b. Dynamic Panel Models | [Slides][panel-b-pdf] | |
+| 7a. Difference-in-Differences: Fundamentals | [Slides] | |
 
 
 
@@ -49,7 +51,10 @@ Course materials for BUSS975, including lecture slides and problem sets.
 [iv-b-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05b_iv_PS.pdf
 
 [panel-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06a_panel_data.pdf
+[panel-b-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06b_dynamic_panel_models.pdf
 [dpanel-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06b_dynamic_panel.pdf
+
+[did-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/07_DiD/07a_did_fundamentals.pdf
 
 <!--
 

@@ -520,15 +520,14 @@ $X_{l,t}$ & controls: city and year fixed effects \\
 
 ## How identification fails: Framework A (exogenous shares)
 
-- **Path dependence**
-  - Instrument: 1990 manufacturing shares → local labor demand.
-  - Problem: Rust Belt cities with high manufacturing shares were already declining, so the shares correlate with $\varepsilon$
+$Y_{l,t}$ = wage growth in city $l$, $D_{l,t}$ = local employment growth (labour demand), and
+$$
+Z_{l,t} \;=\; \sum_{k=1}^{K} \underbrace{z_{l,k,1990}}_{\substack{\text{city } l\text{'s 1990 employment}\\ \text{share in industry } k}} \times \underbrace{m_{k,t}}_{\substack{\text{national employment}\\ \text{growth of industry } k}}
+$$
+<!-- (Immigration version: $z$ = enclave share, $m$ = national inflow from country $k$.) Framework A asks the **shares** to be unrelated to $\varepsilon_{l,t}$. Two ways that fails: --> 
 
-\vspace{0.3em}
-
-- **Agglomeration and amenities**
-  - Instrument: tech employment share → local labor demand.
-  - Problem: tech-heavy cities have educated workers, costly housing and VC that move $Y$ directly, so the shares correlate with $\varepsilon$
+- **Path dependence.** Cleveland's 1990 manufacturing share is high, so its $Z$ moves whenever national manufacturing moves. But Rust Belt cities were already on a declining wage path for reasons that have nothing to do with this year's national shock --- the share is correlated with $\varepsilon_{l,t}$.
+- **Agglomeration and amenities.** Seattle's tech share is high, so its $Z$ loads on national tech growth. But a tech-heavy city also has educated workers, costly housing and venture capital, which move wages directly. The share is a proxy for all of that.
 
 <!--
 - **Policy responses**
@@ -538,15 +537,11 @@ $X_{l,t}$ & controls: city and year fixed effects \\
 
 ## How identification fails: Framework B (exogenous shocks)
 
-- **Common macro shocks**
-  - National auto growth spikes because interest rates were cut.
-  - Problem: a rate cut raises national auto growth (the shift), and auto-heavy cities' spending also responds to the cut directly, so the shift correlates with those cities' $\varepsilon$
+Same $D_{l,t}$ and the same $Z_{l,t} = \sum_k z_{l,k,1990}\, m_{k,t}$. 
+<!-- Framework B lets the shares be as endogenous as you like and instead asks the **shifts** $m_{k,t}$ to be as good as random --- and **many**. -->
 
-\vspace{0.3em}
-
-- **Few dominant shocks**
-  - 2 of 50 industries (e.g., oil & gas, healthcare) drive most of the shock variation.
-  - Problem: BHJ needs many independent shocks so unobservables average out. With one or two dominant sectors, any confounder in those sectors biases the estimate.
+- **Common macro shocks.** $Y_{l,t}$ = growth in local consumer spending. National auto employment jumps because the Fed cut rates. The shift $m_{\text{auto},t}$ is then not an auto-industry shock; it *is* the rate cut. Auto-heavy cities' spending responds to the rate cut directly, so $m_{k,t}$ is correlated with $\varepsilon_{l,t}$ exactly in the cities where $Z_{l,t}$ is large.
+- **Few dominant shocks.** $Y_{l,t}$ = local wage growth, $K = 50$ industries --- but oil \& gas and healthcare account for most of the variation in $m_{k,t}$. You effectively have two instruments, not fifty. BHJ needs a law of large numbers across $k$ so that any one shock's endogeneity washes out; with two, whatever confounds oil or healthcare *is* the estimate.
 
 <!--
 - **Large-unit contamination**

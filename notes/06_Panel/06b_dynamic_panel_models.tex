@@ -1,0 +1,631 @@
+% Options for packages loaded elsewhere
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+  11pt,
+  ignorenonframetext,
+  aspectratio=169,
+]{beamer}
+\newif\ifbibliography
+\usepackage{pgfpages}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+% remove section numbering
+\setbeamertemplate{part page}{
+  \centering
+  \begin{beamercolorbox}[sep=16pt,center]{part title}
+    \usebeamerfont{part title}\insertpart\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{section page}{
+  \centering
+  \begin{beamercolorbox}[sep=12pt,center]{section title}
+    \usebeamerfont{section title}\insertsection\par
+  \end{beamercolorbox}
+}
+\setbeamertemplate{subsection page}{
+  \centering
+  \begin{beamercolorbox}[sep=8pt,center]{subsection title}
+    \usebeamerfont{subsection title}\insertsubsection\par
+  \end{beamercolorbox}
+}
+% Prevent slide breaks in the middle of a paragraph
+\widowpenalties 1 10000
+\raggedbottom
+\AtBeginPart{
+  \frame{\partpage}
+}
+\AtBeginSection{
+  \ifbibliography
+  \else
+    \frame{\sectionpage}
+  \fi
+}
+\AtBeginSubsection{
+  \frame{\subsectionpage}
+}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+
+
+\usepackage{longtable,booktabs,array}
+\newcounter{none} % for unnumbered tables
+\usepackage{calc} % for calculating minipage widths
+\usepackage{caption}
+% Make caption package work with longtable
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
+\usepackage{graphicx}
+\makeatletter
+\newsavebox\pandoc@box
+\newcommand*\pandocbounded[1]{% scales image to fit in text height/width
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\textheight}{\dimexpr\ht\pandoc@box+\dp\pandoc@box\relax}%
+  \Gscale@div\@tempb{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempb\p@<\@tempa\p@\let\@tempa\@tempb\fi% select the smaller of both
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+% Set default figure placement to htbp
+\def\fps@figure{htbp}
+\makeatother
+
+
+
+
+
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+
+
+
+ 
+
+
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+\setbeamertemplate{itemize items}[circle]
+\setbeamertemplate{itemize subitem}[triangle]
+\setbeamercolor{frametitle}{fg=black}
+\setbeamerfont{frametitle}{series=\bfseries}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{array}
+\newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
+\usepackage{fancyvrb}
+\fvset{fontsize=\scriptsize}
+\makeatletter
+\def\verbatim@font{\scriptsize\ttfamily}
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\AtBeginDocument{%
+\ifdefined\contentsname
+  \renewcommand*\contentsname{Table of contents}
+\else
+  \newcommand\contentsname{Table of contents}
+\fi
+\ifdefined\listfigurename
+  \renewcommand*\listfigurename{List of Figures}
+\else
+  \newcommand\listfigurename{List of Figures}
+\fi
+\ifdefined\listtablename
+  \renewcommand*\listtablename{List of Tables}
+\else
+  \newcommand\listtablename{List of Tables}
+\fi
+\ifdefined\figurename
+  \renewcommand*\figurename{Figure}
+\else
+  \newcommand\figurename{Figure}
+\fi
+\ifdefined\tablename
+  \renewcommand*\tablename{Table}
+\else
+  \newcommand\tablename{Table}
+\fi
+}
+\@ifpackageloaded{float}{}{\usepackage{float}}
+\floatstyle{ruled}
+\@ifundefined{c@chapter}{\newfloat{codelisting}{h}{lop}}{\newfloat{codelisting}{h}{lop}[chapter]}
+\floatname{codelisting}{Listing}
+\newcommand*\listoflistings{\listof{codelisting}{List of Listings}}
+\makeatother
+\makeatletter
+\makeatother
+\makeatletter
+\@ifpackageloaded{caption}{}{\usepackage{caption}}
+\@ifpackageloaded{subcaption}{}{\usepackage{subcaption}}
+\makeatother
+
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Dynamic Panel Models},
+  pdfauthor={Professor Ji-Woong Chung},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+
+\title{\texorpdfstring{Dynamic Panel Models}{Dynamic Panel Models}}
+\subtitle{\texorpdfstring{BUSS975: Causal Inference in Financial
+Research}{BUSS975: Causal Inference in Financial Research}}
+\author{Professor Ji-Woong Chung}
+\date{}
+\institute{Korea University}
+
+\begin{document}
+\frame{\titlepage}
+
+
+\begin{frame}{Where this lecture sits}
+\protect\phantomsection\label{where-this-lecture-sits}
+\begin{itemize}
+\tightlist
+\item
+  Fixed effects removes everything permanent about a firm. The price:
+  \emph{strict exogeneity}, no regressor may respond to past shocks.
+\item
+  The regressor that responds to past shocks by construction: the
+  outcome's own lag. Leverage, payout, cash, investment and bank capital
+  all depend on their own past.
+\end{itemize}
+\end{frame}
+
+\section{1. Why the Lagged Outcome Is
+Endogenous}\label{why-the-lagged-outcome-is-endogenous}
+
+\begin{frame}{The model}
+\protect\phantomsection\label{the-model}
+\[
+Y_{it} \;=\; \alpha\,Y_{i,t-1} + X_{it}'\beta + v_{it}, \qquad v_{it} = \mu_i + \varepsilon_{it}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{\(\alpha\): state dependence.} In partial-adjustment models
+  (leverage targets, dividends, cash, bank capital), \(1-\alpha\) is the
+  speed of adjustment.
+\item
+  \textbf{\(\mu_i\): the firm being itself.} Permanent; in leverage it
+  explains most of the variation (Lemmon, Roberts and Zender 2008).
+\item
+  \textbf{\(\varepsilon_{it}\): news.} Mean zero, serially uncorrelated,
+  unpredictable from anything known the year before.
+\end{itemize}
+
+\vspace{0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  \(Y_{i,t-1}\) is built from \(\mu_i\) at every past date, so pooled
+  OLS, which leaves \(\mu_i\) in the error, is biased \textbf{up}. Last
+  week's remedy: transform \(\mu_i\) away, by demeaning or by
+  differencing. Does that settle it?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Within estimator: demeaning borrows from the future}
+\protect\phantomsection\label{within-estimator-demeaning-borrows-from-the-future}
+Observations \(t = 1, \dots, T\), so \(Y_{i0}\) is the first lag.
+Subtract each firm's time average from every variable: \[
+\begin{gathered}
+(Y_{it} - \bar Y_i) \;=\; \alpha\,(Y_{i,t-1} - \bar Y_{i,-1}) + (\varepsilon_{it} - \bar\varepsilon_i), \\[0.3em]
+\bar Y_i = \tfrac{1}{T}\textstyle\sum_{s=1}^{T} Y_{is},\qquad
+\bar Y_{i,-1} = \tfrac{1}{T}\textstyle\sum_{s=1}^{T} Y_{i,s-1},\qquad
+\bar\varepsilon_i = \tfrac{1}{T}\textstyle\sum_{s=1}^{T} \varepsilon_{is}.
+\end{gathered}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \(\mu_i\) is gone. But for \(t \ge 2\), \(\bar\varepsilon_i\) contains
+  \(\tfrac{1}{T}\varepsilon_{i,t-1}\), so the demeaned error contains
+  \(-\tfrac{1}{T}\varepsilon_{i,t-1}\), while the regressor
+  \(Y_{i,t-1}\) contains \(+\varepsilon_{i,t-1}\): \[
+  \operatorname{Cov}\!\big(Y_{i,t-1},\; \varepsilon_{it} - \bar\varepsilon_i\big) \;=\; -\frac{\sigma^2_\varepsilon}{T} \;<\; 0 \;\Longrightarrow\; \hat\alpha_{\text{FE}} \text{ biased \textbf{down}}.
+  \]
+\item
+  A good shock last year raised \(Y_{i,t-1}\) \emph{and} raised the mean
+  subtracted from every error. The regressor is high exactly when the
+  transformed error has been pushed down. Demeaning uses the firm's
+  whole history, future years included.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{First differencing: the overlap shrinks to one date}
+\protect\phantomsection\label{first-differencing-the-overlap-shrinks-to-one-date}
+\[
+\Delta Y_{it} \;=\; \alpha\,\Delta Y_{i,t-1} + \Delta\varepsilon_{it}
+\]
+
+\(\mu_i\) is gone again. Every remaining object is a bundle of dated
+shocks; write down which dates are inside each:
+
+\begin{center}\footnotesize
+\begin{tabular}{llc}
+\toprule
+Object & shocks dated & shares a date with $\Delta\varepsilon_{it}$? \\
+\midrule
+error $\Delta\varepsilon_{it} = \varepsilon_{it} - \varepsilon_{i,t-1}$ & $t,\; t-1$ & \\
+regressor $\Delta Y_{i,t-1} = Y_{i,t-1} - Y_{i,t-2}$ & $t-1,\; t-2,\; \dots$ & \textbf{yes}: $t-1$ \\
+$Y_{i,t-2}$ & $t-2,\; t-3,\; \dots$ & no \\
+$\Delta Y_{i,t-2}$ & $t-2,\; t-3,\; \dots$ & no \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \(\operatorname{Cov}(\Delta Y_{i,t-1}, \Delta\varepsilon_{it}) = -\operatorname{Var}(\varepsilon_{i,t-1}) = -\sigma^2_\varepsilon\):
+  a shock at \(t-1\) raises the regressor and lowers the error. Biased
+  \textbf{down}; more years do not help.
+\end{itemize}
+
+\begin{itemize}
+\tightlist
+\item
+  Not the fix, but \textbf{where the fix starts}: \(\mu_i\) is gone and
+  only a \emph{one-date} overlap remains. The last two rows share no
+  date with the error.
+\end{itemize}
+\end{frame}
+
+\section{2. Internal Instruments}\label{internal-instruments}
+
+\begin{frame}{The assumption we can afford: sequential exogeneity}
+\protect\phantomsection\label{the-assumption-we-can-afford-sequential-exogeneity}
+\begin{itemize}
+\item
+  \textbf{Strict exogeneity}: shocks unrelated to every regressor at
+  \emph{all} dates, past and future, \[
+  \mathbb{E}\big[\varepsilon_{it} \,\big|\, X_{i1}, \dots, X_{iT}, \mu_i\big] = 0 \quad \text{(and likewise for } Y_{i,t-1}, \dots, Y_{i,T-1}).
+  \] Fails by construction: \(\varepsilon_{it}\) moves \(Y_{it}\),
+  tomorrow's regressor.
+\item
+  \textbf{Sequential exogeneity}: shocks unrelated to the \emph{past} of
+  \(Y\) and the \emph{past and present} of \(X\), \[
+  \mathbb{E}\big[\varepsilon_{it} \,\big|\, Y_{i,t-1}, \dots, Y_{i1},\; X_{it}, \dots, X_{i1},\; \mu_i\big] = 0.
+  \] \textbf{\(\varepsilon_{it}\) is news}: it may change everything
+  \emph{after} it (feedback allowed) but cannot be forecast from what
+  was known \emph{before} it, that is, \(\varepsilon_{it}\) is serially
+  uncorrelated.
+\item
+  Everything dated \(t-2\) or earlier was known before the news in
+  \(\Delta\varepsilon_{it}\) arrived: \[
+  \mathbb{E}\big[\,Y_{i,t-s}\,\Delta\varepsilon_{it}\,\big] = 0, \qquad s \ge 2.
+  \] These \textbf{moment conditions} are the basis of what follows.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Anderson and Hsiao (1981): the first fix}
+\protect\phantomsection\label{anderson-and-hsiao-1981-the-first-fix}
+Difference away \(\mu_i\), then instrument the one bad regressor,
+\(\Delta Y_{i,t-1}\), by \textbf{2SLS}: \[
+\Delta Y_{it} = \alpha\,\Delta Y_{i,t-1} + \Delta X_{it}'\beta + \Delta\varepsilon_{it}.
+\]
+
+\begin{center}\footnotesize
+\begin{tabular}{R{2.6cm}R{4.3cm}R{4.6cm}l}
+\toprule
+instrument $z_{it}$ & relevant because & valid because & equations \\
+\midrule
+level $Y_{i,t-2}$ & it is part of $\Delta Y_{i,t-1} = Y_{i,t-1} - Y_{i,t-2}$ & dated $t-2$: $\mathbb{E}[Y_{i,t-2}\Delta\varepsilon_{it}] = 0$ & $t \ge 2$ \\
+difference $\Delta Y_{i,t-2}$ & past changes predict recent changes & ends at $t-2$: $\mathbb{E}[\Delta Y_{i,t-2}\Delta\varepsilon_{it}] = 0$ & $t \ge 3$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Apply 2SLS with one of the two as the instrument: just-identified,
+  consistent as \(N \to \infty\) with \(T\) fixed.
+\item
+  \textbf{Its limits.} One instrument per equation, when at \(t = 5\)
+  the levels \(Y_{i0}, \dots, Y_{i3}\) are all valid; and plain 2SLS
+  ignores that \(\Delta\varepsilon_{it}\) and
+  \(\Delta\varepsilon_{i,t-1}\) share a shock. Consistent but imprecise,
+  which is why GMM replaced it.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Difference GMM (Arellano and Bond 1991)}
+\protect\phantomsection\label{difference-gmm-arellano-and-bond-1991}
+\textbf{Step 1.} Difference away \(\mu_i\):
+\(\;\Delta Y_{it} = \alpha\,\Delta Y_{i,t-1} + \Delta X_{it}'\beta + \Delta\varepsilon_{it}\).
+
+\textbf{Step 2.} Instrument \(\Delta Y_{i,t-1}\) with lagged
+\emph{levels}. Anderson--Hsiao used \(Y_{i,t-2}\) alone; every earlier
+\(Y\) is just as \textbf{valid} (dated before any shock in
+\(\Delta\varepsilon_{it}\)) and still \textbf{relevant}, so use them
+all:
+
+\begin{columns}[T]
+\begin{column}{0.42\linewidth}
+\begin{center}\small
+\begin{tabular}{ll}
+\toprule
+equation at & instruments for $\Delta Y_{i,t-1}$ \\
+\midrule
+$t = 2$ & $Y_{i0}$ \\
+$t = 3$ & $Y_{i0},\, Y_{i1}$ \\
+$t = 4$ & $Y_{i0},\, Y_{i1},\, Y_{i2}$ \\
+$t$ & $Y_{i0}, \dots, Y_{i,t-2}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{column}
+
+\begin{column}{0.56\linewidth}
+\[
+Z_i = \begin{pmatrix}
+Y_{i0} & 0 & 0 & 0 & 0 & 0 \\
+0 & Y_{i0} & Y_{i1} & 0 & 0 & 0 \\
+0 & 0 & 0 & Y_{i0} & Y_{i1} & Y_{i2}
+\end{pmatrix}
+\quad
+\begin{matrix} t = 2 \\ t = 3 \\ t = 4 \end{matrix}
+\]
+\end{column}
+\end{columns}
+
+\begin{itemize}
+\tightlist
+\item
+  Anderson--Hsiao had one condition per equation; now there are many
+  more conditions than parameters. What do you \emph{do} with them?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What GMM does with the moment conditions}
+\protect\phantomsection\label{what-gmm-does-with-the-moment-conditions}
+Stack the instruments and the differenced residuals of firm \(i\) and
+average over firms: \[
+\bar g(\alpha) \;=\; \frac{1}{N}\sum_{i=1}^N Z_i'\,\Delta\varepsilon_i(\alpha), \qquad
+\hat\alpha \;=\; \arg\min_\alpha\; J(\alpha) = N\,\bar g(\alpha)'\,W\,\bar g(\alpha).
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Each entry of \(\bar g(\alpha)\) is the sample covariance between one
+  instrument and the residual.
+\item
+  \textbf{The Overidentification Problem:} Validity says the
+  \emph{population} covariances are zero. But with more instruments than
+  parameters, no single \(\alpha\) can zero out all the \emph{sample}
+  covariances at once.
+\item
+  \textbf{The GMM Solution:} Pick the \(\alpha\) that makes them
+  \emph{jointly as close to zero as possible}.
+\item
+  Each instrument on its own gives a ``just-identified'' estimate. GMM
+  is simply a weighted average of these estimates. The matrix \(W\)
+  downweights the noisy, high-variance instruments (1-step vs 2-step
+  GMM).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Weak instruments: when a level cannot predict a change}
+\protect\phantomsection\label{weak-instruments-when-a-level-cannot-predict-a-change}
+\setlength{\abovedisplayskip}{3pt}\setlength{\belowdisplayskip}{3pt}
+
+Difference GMM asks a \emph{level} \(Y_{i,t-2}\) to predict a
+\emph{change} \(\Delta Y_{i,t-1}\). But if
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{\(\alpha \to 1\)}: little mean reversion; where a firm
+  \emph{is} says nothing about where it is \emph{going}.
+\item
+  \textbf{\(\sigma^2_\mu\) large}: firms differ \emph{permanently}, and
+  permanent differences predict no change.
+\end{itemize}
+
+So
+\(\operatorname{Cov}(\Delta Y_{i,t-1}, Y_{i,t-2}) = -\sigma^2_\varepsilon/(1+\alpha)\)
+stays bounded while
+\(\operatorname{Var}(Y_{i,t-2}) = \sigma^2_\mu/(1-\alpha)^2 + \sigma^2_\varepsilon/(1-\alpha^2)\)
+explodes; the first-stage correlation collapses:
+
+\begin{center}\footnotesize
+\begin{tabular}{lccccc}
+\toprule
+$\sigma^2_\mu / \sigma^2_\varepsilon$ & $\alpha = 0.5$ & $0.8$ & $0.9$ & $0.95$ & $0.99$ \\
+\midrule
+0 (no firm effect) & $-0.50$ & $-0.32$ & $-0.22$ & $-0.16$ & $-0.07$ \\
+1 & $-0.25$ & $-0.10$ & $-0.05$ & $-0.02$ & $-0.00$ \\
+4 & $-0.14$ & $-0.05$ & $-0.03$ & $-0.01$ & $-0.00$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Bottom-right is finance: large standard errors, bias toward the within
+  estimate.
+\item
+  \textbf{Blundell and Bond's answer.} A change \textbf{always predicts
+  a level}: swap roles.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{System GMM (Blundell and Bond 1998)}
+\protect\phantomsection\label{system-gmm-blundell-and-bond-1998}
+Keep the differenced equation and \textbf{bring back the levels
+equation}:
+
+\begin{center}\footnotesize
+\begin{tabular}{lll}
+\toprule
+equation & regressor & instruments \\
+\midrule
+differences: $\Delta Y_{it} = \alpha\Delta Y_{i,t-1} + \Delta\varepsilon_{it}$ & $\Delta Y_{i,t-1}$ & lagged \emph{levels} $Y_{i,t-2}, Y_{i,t-3}, \dots$ \\
+levels: $Y_{it} = \alpha Y_{i,t-1} + \mu_i + \varepsilon_{it}$ & $Y_{i,t-1}$ & lagged \emph{differences} $\Delta Y_{i,t-1}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Relevance does not fade.} The regressor contains the
+  instrument, \(Y_{i,t-1} = Y_{i,t-2} + \Delta Y_{i,t-1}\): a firm that
+  just moved up is now higher, whatever \(\alpha\) and \(\sigma^2_\mu\);
+  no mean reversion needed.
+\item
+  \textbf{Requires a new assumption:} The levels error still contains
+  the firm fixed effect \(\mu_i\). We need
+  \(\operatorname{Cov}(\Delta Y_{i,t-1}, \mu_i) = 0\).
+
+  \begin{itemize}
+  \tightlist
+  \item
+    A firm's recent change says nothing about its permanent level.
+  \item
+    \emph{It fails:} When firms are still converging to their steady
+    state (e.g., IPOs, post-crisis panels, post-deregulation).
+  \end{itemize}
+\item
+  \textbf{The trade:} Difference GMM needs \emph{news} (low
+  persistence). System GMM needs \emph{settled firms} (steady state).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The simulation: five estimators in three worlds}
+\protect\phantomsection\label{the-simulation-five-estimators-in-three-worlds}
+\begin{center}
+\includegraphics[width=1\linewidth,height=\textheight,keepaspectratio]{06b_dynamic_panel_models_files/figure-beamer/worlds-1.pdf}
+\end{center}
+
+\scriptsize \(500\) firms, \(T = 6\), \(100\) replications. Dots:
+medians; bars: 10th--90th percentiles; dashed: truth. OLS biased up, FE
+and FD down. \normalsize
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{\(\alpha = 0.5\).} Both GMM estimators sit on the truth
+  (difference \(0.49\), system \(0.51\)).
+\item
+  \textbf{\(\alpha = 0.9\).} Difference GMM wide and low (\(0.77\)):
+  weak instruments. System GMM tight and right (\(0.92\)).
+\item
+  Firms start away from steady state \(\mu_i\). Difference GMM recovers
+  (\(0.89\)); system GMM lands at \(1.15\), above even OLS
+\item
+  Report OLS and FE beside GMM; outside their range is a warning.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Summary}
+\protect\phantomsection\label{summary}
+\begin{enumerate}
+\tightlist
+\item
+  \textbf{Removing \(\mu_i\) makes the lagged outcome endogenous.}
+\item
+  \textbf{Sequential exogeneity replaces strict exogeneity}: every \(Y\)
+  dated \(t-2\) or earlier is orthogonal to \(\Delta\varepsilon_{it}\).
+  Anderson--Hsiao uses one such lag by 2SLS; difference GMM uses them
+  all and makes the sample moments as close to zero as \(W\) allows.
+\item
+  \textbf{The instruments are weak when the series is persistent or firm
+  effects are large}. System GMM instruments the level with the change
+  instead, at the price of mean stationarity, an assumption you must
+  defend.
+\item
+  \textbf{In practice}: report OLS and FE beside the GMM column. OLS is
+  biased up and FE down, so a GMM estimate outside their range signals a
+  failed assumption. The diagnostics that test the assumptions directly,
+  AR(2), Hansen and the instrument count, are in Roodman (2009) and
+  Flannery and Hankins (2013).
+\end{enumerate}
+\end{frame}
+
+\begin{frame}{References}
+\protect\phantomsection\label{references}
+\tiny
+
+\begin{itemize}
+\tightlist
+\item
+  Anderson, T. W. and C. Hsiao (1981). Estimation of Dynamic Models with
+  Error Components. \emph{Journal of the American Statistical
+  Association} 76, 598--606.
+\item
+  Arellano, M. and S. Bond (1991). Some Tests of Specification for Panel
+  Data: Monte Carlo Evidence and an Application to Employment Equations.
+  \emph{Review of Economic Studies} 58, 277--297.
+\item
+  Blundell, R. and S. Bond (1998). Initial Conditions and Moment
+  Restrictions in Dynamic Panel Data Models. \emph{Journal of
+  Econometrics} 87, 115--143.
+\item
+  Flannery, M. and K. Hankins (2013). Estimating Dynamic Panel Models in
+  Corporate Finance. \emph{Journal of Corporate Finance} 19, 1--19.
+\item
+  Lemmon, M., M. Roberts and J. Zender (2008). Back to the Beginning:
+  Persistence and the Cross-Section of Corporate Capital Structure.
+  \emph{JF} 63, 1575--1608.
+\item
+  Nickell, S. (1981). Biases in Dynamic Models with Fixed Effects.
+  \emph{Econometrica} 49, 1417--1426.
+\item
+  Roodman, D. (2009). How to Do xtabond2: An Introduction to Difference
+  and System GMM in Stata. \emph{Stata Journal} 9, 86--136; and A Note
+  on the Theme of Too Many Instruments. \emph{Oxford Bulletin of
+  Economics and Statistics} 71, 135--158.
+\end{itemize}
+\end{frame}
+
+
+
+
+\end{document}
