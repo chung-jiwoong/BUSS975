@@ -19,12 +19,14 @@ format:
         \usepackage{booktabs}
 ---
 
+<!--
 *Five required problems, plus one optional problem at the end. Problem 5 asks you to fit models in R (or Stata); attach your code and output. The rest need only a pen.*
 
 *Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
 *Problem 5 uses `Fulton.dta`, which you can read directly from*
 `https://raw.github.com/scunning1975/mixtape/master/Fulton.dta`.
+-->
 
 ## Problem 1 (Lotteries: randomisation is not enough)
 
@@ -128,7 +130,7 @@ Identify the numerator and the denominator by their IV names, and state the inst
 
 ## Problem 5 (Computational: the elasticity of demand for fish)
 
-Load `Fulton.dta` from the address on page 1. The variables you need are `q` (log pounds of whiting sold), `p` (log average daily price), `Stormy` (bad weather at sea over the previous two days), and the day-of-week dummies `Mon`, `Tue`, `Wed`, `Thu`. There are $111$ trading days. Control for the day-of-week dummies throughout and use heteroskedasticity-robust standard errors.
+Load `Fulton.dta` (`https://raw.github.com/scunning1975/mixtape/master/Fulton.dta`). The variables you need are `q` (log pounds of whiting sold), `p` (log average daily price), `Stormy` (bad weather at sea over the previous two days), and the day-of-week dummies `Mon`, `Tue`, `Wed`, `Thu`. There are $111$ trading days. Control for the day-of-week dummies throughout and use heteroskedasticity-robust standard errors.
 
 (a) Regress `q` on `p` and the day dummies. Report the coefficient and robust standard error. Why can this number not be read as the elasticity of demand?
 
@@ -140,6 +142,7 @@ Load `Fulton.dta` from the address on page 1. The variables you need are `q` (lo
 
 (e) The identifying claim is that a storm shifts supply but not demand. Give one concrete story under which a storm would also shift demand, and say what you would look at in the data to check it.
 
+<!-- 
 \newpage
 
 ## Optional Problem A (Refereeing a finance IV)
@@ -155,3 +158,4 @@ Pick **one** published finance paper that uses an instrumental variable. Any pap
 (d) Name the compliers. Then say whether the policy question the paper is motivated by would move those same units, in the same way.
 
 (e) Which of the five designs in this lecture is the paper closest to? Say what the hardest assumption is for that family, and whether the paper addresses it.
+--> 
