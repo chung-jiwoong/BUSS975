@@ -120,7 +120,7 @@ Identify the numerator and the denominator by their IV names, and state the inst
 
 (b) At a scholarship cutoff, crossing the threshold raises the probability of receiving aid by $0.25$ and raises four-year graduation rates by $6$ percentage points. Compute the fuzzy RD estimate and state precisely whose effect it is.
 
-(c) The deck calls the fuzzy RD estimand "doubly local." Name the two localities.
+(c) The lecture note calls the fuzzy RD estimand "doubly local." Name the two localities.
 
 (d) State what monotonicity means at an RD cutoff, and describe a concrete scholarship rule that would violate it.
 

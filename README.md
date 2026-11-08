@@ -18,7 +18,7 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 3b. Unconfoundedness: Propensity Scores and Regression | [Slides][unc-b-pdf] | [Problem][unc-ps] |
 | 4. Regression Discontinuity | [Slides][rd-pdf] | [Problem][rd-ps] |
 | 5a. Instrumental Variables | [Slides][iv-a-pdf] | [Problem][iv-a-ps] |
-| 5b. Five IV Designs | [Slides][iv-b-pdf] |  |
+| 5b. Five IV Designs | [Slides][iv-b-pdf] | [Problem][iv-b-ps] |
 | 6a. Causal Panel Designs | [Slides][panel-a-pdf] | |
 | 6b. Dynamic Panel Models | [Slides][panel-b-pdf] | |
 | 7a. Difference-in-Differences: Fundamentals | [Slides] | |
