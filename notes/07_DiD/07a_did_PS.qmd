@@ -1,0 +1,142 @@
+---
+title: "Problem Set: Difference-in-Differences Fundamentals"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+<!--
+*Four required problems. Problem 3 asks you to work with data in R (or Stata); attach your code and output. The rest need only a pen.*
+
+*Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
+
+*The problems follow the deck "Difference-in-Differences: Fundamentals" and its notation: $k$ is the treated group, $U$ the control group, and $\text{ATT} = \mathbb{E}[Y^1_k \mid \text{Post}] - \mathbb{E}[Y^0_k \mid \text{Post}]$.*
+-->
+
+## Problem 1 (Four averages, three subtractions, and the counterfactual they need)
+
+From the start of year 2, state $k$ guarantees part of every small-business loan its banks make. A neighbouring state $U$ does nothing. You observe average small-business loan originations per bank, in millions of dollars:
+
+\begin{center}
+\small
+\begin{tabular}{lcc}
+\toprule
+ & Year 1 (Pre) & Year 2 (Post) \\
+\midrule
+Banks in $U$ & $10$ & $15$ \\
+Banks in $k$ & $20$ & $30$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+(a) Compute the difference-in-differences estimate in levels. Then give the four OLS coefficients of
+$$
+Y_{it} = \alpha_0 + \alpha_1\,\text{Treat}_i + \alpha_2\,\text{Post}_t + \delta\,(\text{Treat}_i \times \text{Post}_t) + \varepsilon_{it},
+$$
+and say which cell or difference of cells each one is. Finally, state what the long difference regresses on what, and give its intercept and slope.
+
+(b) Recompute the estimate in logs, using the logs of the four group means. You now have two estimates from the same four numbers. For each, give the value of $\mathbb{E}[Y^0_k \mid \text{Post}]$, the treated banks' untreated year-2 originations, that the estimate implicitly assumes.
+
+(c) Suppose that in truth $\mathbb{E}[Y^0_k \mid \text{Post}] = 27$. For the levels estimate, compute the ATT and the non-parallel-trends bias, and verify that the estimate equals their sum. Then do the same in logs.
+
+(d) Can parallel trends hold in levels and in logs at the same time in this example? Give an economic argument for choosing one scale for this outcome, and say at what stage of the research the choice should be made.
+
+(e) Some firms in state $U$ near the border start borrowing from banks in state $k$ to get the guarantee. Name the assumption this violates, and sign its effect on the estimate in (a) as a measure of the loans the guarantee *created*.
+
+## Problem 2 (Dating the treatment: anticipation and already-treated controls)
+
+A state $K$ announces an investment tax credit in period 2; it takes effect in period 3. Another state $E$ introduced a similar credit before period 1. State $U$ never has one. The table gives average investment per firm without any credit, $Y^0$, and the true effect of the credit, $Y^1 - Y^0$, in each period. Untreated investment rises by $2$ per period in every state, so **parallel trends holds by construction** throughout.
+
+\begin{center}
+\small
+\begin{tabular}{lcccc@{\hspace{2.5em}}cccc}
+\toprule
+ & \multicolumn{4}{c}{$Y^0$ in period} & \multicolumn{4}{c}{$Y^1 - Y^0$ in period} \\
+\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+State & 1 & 2 & 3 & 4 & 1 & 2 & 3 & 4 \\
+\midrule
+$K$ & $12$ & $14$ & $16$ & $18$ & $0$ & $a$ & $4$ & $6$ \\
+$E$ & $10$ & $12$ & $14$ & $16$ & $3$ & $2$ & $1$ & $0$ \\
+$U$ & $7$  & $9$  & $11$ & $13$ & $0$ & $0$ & $0$ & $0$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Observed investment is $Y^0$ plus the effect in every period in which a state's firms respond to the credit. Throughout, "pre" means the average over the pre periods and "post" the average over the post periods.
+
+(a) **No anticipation**, $a = 0$. Write out observed investment for $K$ and $U$. With pre $= \{1, 2\}$ and post $= \{3, 4\}$, compute the estimate for $K$ against $U$, and check that it equals $\text{ATT}_K(\text{Post})$.
+
+(b) **Anticipation**, $a = -2$: once the credit is announced, firms postpone investment until it takes effect. Keep the same dating. Compute the estimate, and decompose it into $\text{ATT}_K(\text{Post}) + \text{PT bias} - \text{ATT}_K(\text{Pre})$. Does the estimate overstate or understate the effect of the credit after it took effect, and why?
+
+(c) Still with $a = -2$, re-date the treatment from the announcement: pre $= \{1\}$ and post $= \{2, 3, 4\}$. Compute the estimate. It is an ATT, but not the one in (a): say which one, and why it is smaller. What else did you change when you moved the baseline?
+
+(d) Return to $a = 0$. A coauthor suggests using $E$ as the control instead of $U$, "because $E$ is a neighbouring state and more similar." Compute the estimate for $K$ against $E$, and decompose it into $\text{ATT}_K + \text{PT bias} - \Delta\text{ATT}_E$. What would the estimate be if $E$'s effect were constant at $3$?
+
+(e) Another paper studies $E$ against $U$, with pre $= \{1, 2\}$ and post $= \{3, 4\}$, and concludes that the credit **reduced** investment. What number does it find, and what has it actually estimated? What would it find if $E$'s effect were constant?
+
+\newpage
+
+## Problem 3 (Castle doctrine, by hand and by regression)
+
+Use `castle.dta` from the deck, which you can read directly from
+
+`https://raw.githubusercontent.com/scunning1975/mixtape/master/castle.dta`
+
+It is a balanced panel of $50$ US states, $2000$--$2010$. The variables you need are `sid` (state), `year`, `effyear` (the year a state's castle-doctrine law took effect, missing if it never did), `homicide` (homicides per $100{,}000$ people), and the logs `l_homicide`, `l_larceny` (theft) and `l_motor` (motor-vehicle theft). As in the deck, keep the states that adopted in $2006$ and those that never adopted. Pre $= 2000$--$05$, post $= 2006$--$10$. Cluster by state unless told otherwise.
+
+(a) Report the four mean values of `l_homicide` and the $2 \times 2$. Confirm that a regression with state and year fixed effects, and the long difference, give the same number. How many states are in each group?
+
+(b) Estimate the event study with state and year fixed effects, an interaction of adoption with every year, and $2005$ as the omitted baseline. Report the ten coefficients. Then **show** that in this design the $2 \times 2$ equals the average of the five post coefficients minus the average of the six pre coefficients, counting $\hat\delta_{2005} = 0$. Verify it numerically. *Hint: write each $\hat\delta_t$ as $G_t - G_{2005}$, where $G_t$ is the adopter-minus-control gap in mean `l_homicide` in year $t$.*
+
+(c) The five post coefficients average about $0.11$, far above the $2 \times 2$. Which $2 \times 2$ do they equal? What do the pre coefficients say about $2005$ for the adopters? Explain why the choice of baseline is part of the parallel-trends assumption here.
+
+(d) Report the standard error of the two-way fixed-effects estimate (i) assuming independent errors and (ii) clustered by state, and (iii) the heteroskedasticity-robust standard error of the long difference. Explain the gap between (i) and (ii). Explain why (iii) is almost exactly (ii). On how many independent pieces of information does the clustered standard error rest?
+
+(e) Run the two-way fixed-effects $2 \times 2$ on `l_larceny` and on `l_motor`. Which kind of falsification is this, and which rival explanation does it check? Interpret both results, together with the precision of the homicide estimate itself.
+
+(f) Run the two-way fixed-effects $2 \times 2$ on `homicide`, the rate in levels. Express the estimate as a percentage of the adopters' pre-period mean, and compare it with the log estimate. Explain, using the group means, why the two scales disagree. Which would you report, and how should that have been decided?
+
+(g) Restrict the sample to $2000$--$2007$. Compare the $2006$ adopters with (i) the never adopters and (ii) the states that adopted in $2008$ or $2009$, which are not yet treated through $2007$. Report both estimates. Say what parallel-trends assumption each makes, and what each control group buys and costs you.
+
+\newpage
+
+## Problem 4 (Who gets treated, and why)
+
+(a) **The Perfect Doctor in two types.** Half the workers are type H and half type L. From pre to post, untreated earnings rise by $4$ for type H and by $1$ for type L. A training programme raises post-period earnings by $3$ for type H and *lowers* them by $1$ for type L.
+
+    i. Workers enrol if and only if training helps them. Compute the DiD estimate, the ATT and the non-parallel-trends bias.
+    ii. Instead, a lottery assigns training to half of each type, with full compliance. Compute the DiD estimate and say which average effect it recovers.
+    iii. Go back to self-selection as in (i), but now suppose untreated earnings rise by $2$ for *both* types. Compute the DiD estimate. What does the comparison of (i) and (iii) say about *when* selection on gains biases DiD?
+    iv. In (iii), a minister asks what would happen if training were made compulsory for all workers. Is the DiD estimate the answer? If not, what is?
+
+(b) **Selection on the baseline: a random walk or a dip?** Untreated earnings are $Y^0_{it} = \alpha_i + u_{it}$. Workers are treated if their earnings in the baseline period $b$ fall below a threshold, $D_i = \mathbf{1}\{Y^0_{ib} < c\}$. Treatment starts in $b + 1$; leave the treatment effect aside, since it does not affect the bias. Compare two cases, with $e_{it}$ independent over time, with mean zero:
+$$
+\text{Random walk: } u_{it} = u_{i,t-1} + e_{it}, \qquad\qquad \text{Transitory: } u_{it} = e_{it}.
+$$
+Selection on $Y^0_{ib}$ lowers the treated group's mean of every shock that enters $Y^0_{ib}$. In the random-walk case that is every $e_{is}$ with $s \le b$, each by the same amount: the treated-minus-control gap in each is $m < 0$. In the transitory case it is $e_{ib}$ alone, by $m' < 0$.
+
+    i. For each case, compute the event-study coefficient on $Y^0$ in period $b + j$, $j \ge 1$, relative to the baseline. Does parallel trends hold?
+    ii. Compute the pre-period coefficients, periods $b - j$ for $j = 1, 2, 3$. Do they have the same sign in the two cases? The same shape?
+    iii. Which case is Ashenfelter's dip? What does part (ii) say about using pre-trends to tell the two cases apart, and why is institutional knowledge still needed?
+
+(c) A referee writes: *"Two-way fixed effects assumes every firm's untreated outcome moves by the same $\lambda_t$. That is obviously false: small firms grow faster than large ones. The design is invalid."* Say what the referee gets right, what parallel trends actually requires, and what the referee should ask instead.
+
+(d) For each design, name the assignment mechanism from the deck's table, say whether it is good news or bad news for parallel trends, and name one thing you would check.
+
+    i. A regulator orders the banks in the bottom decile of the capital ratio in 2015 to raise capital. The outcome is the capital ratio.
+    ii. Firms choose whether to cross-list their shares in New York. The outcome is Tobin's $q$.
+    iii. State anti-takeover laws, with firms treated by their state of incorporation (Bertrand and Mullainathan 2003). Many of these laws were passed at the request of a single large local firm facing a hostile bid.
+    iv. A government subsidises firms in industries designated "strategic" by a list fixed ten years earlier. The outcome is R\&D spending.

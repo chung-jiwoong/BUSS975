@@ -1,0 +1,143 @@
+---
+title: "Problem Set: Causal Panel Designs"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+<!--
+*Four required problems. All of them need only a pen.*
+
+*Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
+
+*The problems follow the deck "Causal Panel Designs" and write the firm effect as $u_i$ or $\alpha_i$.*
+-->
+
+## Problem 1 (Fixed effects by hand: three firms, two years)
+
+The truth is $Y_{it} = 3D_{it} + \alpha_i + \lambda_t$, with no noise. The firm effects are $\alpha_A = 8$, $\alpha_B = 5$ and $\alpha_C = 2$, and year 2 is a boom: $\lambda_1 = 0$, $\lambda_2 = 2$. Firm A is treated in year 2 only, firm B is treated in both years, and firm C is never treated.
+
+\begin{center}
+\small
+\begin{tabular}{lccc}
+\toprule
+Firm & $D$ in years $1,\,2$ & $Y$ in year 1 & $Y$ in year 2 \\
+\midrule
+A & $0,\,1$ & $8$ & $13$ \\
+B & $1,\,1$ & $8$ & $10$ \\
+C & $0,\,0$ & $2$ & $4$  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+(a) Confirm that the six outcomes follow from the truth. Then compute the pooled OLS estimate of $\delta$: a regression of $Y$ on $D$ and a constant, which here is a difference in means. Split its bias into a part due to the firm effects and a part due to the year effect.
+
+(b) **Firm effects only.** Demean $Y$ and $D$ within each firm and write out $\ddot D_{it}$ and $\ddot Y_{it}$ for all six cells. Compute $\hat\delta = \sum \ddot D_{it}\ddot Y_{it} \big/ \sum \ddot D_{it}^2$. Which firms contribute to the estimate, and what still contaminates it?
+
+(c) **Firm and year effects.** With two periods, a regression with firm and year effects gives the same $\hat\delta$ as a regression of $\Delta Y_i$ on $\Delta D_i$ and a constant. Compute it. Then say what firm B contributes to the estimate in (b), and what it contributes in (c).
+
+(d) State in one sentence the comparison that the estimate in (c) makes, naming the firms. Then suppose you add $\text{founder}_i$, a dummy equal to one for firm A in both years. What happens to its coefficient, and what should you conclude if your software prints one anyway?
+
+(e) Now suppose $D$ is a restructuring, and firms tend to adopt it in year 2 *after a bad shock in year 1*. Name the assumption that fails, sign the bias of the estimate in (c), and say whether a two-period panel lets you detect the problem.
+
+## Problem 2 (Richer fixed effects: what industry $\times$ year buys, and what it costs)
+
+Four firms sit in two industries: P and Q in industry 1, R and S in industry 2. The truth is
+$$
+Y_{it} = 3D_{it} + \alpha_i + \lambda_t + \eta_{jt},
+$$
+with no noise. The firm effects are $(\alpha_P, \alpha_Q, \alpha_R, \alpha_S) = (12, 7, 9, 3)$. Every firm gets $\lambda_2 = 2$. Industry 1 alone suffers a bust in year 2, $\eta_{1,2} = -4$; every other $\eta_{jt}$ is zero. Nobody is treated in year 1, so year-1 outcomes equal the firm effects. The table gives year-2 outcomes under three different assignments of the treatment.
+
+\begin{center}
+\small
+\begin{tabular}{cccccc}
+\toprule
+     &          &        & \multicolumn{3}{c}{Year 2, when the treated firms are} \\
+\cmidrule(lr){4-6}
+Firm & Industry & Year 1 & P only & P and R & P and Q \\
+\midrule
+P & 1 & $12$ & $13$ & $13$ & $13$ \\
+Q & 1 & $7$  & $5$  & $5$  & $8$  \\
+R & 2 & $9$  & $11$ & $14$ & $11$ \\
+S & 2 & $3$  & $5$  & $5$  & $5$  \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+(a) **Only P is treated.** Compute $\hat\delta$ with firm + year effects, and again with firm + industry$\times$year effects. For the first, say exactly what fraction of the industry bust is charged to the treatment, and why that fraction.
+
+(b) In the firm + industry$\times$year regression of part (a), what does industry 2 contribute to $\hat\delta$? State the comparison the estimate makes in one sentence.
+
+(c) **P and R are treated**, one firm in each industry. Compute both estimates again. Firm + year effects are now unbiased, although the bust has not gone away. Explain why, and state the general lesson about when a richer fixed effect changes an estimate.
+
+(d) **P and Q are treated**, so the treatment covers all of industry 1. Compute the firm + year estimate. Then say what happens to the firm + industry$\times$year estimate, and why no choice of fixed effects can rescue this design.
+
+(e) Suppose (d) is your actual research setting: a regulation that binds one whole industry. Describe the data you would need to make progress, the assumption you would then be making, and the level at which you would cluster.
+
+\newpage
+
+## Problem 3 (What fixed effects cannot fix)
+
+(a) Three studies each include firm and year fixed effects and read the coefficient as causal. For each one, say whether the fixed effects deliver the causal effect. If they do not, name the failure and, where you can, sign the bias.
+
+    i. ROA regressed on the share of independent directors. Boards tend to add independent directors after a run of poor performance.
+    ii. Leverage regressed on a founder-CEO dummy, in a ten-year sample in which no firm changes its CEO.
+    iii. Tobin's $q$ regressed on institutional ownership over fifteen years, a period in which analyst coverage and disclosure quality improved at some firms and not at others.
+
+(b) Investment depends on true investment opportunities $q^*_{it}$, but you observe $q_{it} = q^*_{it} + e_{it}$ with classical measurement error. The noise-to-signal ratio is $\sigma^2_e/\sigma^2_{q^*} = 0.25$. The signal is persistent, with first-order autocorrelation $\rho = 0.9$; the noise is serially uncorrelated, $r = 0$. Compute the attenuation factor $\operatorname{plim}\hat\delta/\delta$ in levels and in first differences.
+
+(c) Recompute the first-difference factor for $r = 0.9$, and again for $r = 1$. State in one sentence the rule that decides whether differencing makes measurement error better or worse.
+
+(d) A paper reports that the coefficient of investment on $q$ falls from $0.040$ in pooled OLS to $0.014$ with firm fixed effects, and concludes that "most of the sensitivity reflected unobserved firm heterogeneity." Use part (b) to give a competing explanation, with numbers. Then name one further regression that would help tell the two explanations apart, and say what each explanation predicts for it.
+
+(e) You estimate CEO fixed effects in ROA, with an average of $T = 6$ years per CEO. The idiosyncratic standard deviation of ROA is $6$ percentage points. Suppose there is no CEO effect at all: $u_i = 0$ for everyone. What is the standard deviation of the estimated effects $\hat u_i$? Does doubling the number of CEOs shrink it? Say what this implies for reading the spread of $\hat u_i$ as evidence of managerial "style."
+
+(f) You want firm fixed effects in a probit for whether a firm initiates a dividend. Say what goes wrong. Then name two things you could run instead, and what each one costs you.
+
+\newpage
+
+## Problem 4 (Inference: clusters, and too few of them)
+
+(a) A coauthor says: *"We already have firm fixed effects, so the correlation of errors within a firm is taken care of. Clustering by firm is redundant."* Say what the fixed effects do remove from the error, what they leave behind, and why the claim is wrong.
+
+(b) You study a state minimum-wage change with $50{,}000$ workers in $10$ states, $4$ of which are treated. At what level do you cluster, and why? On how many independent pieces of information does the variance estimate rest?
+
+(c) The deck simulated $5{,}000$ panels with $10$ states and a true effect of zero, and recorded how often a $5\%$ test rejects:
+
+    \begin{center}
+    \small
+    \begin{tabular}{ccc}
+    \toprule
+    Treated states (of 10) & Cluster-robust s.e. & Wild cluster bootstrap (Webb) \\
+    \midrule
+    $2$ & $17.1\%$ & $0.6\%$ \\
+    $3$ & $11.0\%$ & $7.0\%$ \\
+    $5$ & $6.3\%$  & $5.7\%$ \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+
+    i. Explain why the cluster-robust standard error over-rejects most when only two states are treated. Your answer should say what happens to the residuals of the treated states.
+    ii. With two treated states the bootstrap rejects a true null only $0.6\%$ of the time. Is that good news? Say what a bootstrap *rejection* tells you in that design, and what a *non-rejection* tells you.
+
+(d) Consider the restricted wild cluster bootstrap with Rademacher weights, $Y^*_{it} = \tilde Y_{it} + w_{g(i)}\tilde\varepsilon_{it}$ with $w_g \in \{-1, +1\}$, in a design with only $G = 5$ clusters.
+
+    i. How many sign patterns $(w_1, \dots, w_5)$ are there?
+    ii. Show that the pattern with every $w_g = +1$ reproduces the original data, so that its bootstrap $t$-statistic equals the actual $t$.
+    iii. Show that reversing every sign in a pattern reverses the sign of its bootstrap $t$-statistic and leaves the absolute value unchanged. *Hint: the restricted fitted values $\tilde Y_{it}$ are a linear combination of the regressors other than $D$. What do they contribute to $\hat\delta$, and to the residuals, when you run the unrestricted regression?*
+    iv. Conclude what the smallest attainable value of $p_{\text{WCB}} = \frac{1}{B}\sum_b \mathbf{1}\{|t^{(b)}| \geq |t|\}$ is when all patterns are enumerated. Can this test ever reject at the $5\%$ level? What changes with $G = 6$?
+    v. What does the deck recommend in this situation, and why does it help?
+

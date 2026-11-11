@@ -1,0 +1,846 @@
+---
+title: "Synthetic Control"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+author: "Professor Ji-Woong Chung"
+institute: "Korea University"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    slide-level: 2
+    toc: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \setbeamertemplate{navigation symbols}{}
+        \setbeamertemplate{footline}[frame number]
+        \setbeamertemplate{itemize items}[circle]
+        \setbeamertemplate{itemize subitem}[triangle]
+        \setbeamercolor{frametitle}{fg=black}
+        \setbeamerfont{frametitle}{series=\bfseries}
+        \usepackage{amsmath}
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+        \usepackage{array}
+        \newcolumntype{R}[1]{>{\raggedright\arraybackslash}p{#1}}
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\scriptsize}
+        \makeatletter
+        \def\verbatim@font{\scriptsize\ttfamily}
+        \makeatother
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+---
+
+```{r setup}
+suppressPackageStartupMessages({ library(haven); library(quadprog) })
+f1 <- function(x) sprintf("%.1f", x)
+f2 <- function(x) sprintf("%.2f", x)
+f3 <- function(x) sprintf("%.3f", x)
+fc <- function(x) format(round(x), big.mark = ",")
+# Abadie, Diamond and Hainmueller (2010): 39 states, 1970-2000, cigarette sales per capita. California = 3.
+s <- as.data.frame(read_dta("data/smoking.dta"))
+lab <- attr(s$state, "labels"); s$name <- names(lab)[match(as.numeric(s$state), lab)]; s$state <- as.numeric(s$state)
+# Cunningham (2025): 51 states, 1985-2000, Black male prisoners. Texas = 48.
+tx <- as.data.frame(read_dta("data/texas.dta")); tx <- tx[order(tx$statefip, tx$year), ]
+
+Ymat <- function(d, id, time, y) tapply(d[[y]], list(d[[id]], d[[time]]), mean)   # units in rows, years in columns
+
+# Inner problem: given V, min (X1 - X0 w)' V (X1 - X0 w) subject to w >= 0, sum w = 1. A quadratic programme.
+sc_w <- function(X1, X0, v = rep(1, length(X1))) {
+  J <- ncol(X0); V <- diag(v, length(v))
+  D <- 2 * t(X0) %*% V %*% X0; D <- D + diag(1e-8 * mean(diag(D)), J)
+  d <- 2 * as.vector(t(X0) %*% V %*% X1)
+  w <- solve.QP(D, d, cbind(rep(1, J), diag(J)), c(1, rep(0, J)), meq = 1)$solution
+  w[w < 1e-10] <- 0; w / sum(w)
+}
+# Outer problem: choose a diagonal V on the simplex to minimise the pre-period MSPE of the outcome (Z1 vs Z0 w).
+synth <- function(X1, X0, Z1, Z0, nstart = 5, maxit = 600) {
+  k <- length(X1); sc <- apply(cbind(X1, X0), 1, sd); sc[sc == 0] <- 1
+  X1s <- X1 / sc; X0s <- X0 / sc
+  loss <- function(th) { v <- exp(th - max(th)); v <- v / sum(v); mean((Z1 - Z0 %*% sc_w(X1s, X0s, v))^2) }
+  set.seed(1); best <- NULL
+  for (th0 in c(list(rep(0, k)), lapply(seq_len(nstart - 1), function(i) rnorm(k)))) {
+    o <- optim(th0, loss, method = "Nelder-Mead", control = list(maxit = maxit))
+    o <- optim(o$par, loss, method = "BFGS", control = list(maxit = 100))
+    if (is.null(best) || o$value < best$value) best <- o
+  }
+  v <- exp(best$par - max(best$par)); v <- v / sum(v)
+  list(w = sc_w(X1s, X0s, v), v = v, mspe = best$value)
+}
+# Placebo in space: refit with every unit as the treated one, keep pre and post RMSPE and the gap path.
+placebo <- function(X, Y, pre, trj, gap_tr, nstart = 1) {
+  t(sapply(seq_len(nrow(Y)), function(j) {
+    if (j == trj) g <- gap_tr else {
+      f <- synth(X[, j], X[, -j], Y[j, pre], t(Y[-j, pre]), nstart = nstart)
+      g <- Y[j, ] - as.vector(t(Y[-j, ]) %*% f$w)
+    }
+    c(pre = sqrt(mean(g[pre]^2)), post = sqrt(mean(g[!pre]^2)), g)
+  }))
+}
+
+## ---- Proposition 99
+Y <- Ymat(s, "state", "year", "cigsale"); yrs <- as.numeric(colnames(Y)); ids <- as.numeric(rownames(Y))
+nm <- s$name[match(ids, s$state)]
+pre <- yrs <= 1988; post <- !pre
+avg <- function(d, var, y0, y1, id = "state") { k <- d$year >= y0 & d$year <= y1; tapply(d[[var]][k], d[[id]][k], mean, na.rm = TRUE) }
+at  <- function(d, var, y, id = "state") tapply(d[[var]][d$year == y], d[[id]][d$year == y], mean)
+X <- rbind(`Ln(GDP per capita)` = avg(s, "lnincome", 1980, 1988), `Percent aged 15--24` = 100 * avg(s, "age15to24", 1980, 1988),
+           `Retail price` = avg(s, "retprice", 1980, 1988), `Beer consumption per capita` = avg(s, "beer", 1984, 1988),
+           `Cigarette sales 1988` = at(s, "cigsale", 1988), `Cigarette sales 1980` = at(s, "cigsale", 1980), `Cigarette sales 1975` = at(s, "cigsale", 1975))
+tr <- which(ids == 3)
+fit <- synth(X[, tr], X[, -tr], Y[tr, pre], t(Y[-tr, pre]))
+Y0 <- Y[-tr, ]; y1 <- Y[tr, ]; nm0 <- nm[-tr]
+cf <- as.vector(t(Y0) %*% fit$w); gap <- y1 - cf
+bal <- cbind(X[, tr], as.vector(X[, -tr] %*% fit$w), rowMeans(X[, -tr]))
+P <- placebo(X, Y, pre, tr, gap, nstart = 3); ratio <- P[, "post"] / P[, "pre"]; rk <- rank(-ratio)[tr]
+
+## ---- Texas
+Yt <- Ymat(tx, "statefip", "year", "bmprison"); yrt <- as.numeric(colnames(Yt)); idt <- as.numeric(rownames(Yt))
+nmt <- tx$state[match(idt, tx$statefip)]
+pre_t <- yrt <= 1993; post_t <- !pre_t
+Xt <- rbind(`Black male prisoners 1988` = at(tx, "bmprison", 1988, "statefip"), `Black male prisoners 1990` = at(tx, "bmprison", 1990, "statefip"),
+            `Black male prisoners 1991` = at(tx, "bmprison", 1991, "statefip"), `Black male prisoners 1992` = at(tx, "bmprison", 1992, "statefip"),
+            `Alcohol 1990` = at(tx, "alcohol", 1990, "statefip"), `AIDS per capita 1990` = at(tx, "aidscapita", 1990, "statefip"), `AIDS per capita 1991` = at(tx, "aidscapita", 1991, "statefip"),
+            `Income` = avg(tx, "income", 1985, 1993, "statefip"), `Unemployment` = avg(tx, "ur", 1985, 1993, "statefip"), `Poverty` = avg(tx, "poverty", 1985, 1993, "statefip"),
+            `Percent Black 1990` = at(tx, "black", 1990, "statefip"), `Percent Black 1991` = at(tx, "black", 1991, "statefip"), `Percent Black 1992` = at(tx, "black", 1992, "statefip"),
+            `Percent aged 15--19, 1990` = at(tx, "perc1519", 1990, "statefip"))
+trt <- which(idt == 48)
+ft <- synth(Xt[, trt], Xt[, -trt], Yt[trt, pre_t], t(Yt[-trt, pre_t]))
+Yt0 <- Yt[-trt, ]; yt1 <- Yt[trt, ]; nmt0 <- nmt[-trt]
+cft <- as.vector(t(Yt0) %*% ft$w); gapt <- yt1 - cft
+balt <- cbind(Xt[, trt], as.vector(Xt[, -trt] %*% ft$w), rowMeans(Xt[, -trt]))
+Pt <- placebo(Xt, Yt, pre_t, trt, gapt); ratiot <- Pt[, "post"] / Pt[, "pre"]; rkt <- rank(-ratiot)[trt]
+# Placebo in time: pretend the boom came in 1989 and stop the sample in 1992.
+txp <- tx[tx$year <= 1992, ]
+Xp <- rbind(at(txp, "bmprison", 1986, "statefip"), at(txp, "bmprison", 1987, "statefip"), at(txp, "bmprison", 1988, "statefip"),
+            at(txp, "alcohol", 1988, "statefip"), at(txp, "aidscapita", 1988, "statefip"), at(txp, "aidscapita", 1989, "statefip"),
+            avg(txp, "income", 1985, 1989, "statefip"), avg(txp, "ur", 1985, 1989, "statefip"), avg(txp, "poverty", 1985, 1989, "statefip"),
+            at(txp, "black", 1986, "statefip"), at(txp, "black", 1987, "statefip"), at(txp, "black", 1988, "statefip"), at(txp, "perc1519", 1988, "statefip"))
+Yp <- Yt[, yrt <= 1992]; pre_p <- as.numeric(colnames(Yp)) <= 1989
+fp <- synth(Xp[, trt], Xp[, -trt], Yp[trt, pre_p], t(Yp[-trt, pre_p]))
+cfp <- as.vector(t(Yp[-trt, ]) %*% fp$w)
+
+## ---- Second-generation estimators on Prop 99 (lagged outcomes as the predictors)
+Z0 <- t(Y0[, pre]); Z1 <- y1[pre]
+w_lag <- sc_w(Z1, Z0); cf_lag <- as.vector(t(Y0) %*% w_lag)
+# regression weights (ADH 2015): post outcomes on the seven predictors plus a constant, fit on donors
+Xc0 <- rbind(1, X[, -tr]); w_reg <- as.vector(t(Xc0) %*% solve(Xc0 %*% t(Xc0)) %*% c(1, X[, tr])); cf_reg <- as.vector(t(Y0) %*% w_reg)
+# demeaned SC (Ferman and Pinto 2021): weights on deviations from each unit's pre-period mean
+mu0 <- rowMeans(Y0[, pre]); mu1 <- mean(y1[pre])
+w_dm <- sc_w(Z1 - mu1, Z0 - matrix(mu0, nrow(Z0), ncol(Z0), byrow = TRUE)); cf_dm <- mu1 + as.vector(t(Y0 - mu0) %*% w_dm)
+# augmented SC (Ben-Michael, Feller and Rothstein 2021): ridge outcome model on donors, lambda by leave-one-donor-out CV
+cv_lambda <- function(Y0, pre, grid) {
+  X0 <- Y0[, pre]; Yp <- Y0[, !pre]
+  err <- sapply(grid, function(l) mean(sapply(seq_len(nrow(X0)), function(j) {
+    Xj <- X0[-j, ]; m <- colMeans(Xj); Xc <- sweep(Xj, 2, m); Ypj <- Yp[-j, , drop = FALSE]
+    B <- solve(crossprod(Xc) + l * diag(ncol(Xc)), crossprod(Xc, sweep(Ypj, 2, colMeans(Ypj))))
+    mean((Yp[j, ] - colMeans(Ypj) - as.vector((X0[j, ] - m) %*% B))^2) })))
+  grid[which.min(err)]
+}
+ascm <- function(y1, Y0, pre, lambda) {
+  X0 <- Y0[, pre]; X1 <- y1[pre]; w <- sc_w(X1, t(X0))
+  imb <- X1 - as.vector(t(X0) %*% w); Xc <- scale(X0, center = TRUE, scale = FALSE)
+  w_aug <- w + as.vector(Xc %*% solve(crossprod(Xc) + lambda * diag(ncol(Xc)), imb))
+  list(w = w, w_aug = w_aug, cf = as.vector(t(Y0) %*% w_aug), cf_sc = as.vector(t(Y0) %*% w))
+}
+lam <- cv_lambda(Y0, pre, 10^seq(0, 6, by = 0.25)); a <- ascm(y1, Y0, pre, lam)
+pre_t2 <- yrt <= 1992
+lam_t <- cv_lambda(Yt0, pre_t2, 10^seq(2, 12, by = 0.25)); at_ <- ascm(yt1, Yt0, pre_t2, lam_t)
+# specification table (Ferman, Pinto and Possebom 2020)
+spec <- function(w) c(sqrt(mean((y1 - as.vector(t(Y0) %*% w))[pre]^2)), mean((y1 - as.vector(t(Y0) %*% w))[post]))
+odd <- yrs[pre] %% 2 == 1
+specs <- rbind(`ADH: four covariates + sales in 1975, 1980, 1988` = spec(fit$w),
+               `All 19 pre-period sales` = spec(w_lag),
+               `Sales in 1975, 1980, 1988 only` = spec(sc_w(y1[yrs %in% c(1975, 1980, 1988)], t(Y0[, yrs %in% c(1975, 1980, 1988)]))),
+               `Odd years only` = spec(sc_w(Z1[odd], Z0[odd, ])),
+               `Four covariates + mean pre-period sales` = spec(synth(c(X[1:4, tr], mean(Z1)), rbind(X[1:4, -tr], colMeans(Z0)), Z1, Z0)$w),
+               `Demeaned (with intercept)` = c(sqrt(mean((y1 - cf_dm)[pre]^2)), mean((y1 - cf_dm)[post])),
+               `Regression weights` = spec(w_reg))
+
+## ---- matrix completion (Athey et al. 2021): soft-impute with two-way fixed effects
+mc <- function(Y, O, lambda, maxit = 500, tol = 1e-7) {
+  N <- nrow(Y); Tn <- ncol(Y); L <- matrix(0, N, Tn); g <- rep(0, N); d <- rep(0, Tn)
+  for (it in 1:maxit) {
+    R <- Y - L
+    for (k in 1:5) { g <- rowSums(O * sweep(R, 2, d)) / rowSums(O); d <- colSums(O * (R - g)) / colSums(O) }
+    M <- O * (Y - g - matrix(d, N, Tn, byrow = TRUE)) + (1 - O) * L
+    sv <- svd(M); sh <- pmax(sv$d - lambda, 0); Lnew <- sv$u %*% (sh * t(sv$v))
+    if (sqrt(sum((Lnew - L)^2)) < tol * (1 + sqrt(sum(L^2)))) { L <- Lnew; break }
+    L <- Lnew
+  }
+  list(fit = L + g + matrix(d, N, Tn, byrow = TRUE), rank = sum(sh > 0))
+}
+O <- matrix(1, nrow(Y), ncol(Y)); O[tr, post] <- 0
+grid_mc <- c(2, 5, 10, 20, 40, 80, 160)
+set.seed(1); obs <- which(O == 1 & row(O) != tr); fold <- sample(rep(1:5, length.out = length(obs)))
+cv_err <- sapply(grid_mc, function(l) mean(sapply(1:5, function(k) { Ok <- O; Ok[obs[fold == k]] <- 0; f <- mc(Y, Ok, l); mean((Y[obs[fold == k]] - f$fit[obs[fold == k]])^2) })))
+lam_mc <- grid_mc[which.min(cv_err)]
+mcs <- lapply(grid_mc, function(l) mc(Y, O, l)); names(mcs) <- grid_mc
+m <- mcs[[as.character(lam_mc)]]; cf_mc <- m$fit[tr, ]
+mc_tab <- t(sapply(mcs, function(f) c(rank = f$rank, pre = sqrt(mean((y1 - f$fit[tr, ])[pre]^2)), att = mean((y1 - f$fit[tr, ])[post]))))
+
+## ---- synthetic DiD (Arkhangelsky et al. 2021), Algorithm 1, one treated unit
+sdid <- function(Y0, y1, pre) {
+  Nco <- nrow(Y0); Tpre <- sum(pre); Tpost <- sum(!pre)
+  D <- t(diff(t(Y0[, pre]))); sig <- sqrt(mean((D - mean(D))^2)); zeta <- (1 * Tpost)^(1 / 4) * sig
+  A <- t(Y0[, pre]); A <- sweep(A, 2, colMeans(A)); b <- y1[pre] - mean(y1[pre])                      # intercept concentrated out
+  om <- solve.QP(2 * (crossprod(A) + zeta^2 * Tpre * diag(Nco)), 2 * as.vector(crossprod(A, b)), cbind(1, diag(Nco)), c(1, rep(0, Nco)), meq = 1)$solution
+  om[om < 1e-10] <- 0; om <- om / sum(om)
+  B <- Y0[, pre]; B <- sweep(B, 2, colMeans(B)); c0 <- rowMeans(Y0[, !pre]); c0 <- c0 - mean(c0)
+  la <- solve.QP(2 * (crossprod(B) + (1e-6 * sig)^2 * Nco * diag(Tpre)), 2 * as.vector(crossprod(B, c0)), cbind(1, diag(Tpre)), c(1, rep(0, Tpre)), meq = 1)$solution
+  la[la < 1e-10] <- 0; la <- la / sum(la)
+  tau <- (mean(y1[!pre]) - sum(la * y1[pre])) - (sum(om * rowMeans(Y0[, !pre])) - sum(om * (Y0[, pre] %*% la)))
+  list(tau = tau, omega = om, lambda = la, zeta = zeta, sigma = sig)
+}
+sd1 <- sdid(Y0, y1, pre)
+did <- (mean(y1[post]) - mean(y1[pre])) - (mean(colMeans(Y0)[post]) - mean(colMeans(Y0)[pre]))
+sc_est <- mean((y1 - cf_lag)[post])
+set.seed(11)
+pl_sdid <- replicate(200, { j <- sample(nrow(Y0), 1); sdid(Y0[-j, ], Y0[j, ], pre)$tau })
+pl_sc <- replicate(200, { j <- sample(nrow(Y0), 1); w <- sc_w(Y0[j, pre], t(Y0[-j, pre])); mean((Y0[j, ] - as.vector(t(Y0[-j, ]) %*% w))[post]) })
+pl_did <- replicate(200, { j <- sample(nrow(Y0), 1); (mean(Y0[j, post]) - mean(Y0[j, pre])) - (mean(colMeans(Y0[-j, ])[post]) - mean(colMeans(Y0[-j, ])[pre])) })
+
+# plotting helpers
+twolines <- function(x, a, b, labs, vline, ylab, ylim = range(c(a, b)), pos = "bottomleft") {
+  par(mar = c(2.4, 3.4, 0.3, 0.3), mgp = c(1.9, 0.5, 0), cex = 0.9)
+  plot(x, a, type = "l", lwd = 2, ylim = ylim, xlab = "", ylab = ylab, las = 1)
+  lines(x, b, lwd = 2, lty = 2, col = "grey30"); abline(v = vline, lty = 3)
+  legend(pos, bty = "n", lwd = 2, lty = 1:2, col = c("black", "grey30"), legend = labs, cex = 0.9)
+}
+gapplot <- function(x, g, vline, ylab, ylim = range(g)) {
+  par(mar = c(2.4, 3.4, 0.3, 0.3), mgp = c(1.9, 0.5, 0), cex = 0.9)
+  plot(x, g, type = "l", lwd = 2, ylim = ylim, xlab = "", ylab = ylab, las = 1); abline(h = 0, lty = 3); abline(v = vline, lty = 3)
+}
+placeboplot <- function(x, P, keep, trj, vline, ylab) {
+  G <- P[, -(1:2)]; par(mar = c(2.4, 3.4, 0.3, 0.3), mgp = c(1.9, 0.5, 0), cex = 0.9)
+  plot(NA, xlim = range(x), ylim = range(G[keep, ]), xlab = "", ylab = ylab, las = 1)
+  for (j in which(keep)) if (j != trj) lines(x, G[j, ], col = "grey70", lwd = 0.8)
+  lines(x, G[trj, ], lwd = 2.5); abline(h = 0, lty = 3); abline(v = vline, lty = 3)
+}
+```
+
+## Where we left off
+
+- Lectures 7a--7b: difference-in-differences identifies the ATT if untreated outcomes move in parallel. The staggered-adoption estimators refuse the forbidden comparison, but every one of them **still needs parallel trends for a control group you chose**.
+- Two questions stayed open:
+  - What if the treated "group" is **one unit**: a state, a country, an exchange? One unit cannot choose its control group by regression, and there is nothing to cluster on.
+  - What if no untreated group is parallel to it, but **some weighted average of them** might be?
+
+\vspace{0.4em}
+
+- Synthetic control (Abadie and Gardeazabal 2003; Abadie, Diamond and Hainmueller 2010) answers both. It imputes the treated unit's untreated outcome from a **data-chosen, non-negative weighted average of untreated units**. It targets the ATT and draws an event-study picture, like DiD. It does **not** assume parallel trends; it assumes a model of the outcome.
+- Source: Cunningham (2025), *The Remix*, ch. 11, and his two datasets: Proposition 99 (ADH 2010) and Texas prisons. Every estimate here is computed by hand.
+
+## The plan
+
+1. **The comparative case study.** Card's Mariel boatlift and its two weaknesses.
+2. **The estimator.** Weights, the $V$ matrix, three advantages, the factor model.
+3. **Proposition 99.** Synthetic California, balance, and inference by placebo.
+4. **Texas prisons.** The data exercise, placebos in space and in time, and two lessons.
+5. **Weights, extrapolation, imperfect fit.** Regression weights, the convex hull, specification choice, demeaning, augmentation.
+6. **Matrix completion.** The potential-outcome matrix, low rank, and the nuclear norm.
+7. **Synthetic difference-in-differences.** Unit weights, time weights, and a weighted DiD.
+8. **Using it** in finance.
+
+\vspace{0.4em}
+
+- One running question: **which untreated units are inside my counterfactual, with what weight, and what do I give up to fit better?**
+
+# 1. The Comparative Case Study
+
+## Card (1990): the Mariel boatlift
+
+- April--October 1980: Castro opens the port of Mariel; about 125,000 Cubans leave, most settle in Miami. Miami's labour force grows by about 7\%, mostly low-skilled workers. A textbook supply shock in a concentrated local labour market.
+- Card compares Miami with four cities (Atlanta, Houston, Los Angeles, Tampa--St.\ Petersburg) in a difference-in-differences on CPS wages and unemployment, and finds **no discernible effect**. The four cities are chosen in a footnote for "similar demographics and economic conditions."
+- Controversial because of the answer, not the method. Peri and Yasenov (2019) redo it with synthetic control and reach the same conclusion.
+
+\vspace{0.4em}
+
+- Two weaknesses of the **design**, whatever one thinks of the finding:
+  1. The control group was **ad hoc**. A different set of cities might give a different answer, and the reader cannot tell how much the choice mattered.
+  2. The standard errors measured **sampling variance**, not the uncertainty that matters: whether those four cities reproduce what Miami would have done without the boatlift.
+- Synthetic control was built to address both at once.
+
+## What the method does
+
+- One treated aggregate unit, $j = 1$, and a **donor pool** of $J$ untreated units, $j = 2, \dots, J+1$, observed for $T_0$ pre-treatment periods and some post periods.
+- The synthetic control is a weighted average of donors with $w_j \geq 0$ and $\sum_j w_j = 1$, the weights chosen so that it **resembles the treated unit before treatment**. The effect in post period $t$ is
+$$
+\hat\tau_{1t} = Y_{1t} - \sum_{j=2}^{J+1} w_j^{*}\, Y_{jt}.
+$$
+- Target: the ATT for the treated unit, period by period. The estimator is a picture: two series that coincide before $T_0$ and separate after it, or do not.
+- Shared with DiD: panel data, the ATT, an event-study plot, extensions to several treated units and staggered timing. Not shared: **parallel trends**. The comparison group is chosen by fit, not by assumption, and Cunningham keeps it outside the DiD family tree.
+- Lineage: Abadie was one of Angrist's first students and a long-time coauthor of Imbens. Like the LATE, the method sits where Princeton labour economics and Harvard statistics meet.
+
+# 2. The Estimator
+
+## Choosing the weights
+
+- $X_1$ ($k \times 1$): pre-treatment characteristics of the treated unit; $X_0$ ($k \times J$): the same for donors. Characteristics are **predictors of post-treatment outcomes**: covariates and lagged outcomes, chosen by the researcher.
+- ADH (2010) choose $W = (w_2, \dots, w_{J+1})'$ to minimise
+$$
+\|X_1 - X_0 W\|_V = \sqrt{(X_1 - X_0 W)'\, V\, (X_1 - X_0 W)}
+\quad\text{s.t.}\quad w_j \geq 0,\ \ \textstyle\sum_j w_j = 1 .
+$$
+- With diagonal $V$ the objective is a **matching discrepancy**, $\sum_m v_m \big(X_{1m} - \sum_j w_j X_{jm}\big)^2$: Lecture 3's nearest-neighbour matching, with one treated unit matched to a convex combination of controls.
+- $V$ is the **importance matrix**, and $W^{*}(V)$ depends on it. The usual choice: $V$ that minimises the pre-period root mean squared prediction error of the outcome,
+$$
+\text{RMSPE} = \Big( \tfrac{1}{T_0} \textstyle\sum_{t=1}^{T_0} \big( Y_{1t} - \sum_j w_j^{*}(V)\, Y_{jt} \big)^2 \Big)^{1/2},
+$$
+a **nested** optimisation: a quadratic programme for $W$ inside a search over $V$.
+- "Optimal" means no other non-negative, sum-to-one vector matches $X_1$ better. Drop the constraints and you can always match better; Section 5 is about that trade.
+
+## Three advantages (Abadie, Diamond and Hainmueller 2010)
+
+1. **No extrapolation.** The counterfactual is a convex combination of *contemporaneous* donor outcomes. It never projects forward from the treated unit's own history and never steps outside the data, where regression is most model-dependent (King and Zeng 2006).
+2. **Design before outcomes.** The weights use only pre-treatment data. Fix the model, publish the weights, and only then look at the post period (Rubin 2007, 2008): the "do not peek" principle of the 7b checklist, built into the estimator.
+3. **Transparency.** The weights say exactly what each donor contributes. A regression also weights the donors, but the weights are buried in $(X'X)^{-1}X'$ and nobody shows them.
+
+\vspace{0.4em}
+
+- The seminar objection: "Idaho gets 0.3 of California? Absurd!" In a regression Idaho might get a *larger* weight, or a negative one, and no one would know (ADH 2015). Transparency invites scrutiny that other estimators escape. That is a strength.
+- The cost of (1), seen later: when no convex combination resembles the treated unit, the method cannot fit, and it says so.
+
+## The outcome model
+
+- The assumption behind the method is a **factor model** for untreated outcomes:
+$$
+Y^0_{it} = \alpha_t + \theta_t Z_i + \lambda_t u_i + \varepsilon_{it},
+$$
+$\alpha_t$ a common shock; $Z_i$ observed characteristics with **time-varying** coefficients $\theta_t$; $u_i$ unobserved loadings on unobserved common factors $\lambda_t$; $\varepsilon_{it}$ transitory noise.
+- A model of the **outcome**, not of assignment. Propensity scores model who gets treated; synthetic control, like the outcome regression of 7b, models what the untreated outcome would have been, with a stronger structure: a few latent factors. It is 7b's "covariate-specific trend" in other clothes: grit is stable, the return to grit moves. In DiD that breaks parallel trends; here it is the model.
+- If $\sum_j w_j Z_j = Z_1$ **and** $\sum_j w_j u_j = u_1$, then $\sum_j w_j Y^0_{jt} = Y^0_{1t}$ up to noise in every period, treated or not. $u_i$ is unobserved, so the **pre-period fit is the evidence**: only units balanced on both $Z$ and $u$ would track the treated unit for many years. ADH show the bias vanishes as $T_0 \to \infty$ when the fit is exact.
+- Hence the rule: a **long** pre-period, **closely** tracked. The assumption is not testable; the fit is imperfect but powerful evidence.
+
+# 3. Proposition 99
+
+## California, 1988
+
+```{r prop99-raw}
+#| fig-width: 8
+#| fig-height: 2.3
+#| out-width: 78%
+#| fig-align: center
+twolines(yrs, y1, colMeans(Y0), c("California", "Average of 38 control states"), 1988.5, "packs per capita")
+```
+
+- Proposition 99 (passed November 1988, effective January 1989): a 25-cent tax per pack, clean-air ordinances, anti-smoking media campaigns, more than \$100 million a year earmarked for anti-tobacco programmes.
+- Outcome: cigarette sales per capita, 1970--2000: 19 pre-years, 12 post-years. Donor pool: the 38 states without comparable programmes in the period; states with similar legislation are dropped, for the reason 7b gave against comparing with the already-treated.
+- Sales fell after 1988. They were already falling, in California and everywhere else. The raw comparison cannot tell.
+
+## Synthetic California
+
+```{r prop99-synth}
+#| fig-width: 8
+#| fig-height: 2.3
+#| out-width: 78%
+#| fig-align: center
+twolines(yrs, y1, cf, c("California", "Synthetic California"), 1988.5, "packs per capita")
+```
+
+- Predictors (ADH 2010): ln GDP per capita, share aged 15--24, retail price, beer consumption (1980--88 averages; beer 1984--88), and cigarette sales in 1975, 1980 and 1988.
+- Weights: `r paste0(nm0[fit$w > 0.005], " ", f3(fit$w[fit$w > 0.005]), collapse = ", ")`; the other `r sum(fit$w <= 0.005)` states get zero. ADH report Utah 0.334, Nevada 0.234, Montana 0.199, Colorado 0.164, Connecticut 0.069.
+- Pre-period RMSPE `r f2(sqrt(mean(gap[pre]^2)))` packs. $V$ concentrates on `r paste0(tolower(rownames(X))[order(-fit$v)][1:3], " (", f2(sort(fit$v, decreasing = TRUE)[1:3]), ")", collapse = ", ")`; the other predictors get almost nothing.
+
+## Balance
+
+\begin{center}\small
+```{r prop99-balance, results='asis'}
+cat("\\begin{tabular}{lrrr}\n\\toprule\n & California & Synthetic & Average of 38 \\\\\n\\midrule\n")
+for (i in seq_len(nrow(bal))) cat(rownames(bal)[i], " & ", f2(bal[i, 1]), " & ", f2(bal[i, 2]), " & ", f2(bal[i, 3]), " \\\\\n")
+cat("\\bottomrule\n\\end{tabular}\n")
+```
+\end{center}
+
+- One number per cell, so this is not a test; it is the best the method allows. The synthetic control matches lagged sales to within two packs; the donor average misses 1988 sales by `r f1(bal[5, 3] - bal[5, 1])`.
+- Income is the one predictor that is not matched: $V$ gave it no weight, because it did not help predict pre-period sales once the lags were in. That is what $V$ is for.
+
+## The gap
+
+```{r prop99-gap}
+#| fig-width: 8
+#| fig-height: 2.3
+#| out-width: 78%
+#| fig-align: center
+gapplot(yrs, gap, 1988.5, "California minus synthetic", ylim = c(-30, 10))
+```
+
+- The estimator is the difference between the two series: near zero for 19 years, then a widening gap. Mean over 1989--2000: $`r f1(mean(gap[post]))`$ packs per capita; by 2000, $`r f1(gap[yrs == 2000])`$ packs, about a quarter of what California would have sold.
+- Like RD, this is a picture-intensive estimator. If the picture does not show flat-then-diverge, no table will rescue it.
+
+## Inference: "no treatment effect whatsoever"
+
+- Two observations per year and one treated unit: nothing to cluster on. Maybe the divergence is prediction error that any model would produce.
+- ADH (2010): **randomization inference** (Fisher 1935) under the sharp null of no effect for any unit in any period, "no treatment effect whatsoever" (Firpo and Possebom 2018). Lecture 1's idea, with the donor pool as the randomization distribution.
+- The test statistic is the ratio of post- to pre-treatment RMSPE, $r_j = \text{RMSPE}_{\text{post}, j} / \text{RMSPE}_{\text{pre}, j}$, with
+$$
+\text{RMSPE}_{\text{post}} = \Big( \tfrac{1}{T - T_0} \textstyle\sum_{t = T_0 + 1}^{T} \big( Y_{1t} - \sum_j w_j^{*} Y_{jt} \big)^2 \Big)^{1/2}.
+$$
+- Steps: (1) treat each donor in turn as if it had been treated, with California back in the pool, and refit; (2) pre RMSPE; (3) post RMSPE; (4) the ratio; (5) sort; (6) $p = \text{rank}/\text{total}$.
+- Why a ratio: a state the method could not fit before treatment shows a large post gap for free. Dividing by its own pre-period fit asks whether the post gap is **unusual relative to the fit**.
+
+## Placebo gaps: all 38 donors
+
+```{r prop99-placebo-all}
+#| fig-width: 8
+#| fig-height: 2.6
+#| out-width: 78%
+#| fig-align: center
+placeboplot(yrs, P, rep(TRUE, nrow(P)), tr, 1988.5, "gap in packs per capita")
+```
+
+- California is the bold line; each grey line is a donor state pretending to be treated in 1989, with its own synthetic control.
+- California's post gap is among the largest, but a few placebos have wild paths before and after 1989. Those are states the method cannot fit: extreme units with no convex combination of neighbours. They blow up the scale.
+
+## Placebo gaps: states fit as well as California
+
+```{r prop99-placebo-good}
+#| fig-width: 8
+#| fig-height: 2.6
+#| out-width: 78%
+#| fig-align: center
+keep <- P[, "pre"] <= 2 * P[tr, "pre"]
+placeboplot(yrs, P, keep, tr, 1988.5, "gap in packs per capita")
+```
+
+- ADH drop placebos whose pre-period RMSPE exceeds some multiple of California's; here twice, which keeps `r sum(keep) - 1` of 38 donors. Among units the method fits as well as it fits California, none opens a gap of California's size; the largest placebo gap is about half of it.
+- A judgement call, so show the cut-offs you tried. The ratio test on the next slide needs no cut-off.
+
+## The exact p-value
+
+```{r prop99-hist}
+#| fig-width: 8
+#| fig-height: 2.1
+#| out-width: 72%
+#| fig-align: center
+par(mar = c(2.6, 3.4, 0.3, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
+hist(ratio, breaks = 20, col = "grey85", border = "white", main = "", xlab = "post / pre RMSPE", ylab = "number of states", las = 1)
+abline(v = ratio[tr], lwd = 2.5); text(ratio[tr], 6, "California", pos = 2, cex = 0.9)
+```
+
+- California's ratio is `r f1(ratio[tr])`. ADH, with the `Synth` optimiser, rank it first of 39: $p = 1/39 = 0.026$. This deck's optimiser ranks it `r rk`: $p = `r rk`/39 = `r f3(rk / 39)`$. The state above it is `r nm[which.max(ratio)]` (ratio `r f1(max(ratio))`), which the method fits even more closely before 1989 (pre-period RMSPE `r f2(P[which.max(ratio), "pre"])`) and which drifts `r f1(mean(P[which.max(ratio), -(1:2)][post]))` packs from its synthetic control after.
+- The lesson is not that the test failed. The ratio divides by a denominator that the $V$ search chose, and a slightly different $V$ gives one placebo a tighter fit and a larger ratio. Report the histogram, the treated unit's rank, and the optimiser; and do not read 0.026 against 0.051 as a difference in kind.
+
+# 4. Texas Prisons
+
+## Ruiz v. Estelle and the construction boom
+
+```{r texas-capacity}
+#| fig-width: 8
+#| fig-height: 2.0
+#| out-width: 72%
+#| fig-align: center
+cap <- tx$capacity_operational[tx$statefip == 48]
+par(mar = c(2.4, 3.6, 0.3, 0.3), mgp = c(2.2, 0.5, 0), cex = 0.9)
+plot(yrt, cap / 1000, type = "b", pch = 19, lwd = 2, xlab = "", ylab = "operational capacity (000s)", las = 1); abline(v = 1993, lty = 3)
+```
+
+- 1980: inmate David Ruiz wins a suit against the Texas Department of Corrections over overcrowding. Courts cap inmates per cell; federal supervision lasts until 2003. Through the 1980s Texas manages admissions with **early parole**, since it can neither overcrowd nor afford to build.
+- Modest construction under Governor Clements in the late 1980s. In 1993, under Governor Richards, a billion-dollar package: capacity grows by more than 30\% a year for three years and **doubles**.
+- Capacity is not incarceration. But parole had been the relief valve; once the beds existed, Texas kept people it would have released. The group affected most: Black men.
+
+## Texas against the rest of the country
+
+```{r texas-raw}
+#| fig-width: 8
+#| fig-height: 2.3
+#| out-width: 78%
+#| fig-align: center
+twolines(yrt, yt1 / 1000, colMeans(Yt0) / 1000, c("Texas", "Average of 50 other states"), 1993, "Black male prisoners (000s)", pos = "topleft")
+```
+
+- Black male prisoners in Texas roughly double in two years after 1993. The rest of the country rises smoothly.
+- Before 1993 Texas was **unremarkable**: run-of-the-mill rather than the largest or smallest state on this outcome. That is what makes a non-negative weighted average of other states feasible. Had Texas been extreme, no convex combination could have matched it.
+- Cunningham uses the count, not the rate; the rate is in the data and is the chapter's exercise. The analysis follows his `synth_1.do`.
+
+## Synthetic Texas
+
+```{r texas-synth}
+#| fig-width: 8
+#| fig-height: 2.3
+#| out-width: 78%
+#| fig-align: center
+twolines(yrt, yt1 / 1000, cft / 1000, c("Texas", "Synthetic Texas"), 1993, "Black male prisoners (000s)", pos = "topleft")
+```
+
+- Predictors: Black male prisoners in 1988, 1990, 1991, 1992; alcohol consumption 1990; AIDS cases per capita 1990, 1991; income, unemployment and poverty (pre-period averages); percent Black 1990--92; percent aged 15--19 in 1990. Fit period 1985--1993, as in the chapter.
+- Weights: `r paste0(nmt0[ft$w > 0.005], " ", f3(ft$w[ft$w > 0.005]), collapse = ", ")`. Pre-period RMSPE `r fc(sqrt(mean(gapt[pre_t]^2)))` prisoners against a 1993 level of `r fc(yt1[yrt == 1993])`.
+- This is the picture one hopes for: a synthetic Texas on top of Texas for nine years, then a divergence as the beds open.
+
+## The gap and the balance
+
+```{r texas-gap}
+#| fig-width: 8
+#| fig-height: 1.9
+#| out-width: 72%
+#| fig-align: center
+gapplot(yrt, gapt / 1000, 1993, "Texas minus synthetic (000s)")
+```
+
+\begin{center}\scriptsize
+```{r texas-balance, results='asis'}
+sel <- c(2, 4, 5, 8, 9, 11, 14)
+cat("\\begin{tabular}{lrrr}\n\\toprule\n & Texas & Synthetic & Average of 50 \\\\\n\\midrule\n")
+for (i in sel) cat(rownames(balt)[i], " & ", fc(balt[i, 1]), " & ", fc(balt[i, 2]), " & ", fc(balt[i, 3]), " \\\\\n")
+cat("\\bottomrule\n\\end{tabular}\n")
+```
+\end{center}
+
+- Mean gap over 1994--2000: `r fc(mean(gapt[post_t]))` prisoners; in 2000, `r fc(gapt[yrt == 2000])`. Lagged counts, alcohol and the Black population share are matched; income and the age share are not.
+
+## Placebos in space
+
+```{r texas-placebo}
+#| fig-width: 8
+#| fig-height: 2.2
+#| out-width: 78%
+#| fig-align: center
+layout(matrix(1:2, 1), widths = c(3, 2))
+placeboplot(yrt, Pt / 1000, Pt[, "pre"] <= 2 * Pt[trt, "pre"], trt, 1993, "gap (000s)")
+par(mar = c(2.6, 3.4, 0.3, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
+hist(ratiot, breaks = 15, col = "grey85", border = "white", main = "", xlab = "post / pre RMSPE", ylab = "states", las = 1); abline(v = ratiot[trt], lwd = 2.5)
+```
+
+- Left: gaps for every state with a pre-period RMSPE within twice that of Texas (`r sum(Pt[, "pre"] <= 2 * Pt[trt, "pre"]) - 1` of 50); Texas in bold. Right: the ratio for all 51.
+- Texas's ratio is `r f1(ratiot[trt])`, rank `r rkt` of 51: $p = `r f3(rkt / 51)`$. The runner-up is `r nmt[order(-ratiot)][if (rkt == 1) 2 else 1]` at `r f1(sort(ratiot, decreasing = TRUE)[if (rkt == 1) 2 else 1])`.
+- Same recipe as California: refit 51 times, pretend each state built the prisons, compare ratios.
+
+## A placebo in time
+
+```{r texas-intime}
+#| fig-width: 8
+#| fig-height: 2.2
+#| out-width: 78%
+#| fig-align: center
+twolines(as.numeric(colnames(Yp)), Yp[trt, ] / 1000, cfp / 1000, c("Texas", "Synthetic Texas, treated in 1989"), 1989, "Black male prisoners (000s)", pos = "topleft")
+```
+
+- ADH (2015) recommend a second falsification: move the treatment date to a year when nothing happened and stop the sample before the real treatment. Here 1989, with 1985--1992 and predictors shifted back accordingly.
+- A gap opening after 1989 would mean the method manufactures effects from this donor pool. The 1990--92 gap averages `r fc(mean((Yp[trt, ] - cfp)[!pre_p]))` prisoners, against `r fc(mean(gapt[post_t]))` after the real date.
+- The two placebos answer different questions: in space, "is Texas unusual among states?"; in time, "is 1993 unusual among years?"
+
+## Two lessons from the exercise
+
+- **The $V$ step is not convex.** The inner problem is a quadratic programme with a unique answer; the search over $V$ has many local minima. This deck's optimiser lands on `r paste0(nmt0[ft$w > 0.005], collapse = ", ")`; Stata's `synth` on the same specification lands on California 0.41, Illinois 0.36, Louisiana 0.12, Florida 0.11, with a similar fit and gap. Report the fit and the gap, not only the weights; try several starting values.
+- **Specification matters.** Which lags, which covariates, which fit period. Ferman, Pinto and Possebom (2020): searching over these raises false positives, since some specification will usually produce a gap. Their remedy, for Proposition 99:
+
+\begin{center}\scriptsize
+```{r spec-table, results='asis'}
+cat("\\begin{tabular}{lrr}\n\\toprule\nPredictors & Pre RMSPE & Mean gap 1989--2000 \\\\\n\\midrule\n")
+for (i in seq_len(nrow(specs))) cat(rownames(specs)[i], " & ", f2(specs[i, 1]), " & ", f1(specs[i, 2]), " \\\\\n")
+cat("\\bottomrule\n\\end{tabular}\n")
+```
+\end{center}
+
+# 5. Weights, Extrapolation, and Imperfect Fit
+
+## Synthetic weights against regression weights
+
+- Regress post-treatment outcomes on the $k$ predictors and a constant, among donors, and predict for the treated unit. That too imputes $Y^0_{1t}$ as a weighted average of donors (Abadie, Diamond and Hainmueller 2015):
+$$
+w^{\text{reg}} = \tilde X_0' \big( \tilde X_0 \tilde X_0' \big)^{-1} \tilde X_1, \qquad \tilde X = \begin{pmatrix} 1 \\ X \end{pmatrix}.
+$$
+The weights sum to one because of the constant. They need not be non-negative, and they are rarely zero.
+- Proposition 99 with the seven ADH predictors: `r sum(abs(w_reg) > 0.01)` of 38 states carry weight above 0.01, `r sum(w_reg < 0)` are negative, the smallest is `r nm0[which.min(w_reg)]` at $`r f2(min(w_reg))`$. Synthetic control uses `r sum(fit$w > 0.005)` states, all positive.
+- ADH (2015), West German reunification, 16 donors: synthetic control uses Austria 0.42, United States 0.22, Japan 0.16, Switzerland 0.11, Netherlands 0.09; regression weights every country, Greece at $-0.09$ and Portugal at $-0.08$.
+- Regression has more freedom, so it fits at least as well; it buys the fit with **extrapolation** along an assumed functional form, outside the support of the donors. Here the regression counterfactual gives a mean gap of $`r f1(mean((y1 - cf_reg)[post]))`$ packs.
+
+## Interpolation and the convex hull
+
+- $w_j \geq 0$ and $\sum w_j = 1$ mean the synthetic control lies in the **convex hull** of the donors. Synthetic control is matching, and the convex hull is Lecture 3's common support in panel clothes.
+- No convex combination of basketball players is Michael Jordan; none of footballers is Messi. For an outlier, the "optimal" non-negative weights are the best available under the constraints, and the fit is poor. Only **negative weights**, anti-Jordans, could close the gap, and that is extrapolation.
+- The limitation is the strength. By refusing extreme counterfactuals, synthetic control gives up some fit and escapes model dependence (King and Zeng 2006).
+
+\vspace{0.4em}
+
+- When the fit is imperfect, synthetic control is **biased**: the weights are tracking transitory noise $\varepsilon$ rather than the loadings $u$. The bias bound grows with the noise variance and shrinks with $T_0$ (ADH 2010; Ferman and Pinto 2021). ADH (2015): "We do not recommend using this method when the pretreatment fit is poor or the number of pretreatment periods is small."
+- This is not an argument for long pre-periods in DiD, which identifies the ATT with one pre-period and needs more only for credibility.
+
+## Covariates, and what they are for
+
+- In unconfoundedness, covariates close back doors; in DiD, they make parallel trends conditional. In synthetic control their only job is to **align donors with the treated unit before treatment**, so that the weights recover the factor loadings. They are worth including insofar as they do that.
+- Lagged outcomes already carry $\theta_t Z_i + \lambda_t u_i$. Increasingly researchers use **only lagged outcomes** (Ben-Michael, Feller and Rothstein 2021), as the second-generation estimators in this lecture do. ADH's covariate-plus-three-lags specification and the all-lags specification gave $`r f1(specs[1, 2])`$ and $`r f1(specs[2, 2])`$ for Proposition 99.
+- Kaul, Klößner, Pfeifer and Schieler (2022): if **all** pre-period outcomes are included as predictors, $V$ puts zero weight on every covariate, and the covariates are irrelevant. Including all lags and a long covariate list is decoration.
+- The choice is a specification choice and should be reported as one. The table two slides back is the format: predictors in rows, fit and estimate in columns. If the estimate survives every sensible column, the covariate question is settled; if not, the fit column tells you which specifications to trust.
+
+## Demeaned synthetic control (Ferman and Pinto 2021)
+
+- Subtract each unit's own pre-period mean, fit the weights to the **demeaned** series, add the treated unit's mean back:
+$$
+\hat Y^0_{1t} = \bar Y_{1,\text{pre}} + \sum_j w_j^{\text{dm}} \big( Y_{jt} - \bar Y_{j,\text{pre}} \big).
+$$
+This is synthetic control **with an intercept**, the first relaxation proposed by Doudchenko and Imbens (2017).
+- What it does: removes the level, as unit fixed effects do in DiD. The treated unit need no longer lie inside the convex hull in levels, only in deviations. Shared exposure to the aggregate factors $\lambda_t$ is matched on the dynamics, and the level difference is absorbed, exactly as a DiD absorbs a level gap.
+- Proposition 99: pre-period RMSPE falls from `r f2(specs[2, 1])` to `r f2(specs[6, 1])`; the weights spread over `r sum(w_dm > 0.005)` states instead of `r sum(w_lag > 0.005)`; the estimate moves from $`r f1(specs[2, 2])`$ to $`r f1(specs[6, 2])`$ packs. The fit improved and the answer changed: the level constraint had been binding.
+- Less bias under imperfect fit, more variance in small samples, and a different assumption, closer to DiD's. Ferman and Pinto give a specification test for when it is appropriate.
+
+## Augmented synthetic control
+
+- Ben-Michael, Feller and Rothstein (2021) apply the Abadie--Imbens (2011) correction for inexact matching: estimate the outcome model, subtract the imbalance. Write $Y^0_{jt} = m_{jt} + \varepsilon_{jt}$, estimate $\hat m(\cdot)$ from donors, and
+
+\small
+$$
+\begin{aligned}
+\hat Y^{\text{aug},0}_{1} &= \textstyle\sum_{D_j = 0} \hat w_j^{\text{synth}} Y_j + \underbrace{\big[ \hat m(X_1) - \sum_{D_j = 0} \hat w_j^{\text{synth}}\, \hat m(X_j) \big]}_{\text{estimated matching bias}}
+= \hat m(X_1) + \sum_{D_j = 0} \hat w_j^{\text{synth}} \big( Y_j - \hat m(X_j) \big).
+\end{aligned}
+$$
+\normalsize
+
+- The bracket is the outcome model's prediction of how far the synthetic control's imbalance in $X$ translates into imbalance in $Y^0$. With a perfect fit it is zero and augmented equals classic. With an imperfect fit it corrects in proportion to the imbalance.
+- Second form: the outcome regression, debiased by a weighted average of donor residuals. The doubly robust structure of 3b and 7b again.
+- Why bother, if $T_0 \to \infty$ kills the bias? Because $T_0$ is 19 for smoking and 9 for Texas. Exact balance is rare.
+
+## The ridge weights
+
+- $\hat m$ is a prediction problem with $T_0$ regressors (the lagged outcomes) and $J$ observations, so it is regularised. Ridge, on donors:
+$\min_{\eta_0, \eta}\ \tfrac{1}{2} \sum_{D_j = 0} ( Y_j - \eta_0 - X_j' \eta )^2 + \lambda \|\eta\|_2^2$.
+- Substituting $\hat m(X) = \hat\eta_0 + X'\hat\eta$ gives a **single set of weights**:
+
+\small
+$$
+\begin{aligned}
+\hat Y^{\text{aug},0}_1 &= \textstyle\sum_{D_j = 0} \hat w_j^{\text{synth}} Y_j + \big( X_1 - \sum_{D_j = 0} \hat w_j^{\text{synth}} X_j \big)' \hat\eta = \sum_{D_j = 0} \hat w_j^{\text{aug}} Y_j, \\
+\hat w^{\text{aug}} &= \hat w^{\text{synth}} + \big( X_1 - X_0' \hat w^{\text{synth}} \big)' \big( X_0' X_0 + \lambda I \big)^{-1} X_0' .
+\end{aligned}
+$$
+\normalsize
+
+- The augmented weights can be negative. They are the **minimal** negative reweighting that moves the imbalance toward zero: large $\lambda$ means little extrapolation and weights close to the synthetic ones. $\lambda$ is chosen by cross-validation.
+- The bill: negative weights are extrapolation, and extrapolation is model dependence. The larger the imbalance, the larger the correction, and the more the estimate hinges on $\hat m$. The more model-dependent you are, the further you are from a design.
+
+## Smoking and prisons, classic and augmented
+
+```{r ascm}
+#| fig-width: 8
+#| fig-height: 2.3
+#| out-width: 88%
+#| fig-align: center
+layout(matrix(1:3, 1), widths = c(3, 3, 2.2))
+par(mar = c(2.4, 3.4, 1.2, 0.3), mgp = c(1.9, 0.5, 0), cex = 0.85)
+plot(yrs, y1 - a$cf_sc, type = "l", lwd = 2, lty = 2, col = "grey30", ylim = c(-30, 10), xlab = "", ylab = "gap, packs", las = 1, main = "Proposition 99")
+lines(yrs, y1 - a$cf, lwd = 2); abline(h = 0, lty = 3); abline(v = 1988.5, lty = 3)
+legend("bottomleft", bty = "n", lwd = 2, lty = c(2, 1), col = c("grey30", "black"), legend = c("classic", "augmented"), cex = 0.85)
+plot(yrt, (yt1 - at_$cf_sc) / 1000, type = "l", lwd = 2, lty = 2, col = "grey30", xlab = "", ylab = "gap, 000s", las = 1, main = "Texas prisons")
+lines(yrt, (yt1 - at_$cf) / 1000, lwd = 2); abline(h = 0, lty = 3); abline(v = 1992.5, lty = 3)
+ws <- sort(a$w_aug); plot(ws, seq_along(ws), pch = ifelse(ws < 0, 1, 19), xlab = "augmented weight", ylab = "state (sorted)", las = 1, main = "Prop 99 weights"); abline(v = 0, lty = 3)
+```
+
+- Predictors: all pre-period outcomes, as in the chapter's `allsynth` runs. **Smoking:** pre-period RMSPE `r f2(sqrt(mean((y1 - a$cf_sc)[pre]^2)))` classic, `r f2(sqrt(mean((y1 - a$cf)[pre]^2)))` augmented; the mean gap moves from $`r f1(mean((y1 - a$cf_sc)[post]))`$ to $`r f1(mean((y1 - a$cf)[post]))`$. Small but visible, so the augmented weights are not the classic ones: `r sum(a$w_aug < -1e-6)` of 38 are negative, the smallest $`r f3(min(a$w_aug))`$, the largest `r f2(max(a$w_aug))` (right panel, hollow = negative).
+- **Texas:** incarceration grew smoothly everywhere and Texas sat in the middle of the pack, so the classic fit is already good; the augmentation changes the mean gap by $`r f1(100 * (mean((yt1 - at_$cf)[!pre_t2]) / mean((yt1 - at_$cf_sc)[!pre_t2]) - 1))`$\%. When the fit is excellent the bias term has nothing to correct.
+
+# 6. Matrix Completion
+
+## From the Netflix prize to the potential-outcome matrix
+
+- 2006: Netflix offers \$1 million to whoever beats its recommendation engine by 10\%. 2009: BellKor's Pragmatic Chaos wins with an ensemble built around **matrix factorisation**: the user-by-film ratings matrix is mostly empty, and it can be filled because a few latent factors (taste, genre) drive it.
+- Athey, Bayati, Doudchenko, Imbens and Khosravi (2021) carry the idea to causal panels. Write untreated potential outcomes as an $N \times T$ matrix. Treatment makes entries disappear: the switching equation turns $Y^0$ off and $Y^1$ on.
+$$
+\mathbf Y^0 = \begin{pmatrix} Y^0_{11} & Y^0_{12} & \cdots & Y^0_{1T} \\ Y^0_{21} & Y^0_{22} & \cdots & Y^0_{2T} \\ \vdots & & \ddots & \vdots \\ Y^0_{N1} & Y^0_{N2} & \cdots & Y^0_{NT} \end{pmatrix}
+\qquad\longrightarrow\qquad
+\begin{pmatrix} Y^0_{11} & Y^0_{12} & \cdots & ? \\ Y^0_{21} & Y^0_{22} & \cdots & ? \\ \vdots & & \ddots & \vdots \\ Y^0_{N1} & Y^0_{N2} & \cdots & Y^0_{NT} \end{pmatrix}
+$$
+- Every estimator in this course imputes the question marks. Matrix completion does it explicitly, using patterns **across units and over time at once**, for one treated unit or many, with simultaneous or staggered adoption.
+
+## Vertical, horizontal; thin, fat, square
+
+- Doudchenko and Imbens (2017), Ferman and Pinto (2021): synthetic control is a **vertical regression**. The treated unit's pre-period outcomes are regressed on the donors' outcomes in the same periods; the *columns* (periods) are the observations; the constraints are $w \geq 0$ and no intercept.
+- Unconfoundedness is a **horizontal regression**: the last period on its own lags, within unit; the *rows* are the observations. Its nonparametric version is matching on pre-treatment trajectories.
+- The shape of the matrix says which is natural:
+  - **Thin** ($N \gg T$): LaLonde, thousands of units and one pre-year; a single treated period in the last column. Horizontal.
+  - **Fat** ($T \gg N$): synthetic control, 39 states and 31 years; the treated row is missing its tail. Vertical.
+  - **Square, staggered**: treatment switches on at different dates, the missing block is a staircase. Neither alone.
+- Matrix completion accommodates all three and so **unites** synthetic control and unconfoundedness in one estimator. Both of their assumptions reappear in its identification.
+
+## Identification, estimation, inference
+
+- Model: $\mathbf Y = \mathbf L^{*} + \boldsymbol\varepsilon$, $\mathbb E[\boldsymbol\varepsilon \mid \mathbf L^{*}] = 0$, errors sub-Gaussian and independent. Two assumptions:
+  1. **Unconfoundedness given $\mathbf L^{*}$.** Adoption dates are independent of the errors, conditional on the systematic component. Timing may depend on the unit's latent type, not on luck.
+  2. **Low rank.** $\mathbf L^{*}$ is driven by a few latent factors; rows and columns are nearly linearly dependent. With many independent dimensions there would be too little to borrow.
+- Estimator: minimise squared error on the **observed** cells, with unit and time fixed effects and a penalty on the **nuclear norm** (the sum of singular values, the convex relaxation of rank):
+$$
+\min_{\mathbf L, \Gamma, \Delta}\ \frac{1}{|\mathcal O|} \big\| P_{\mathcal O}\big( \mathbf Y - \mathbf L - \Gamma \mathbf 1_T' - \mathbf 1_N \Delta' \big) \big\|_F^2 + \Lambda \| \mathbf L \|_{*}.
+$$
+$P_{\mathcal O}$ keeps the observed entries; $\Lambda$ by cross-validation on held-out observed cells.
+- Algorithm (soft-impute): fill the missing cells with the current $\hat{\mathbf L}$, remove the fixed effects, take the SVD, **shrink every singular value by $\Lambda$** and drop those that hit zero, repeat. Inference: a nonparametric bootstrap over units.
+
+## Proposition 99 by matrix completion
+
+```{r mc-fig}
+#| fig-width: 8
+#| fig-height: 2.0
+#| out-width: 72%
+#| fig-align: center
+par(mar = c(2.4, 3.4, 0.3, 0.3), mgp = c(1.9, 0.5, 0), cex = 0.9)
+plot(yrs, y1 - cf_lag, type = "l", lwd = 2, lty = 2, col = "grey30", ylim = c(-32, 8), xlab = "", ylab = "gap, packs", las = 1)
+lines(yrs, y1 - cf_mc, lwd = 2); abline(h = 0, lty = 3); abline(v = 1988.5, lty = 3)
+legend("bottomleft", bty = "n", lwd = 2, lty = c(2, 1), col = c("grey30", "black"), legend = c("synthetic control (all lags)", "matrix completion"), cex = 0.9)
+```
+
+\begin{center}\scriptsize
+```{r mc-table, results='asis'}
+cat("\\begin{tabular}{l", paste(rep("r", nrow(mc_tab)), collapse = ""), "}\n\\toprule\n$\\Lambda$ & ", paste(rownames(mc_tab), collapse = " & "), " \\\\\n\\midrule\n", sep = "")
+cat("Rank of $\\hat{\\mathbf L}$ & ", paste(mc_tab[, 1], collapse = " & "), " \\\\\n")
+cat("Pre-period RMSPE & ", paste(f2(mc_tab[, 2]), collapse = " & "), " \\\\\n")
+cat("Mean gap 1989--2000 & ", paste(f1(mc_tab[, 3]), collapse = " & "), " \\\\\n\\bottomrule\n\\end{tabular}\n")
+```
+\end{center}
+
+- The $39 \times 31$ sales matrix with California's 12 post-period cells blanked; two-way fixed effects plus a shrunk low-rank component, by hand. Cross-validation picks $\Lambda = `r lam_mc`$, rank `r m$rank`, mean gap $`r f1(mean((y1 - cf_mc)[post]))`$.
+- The estimate barely moves across ranks from `r max(mc_tab[, 1])` down to `r mc_tab[nrow(mc_tab) - 1, 1]`. The method does not need the non-negativity or the convex hull; it needs the factors to be few and the timing to be unrelated to the noise.
+
+# 7. Synthetic Difference-in-Differences
+
+## Dylan and Cash
+
+- Synthetic difference-in-differences (Arkhangelsky, Athey, Hirshberg, Imbens and Wager 2021) is a duet. From **synthetic control**: unit weights that make the donors track the treated unit before treatment. From **DiD**: unit and time fixed effects, so a level gap between the two series is allowed and absorbed. New to both: **time weights**, which pick the pre-periods most informative about the post-period.
+- Why: synthetic control is biased when the fit is imperfect, DiD when trends are not parallel. SDID needs neither the convex hull nor parallel trends in the raw data. It **approximates parallel trends by reweighting**, then runs a DiD on the reweighted panel. Demeaned synthetic control allowed an intercept; SDID adds regularised unit weights and time weights.
+
+\vspace{0.4em}
+
+- Outcome model, close to matrix completion's but without the low-rank penalty:
+$$
+\mathbf Y = \mathbf L + \mathbf D \circ \boldsymbol\delta + \mathbf E,
+$$
+$\mathbf L = \Gamma \Upsilon'$ the systematic component (unit factors times time factors), $\mathbf D \circ \boldsymbol\delta$ the effect applied only where $D_{it} = 1$, $\mathbf E$ noise. $\mathbf L$ is where the bias lives, so $\mathbf L$ is what the weights balance.
+
+## Three steps
+
+1. **Unit weights** $\hat\omega$: a synthetic control fit with an intercept and a ridge penalty, $\hat\omega_0 + \hat\omega' \mathbf Y_{\text{co},\text{pre}} \approx \bar{\mathbf Y}_{\text{tr},\text{pre}}$:
+$$
+(\hat\omega_0, \hat\omega) = \arg\min_{\omega_0 \in \mathbb R,\ \omega \in \Omega}\ \textstyle\sum_{t \leq T_0} \big( \omega_0 + \sum_{i \in \text{co}} \omega_i Y_{it} - \bar Y_{\text{tr},t} \big)^2 + \zeta^2 T_0 \|\omega\|_2^2 .
+$$
+$\Omega$ is the simplex; $\zeta = (N_{\text{tr}} T_{\text{post}})^{1/4} \hat\sigma$, with $\hat\sigma$ the typical one-period change among controls, keeps the weights from chasing noise.
+2. **Time weights** $\hat\lambda$: the same problem transposed. Weight pre-periods so that, for the controls, the weighted pre-period average predicts the post-period average, up to an intercept:
+$$
+(\hat\lambda_0, \hat\lambda) = \arg\min_{\lambda_0,\ \lambda \in \Lambda}\ \textstyle\sum_{i \in \text{co}} \big( \lambda_0 + \sum_{t \leq T_0} \lambda_t Y_{it} - \bar Y_{i,\text{post}} \big)^2 .
+$$
+3. **A weighted two-way fixed-effects regression**, with $\hat\omega_i = 1/N_{\text{tr}}$ for treated units and $\hat\lambda_t = 1/T_{\text{post}}$ for post-periods:
+$$
+\hat\tau^{\text{sdid}} = \arg\min_{\tau, \mu, \alpha, \beta} \textstyle\sum_{i=1}^{N} \sum_{t=1}^{T} \big( Y_{it} - \mu - \alpha_i - \beta_t - D_{it}\tau \big)^2\, \hat\omega_i \hat\lambda_t .
+$$
+With one treated unit this is four weighted averages and three subtractions.
+
+## Four assumptions
+
+1. **Errors.** Rows of $\mathbf E$ are independent Gaussian vectors with bounded covariance eigenvalues. Stronger than DiD or synthetic control, which assume independence but not a distribution.
+2. **Sample sizes.** Many controls $N_{\text{co}}$ and many pre-periods $T_{\text{pre}}$, in balance; ideally $N_{\text{tr}} T_{\text{post}}$ large as well. The method needs room to reweight in both directions.
+3. **Systematic component.** $\mathbf L$ has a few large singular values: low rank again, though not imposed by a penalty.
+4. **Oracle weights.** There exist weights, computable from $\mathbf L$, that remove the systematic difference between treated and control; the sample weights estimate them. This is **parallel trends after reweighting**: not parallel in the raw data, parallel once units and periods are reweighted, and only parallel, not identical.
+
+\vspace{0.4em}
+
+- The estimated weights converge to the oracle weights as the panel grows in both dimensions; that is what makes the estimator consistent.
+- DiD (uniform weights, parallel trends in the raw data), synthetic control (unit weights, no intercept, no time weights, exact fit) and SDID are three points on one line.
+
+## Proposition 99 by synthetic DiD
+
+```{r sdid-fig}
+#| fig-width: 8
+#| fig-height: 2.2
+#| out-width: 72%
+#| fig-align: center
+par(mar = c(2.4, 3.4, 0.3, 0.3), mgp = c(1.9, 0.5, 0), cex = 0.9)
+cf_sd <- as.vector(t(Y0) %*% sd1$omega)
+plot(yrs, y1, type = "l", lwd = 2, ylim = c(30, 140), xlab = "", ylab = "packs per capita", las = 1)
+rect(yrs[pre] - 0.4, 30, yrs[pre] + 0.4, 30 + 60 * sd1$lambda, col = "grey75", border = NA)
+lines(yrs, y1, lwd = 2); lines(yrs, cf_sd, lwd = 2, lty = 2, col = "grey30"); abline(v = 1988.5, lty = 3)
+legend("topright", bty = "n", lwd = c(2, 2, 6), lty = c(1, 2, 1), col = c("black", "grey30", "grey75"), legend = c("California", "SDID control (unit-weighted)", "time weights (bars, scaled)"), cex = 0.85)
+```
+
+\begin{center}\scriptsize
+\begin{tabular}{lrrr}
+\toprule
+ & DiD & Synthetic control & Synthetic DiD \\
+\midrule
+Estimate & `r f1(did)` & `r f1(sc_est)` & `r f1(sd1$tau)` \\
+Placebo standard error & `r f1(sd(pl_did))` & `r f1(sd(pl_sc))` & `r f1(sd(pl_sdid))` \\
+Arkhangelsky et al.\ (2021), Table 1 & $-27.3$ & $-19.6$ & $-15.6$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Unit weights spread over `r sum(sd1$omega > 0.01)` states (largest `r nm0[which.max(sd1$omega)]` `r f2(max(sd1$omega))`); the control sits `r f1(mean((cf_sd - y1)[pre]))` packs above California before 1989 and the intercept absorbs it. Time weights: `r paste0(yrs[pre][sd1$lambda > 0.01], " ", f2(sd1$lambda[sd1$lambda > 0.01]), collapse = ", ")`; the 1970s get nothing.
+
+## Practical considerations
+
+- **Look at the pre-trends.** SDID lets the treated unit and its control sit apart by an intercept, so the two series will not lie on top of each other as a good synthetic control does. Check that they are parallel after weighting; visual inspection is still the main tool.
+- **Show the weights.** Time weights under the time-series plot, as on the previous slide, tell the reader which pre-years drive the counterfactual; unit weights tell them who is in it. The weights are what let parallel trends fail in the raw data and hold in the estimate, so they are the design.
+- **Show all three.** DiD, synthetic control and SDID side by side, as Arkhangelsky et al. do. Disagreement tells you which assumption is doing the work.
+- **Staggered adoption** is covered: the original appendix, section 2.3 of Clarke, Pailañir, Athey and Imbens (2024), and Porreca (2022) extend the estimator cohort by cohort.
+- **Inference.** Placebo (as on the previous slide), jackknife or bootstrap. With few treated units, placebo; with many, bootstrap or jackknife over units.
+- Software: `synthdid` in R, `sdid` in Stata. This deck solved both weight problems with a quadratic programme.
+
+# 8. Using It
+
+## When synthetic control is the design
+
+- The setting: **one or a few aggregate treated units**, a long pre-period, a pool of untreated aggregates. A state law, a country's capital-account reform, one exchange's tick-size change, one currency's peg. DiD with hand-picked controls is Card's design; synthetic control chooses the controls by fit and does inference by placebo.
+- Abadie (2021) lists what the data must offer before the method is credible:
+  1. an effect **large relative to the volatility** of the outcome, since one unit's noise cannot be averaged away;
+  2. a donor pool **not affected** by the treatment, by similar interventions, or by spillovers;
+  3. **no anticipation**, or a treatment date moved back to when behaviour changed;
+  4. the treated unit **inside the convex hull**: not the largest, smallest or strangest unit in the pool;
+  5. a **long pre-period** and enough post-periods for the effect to appear.
+- Examples that follow the recipe: Billmeier and Nannicini (2013) on economic liberalisation; Born et al. (2019) on the Brexit vote and UK GDP; Cavallo et al. (2013) on disasters and growth. With hundreds of treated firms you are back in Lecture 7b, or in SDID and matrix completion with staggered timing.
+
+## Conclusion
+
+1. **Synthetic control** imputes one treated unit's untreated outcome from a non-negative, sum-to-one weighted average of donors, chosen by pre-period fit. It assumes a factor model, not parallel trends; the long, close fit is the evidence.
+2. **Inference is by placebo.** Each donor as if treated; post-to-pre RMSPE ratios; report the rank. A placebo in time checks the date.
+3. **Non-negative weights are interpolation.** They refuse to fit outliers, which keeps the estimate free of model dependence. Regression fits better by extrapolating.
+4. **Imperfect fit is bias.** Demeaning allows a level gap; augmentation corrects the matching bias with a ridge model, at the price of negative weights. Report fit, weights and several specifications.
+5. **Matrix completion** fills the potential-outcome matrix under low rank and unconfoundedness given the factors.
+6. **Synthetic DiD** reweights units and periods, allows an intercept, runs a weighted DiD: parallel trends after reweighting. Show DiD, SC and SDID together, and the weights.
+7. **Which units are inside my counterfactual, with what weight, and what did I give up to fit better?**
+
+## References
+
+\tiny
+
+- Abadie, A. (2021). Using Synthetic Controls: Feasibility, Data Requirements, and Methodological Aspects. *Journal of Economic Literature* 59(2), 391--425.
+- Abadie, A., A. Diamond and J. Hainmueller (2010). Synthetic Control Methods for Comparative Case Studies: Estimating the Effect of California's Tobacco Control Program. *JASA* 105(490), 493--505.
+- Abadie, A., A. Diamond and J. Hainmueller (2015). Comparative Politics and the Synthetic Control Method. *American Journal of Political Science* 59(2), 495--510.
+- Abadie, A. and J. Gardeazabal (2003). The Economic Costs of Conflict: A Case Study of the Basque Country. *AER* 93(1), 113--132.
+- Abadie, A. and G. Imbens (2011). Bias-Corrected Matching Estimators for Average Treatment Effects. *JBES* 29(1), 1--11.
+- Arkhangelsky, D., S. Athey, D. Hirshberg, G. Imbens and S. Wager (2021). Synthetic Difference-in-Differences. *AER* 111(12), 4088--4118.
+- Athey, S., M. Bayati, N. Doudchenko, G. Imbens and K. Khosravi (2021). Matrix Completion Methods for Causal Panel Data Models. *JASA* 116(536), 1716--1730.
+- Ben-Michael, E., A. Feller and J. Rothstein (2021). The Augmented Synthetic Control Method. *JASA* 116(536), 1789--1803.
+- Billmeier, A. and T. Nannicini (2013). Assessing Economic Liberalization Episodes: A Synthetic Control Approach. *REStat* 95(3), 983--1001.
+- Born, B., G. Müller, M. Schularick and P. Sebastian (2019). The Costs of Economic Nationalism: Evidence from the Brexit Experiment. *Economic Journal* 129(623), 2722--2744.
+- Card, D. (1990). The Impact of the Mariel Boatlift on the Miami Labor Market. *ILR Review* 43(2), 245--257.
+- Cavallo, E., S. Galiani, I. Noy and J. Pantano (2013). Catastrophic Natural Disasters and Economic Growth. *REStat* 95(5), 1549--1561.
+- Clarke, D., D. Pailañir, S. Athey and G. Imbens (2024). On Synthetic Difference-in-Differences and Related Estimation Methods in Stata. *Stata Journal* 24(4), 557--598.
+- Cunningham, S. (2025). *Causal Inference: The Remix*, ch. 11 --- the source for this lecture and for both datasets.
+- Doudchenko, N. and G. Imbens (2017). Balancing, Regression, Difference-in-Differences and Synthetic Control Methods: A Synthesis. Working paper.
+- Ferman, B. and C. Pinto (2021). Synthetic Controls with Imperfect Pretreatment Fit. *Quantitative Economics* 12(4), 1197--1221.
+- Ferman, B., C. Pinto and V. Possebom (2020). Cherry Picking with Synthetic Controls. *Journal of Policy Analysis and Management* 39(2), 510--532.
+- Kaul, A., S. Klößner, G. Pfeifer and M. Schieler (2022). Standard Synthetic Control Methods: The Case of Using All Preintervention Outcomes Together with Covariates. *JBES* 40(3), 1362--1376.
+- King, G. and L. Zeng (2006). The Dangers of Extreme Counterfactuals. *Political Analysis* 14(2), 131--159.
+- Peri, G. and V. Yasenov (2019). The Labor Market Effects of a Refugee Wave: Synthetic Control Method Meets the Mariel Boatlift. *Journal of Human Resources* 54(2), 267--309.
+
+# Backup
+
+## Stata and R: the estimators of this lecture
+
+```stata
+use https://github.com/scunning1975/mixtape/raw/master/smoking.dta, clear
+tsset state year
+synth cigsale lnincome(1980(1)1988) age15to24(1980(1)1988) retprice(1980(1)1988) ///
+    beer(1984(1)1988) cigsale(1988) cigsale(1980) cigsale(1975), ///
+    trunit(3) trperiod(1989) unitnames(state) fig            // ADH (2010)
+synth_runner cigsale ..., trunit(3) trperiod(1989) gen_vars  // placebos, ratios, p-values
+allsynth cigsale cigsale(1970(1)1988), trunit(3) trperiod(1989) ///
+    bcorrect(merge ridge figure) gapfigure(classic bcorrect)    // augmented SC (Wiltshire)
+sdid cigsale state year treated, vce(placebo) reps(200) graph  // synthetic DiD (Clarke et al.)
+```
+
+- R: `Synth` (`dataprep`, `synth`), `augsynth`, `MCPanel` (`mcnnm_cv`), `synthdid`, `gsynth`.
+- This deck: the inner problem is `quadprog::solve.QP`; the $V$ search is `optim`; augmentation is one ridge solve; matrix completion is an SVD soft-threshold loop; SDID is two quadratic programmes and four weighted averages. No synthetic-control package was loaded.

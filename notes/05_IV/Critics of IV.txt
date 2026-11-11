@@ -1,0 +1,23 @@
+What do you do when you have an important causal question but no valid instrument or quasi-experimental design? This video opens a new series on partial identification and sensitivity analysis in linear regression models. This is a potentially useful alternative when standard identification strategies fall short.
+
+Slides used in the video are available here: https://raw.githack.com/tyleransom/st...
+Source code for the slides is here: https://github.com/tyleransom/structu...
+
+We begin by reviewing the core assumptions behind instrumental variables: instrument relevance; the exclusion restriction; and instrument exogeneity. Then we go briefly through three recent papers that raise the bar on what counts as a credible IV analysis:
+
+Mellon (American Journal of Political Science) documents 192 papers using rainfall as an instrument and shows a tangled web of exclusion restriction violations that are collective implied across treatments and outcomes.
+Lee et al. (American Economic Review) demonstrates that the conventional first-stage F-statistic threshold of 10 is far too low: correcting for poor coverage of the standard t-test requires either adjusting critical values substantially or achieving a first-stage F-statistic approaching 105.
+Young (European Economic Review) shows that IV estimates in AEA-journal papers are highly sensitive to high-leverage observations and non-IID errors, which raises further questions about the credibility of published findings.
+
+Given these limitations, this video presents three potential alternatives to IV estimation:
+1. reduce omitted variable bias through careful covariate selection
+2. concede that a causal effect cannot be recovered in the given setting
+3. use partial identification to report a credible interval of plausible treatment effect values rather than a single point estimate. (The remainder of the series goes through this third approach in detail.)
+
+Scientific references:
+Lee, David S., Justin McCrary, Marcelo J. Moreira, and Jack Porter. 2022. "Valid t-Ratio Inference for IV." American Economic Review 112 (10): 3260–90. https://doi.org/10.1257/aer.20211063.
+Mellon, Jonathan. 2025. "Rain, Rain, Go Away: 194 Potential Exclusion-Restriction Violations for Studies Using Weather as an Instrumental Variable." American Journal of Political Science 69 (3): 881–898. https://doi.org/10.1111/ajps.12894.
+Stock, James H., and Motohiro Yogo. 2005. "Testing for Weak Instruments in Linear IV Regression." In Identification and Inference for Econometric Models: Essays in Honor of Thomas Rothenberg, edited by Donald W. K. Andrews and James H. Stock, 80–108. Cambridge: Cambridge University Press.
+Young, Alwyn. 2022. "Consistency without Inference: Instrumental Variables in Practical Application." European Economic Review 147: 104112. https://doi.org/10.1016/j.euroecorev.....
+
+Tyler Ransom is an Associate Professor of Economics at the University of Oklahoma. Subscribe for more videos on data science, econometrics, and research methods!

@@ -243,28 +243,22 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \begin{itemize}
 \tightlist
 \item
-  Lecture 6a ended on a \(2 \times 2\) panel: two firms, two years, one
-  of them treated in year two. Firm effects removed \emph{size}, year
-  effects removed the \emph{boom}, and what was left was
-  \((15 - 10) - (7 - 4) = 2\).
-\item
-  That calculation has a name. It is older than fixed effects, older
-  than regression, and was invented three separate times by people
-  trying to save lives.
+  Lecture 6a, two firms and two years: A treated in year 2, B never. \[
+  \hat\delta = (15 - 10) - (7 - 4) = 2
+  \] That was two-way fixed effects. It is also
+  \textbf{difference-in-differences}.
 \end{itemize}
 
-\vspace{0.4em}
+\vspace{0.6em}
 
 \begin{itemize}
 \tightlist
 \item
-  Lecture 6b asked of every estimator: \emph{which way is it wrong?} The
-  answer there came from the model.
+  B's change (\(+3\)) stands in for what A would have done
+  \textbf{without treatment}.
 \item
-  This week the answer comes from one \textbf{counterfactual} you will
-  never see: what would have happened to the treated, had they not been
-  treated. Everything in difference-in-differences is a claim about that
-  one number.
+  DiD is right exactly when that stand-in is right. This lecture is
+  about when to believe it.
 \end{itemize}
 \end{frame}
 
@@ -273,8 +267,8 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \begin{enumerate}
 \tightlist
 \item
-  \textbf{Three births.} Vienna, London, Washington --- and why the
-  method keeps being reinvented.
+  Read Remix ch.~9 on Semmelweis, Snow and Ashenfelter: it is a good
+  story.
 \item
   \textbf{Four averages and three subtractions.} The \(2 \times 2\), and
   three regressions that compute it exactly.
@@ -302,80 +296,19 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \end{itemize}
 \end{frame}
 
-\section{1. Three Births}\label{three-births}
-
-\begin{frame}{Vienna, 1847: Semmelweis}
-\protect\phantomsection\label{vienna-1847-semmelweis}
-\begin{center}
-\includegraphics[width=0.8\linewidth,height=\textheight,keepaspectratio]{07a_did_fundamentals_files/figure-beamer/semmelweis-1.pdf}
-\end{center}
-
-\begin{itemize}
-\tightlist
-\item
-  Two maternity clinics in the same hospital. Women were assigned by
-  \textbf{arrival time} --- by law, so effectively at random. Yet
-  mortality in the First Clinic ran three to four times the Second's.
-\item
-  Semmelweis's guess: doctors came to the delivery room straight from
-  the autopsy room. In May 1847 he made them wash their hands in
-  chlorine. \textbf{The First Clinic fell to the Second Clinic's level
-  within a year.}
-\item
-  Two groups, before and after, one of them treated. Nobody believed
-  him. He died in an asylum.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{London, 1854: Snow's grand experiment}
-\protect\phantomsection\label{london-1854-snows-grand-experiment}
-\begin{itemize}
-\tightlist
-\item
-  Cholera killed tens of thousands in London. The medical consensus was
-  \emph{miasma}: disease travels in foul air. Snow thought it travelled
-  in \textbf{water}.
-\item
-  Two companies supplied the same South London streets --- sometimes the
-  same street, house by house. Between 1849 and 1854 \textbf{Lambeth}
-  moved its intake upstream of the sewage outfalls; \textbf{Southwark
-  and Vauxhall} did not.
-\item
-  Snow went door to door asking which company served each house. Where
-  nobody knew, he took a water sample: Lambeth's upstream water had less
-  salt. \emph{Shoe leather and design, together.}
-\end{itemize}
-
-\vspace{0.3em}
-
-\begin{itemize}
-\tightlist
-\item
-  What he had: cholera mortality for each company's customers, in 1849
-  \textbf{and} 1854. Two groups, two periods, one of them changed in
-  between.
-\item
-  He was not believed either. Miasma was too entrenched; the data could
-  not crack it.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Snow, as four averages and three subtractions}
-\protect\phantomsection\label{snow-as-four-averages-and-three-subtractions}
-Write mortality as a sum of pieces. \(L\) and \(SV\) are the companies'
-levels in 1849; \(L_t\) and \(SV_t\) are how each would have moved by
-1854 \emph{on its own}; \(\delta\) is the effect of the pipe.
+\begin{frame}{What we are after}
+\protect\phantomsection\label{what-we-are-after}
+A group \(k\) is treated at some date; a group \(U\) is not. We see
+\(Y\) for both, before and after. Each unit has potential outcomes
+\(Y^1\) and \(Y^0\); we observe \(Y = D\,Y^1 + (1-D)\,Y^0\).
 
 \begin{center}\small
-\begin{tabular}{llccc}
+\begin{tabular}{lcc}
 \toprule
-Company & Year & Mortality & First difference & Second difference \\
+ & Pre & Post \\
 \midrule
-Lambeth & 1849 & $L$ & & \\
-        & 1854 & $L + L_t + \delta$ & $L_t + \delta$ & \\
-        &      &                    &                & $\delta + (L_t - SV_t)$ \\
-Southwark \& Vauxhall & 1849 & $SV$ & & \\
-        & 1854 & $SV + SV_t$ & $SV_t$ & \\
+Control $U$ & $Y^0$ observed & $Y^0$ observed \\
+Treated $k$ & $Y^0$ observed & $Y^1$ observed; \;\textcolor{red}{$Y^0$ missing} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -383,48 +316,16 @@ Southwark \& Vauxhall & 1849 & $SV$ & & \\
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Subtract within each group}: levels cancel. Lambeth is left
-  with its trend plus the effect; S\&V with its trend alone.
+  \textbf{The target} is the average effect on the treated, after
+  treatment:
+  \(\text{ATT} = \mathbb{E}[Y^1_k \mid \text{Post}] - \mathbb{E}[Y^0_k \mid \text{Post}]\).
+  The second is missing.
 \item
-  \textbf{Subtract across groups}: trends cancel --- \emph{if}
-  \(L_t = SV_t\). That equality is the whole method.
+  The treated group's own \emph{pre} value? The control group's
+  \emph{post} value?
 \item
-  Snow's numbers (per 10,000 houses): Lambeth \(62 \to 14\), S\&V
-  \(565 \to 614\). So \(\hat\delta = (-48) - (+49) = \mathbf{-97}\),
-  provided Lambeth's mortality would otherwise have risen like S\&V's.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Washington, 1970s: Ashenfelter}
-\protect\phantomsection\label{washington-1970s-ashenfelter}
-\begin{itemize}
-\tightlist
-\item
-  Orley Ashenfelter, a Princeton labour economist, went to the
-  Department of Labor to evaluate \textbf{job training programmes}. He
-  had a rare thing: longitudinal earnings data on trainees and
-  non-trainees.
-\item
-  He estimated what we now call two-way fixed effects --- thousands of
-  individual effects plus time effects --- and had to explain the result
-  to \textbf{people who did not want to hear the word ``regression.''}
-\item
-  So he described the coefficient the way it actually computes: four
-  averages and three subtractions. He called it
-  \textbf{difference-in-differences.}
-\end{itemize}
-
-\vspace{0.3em}
-
-\begin{itemize}
-\tightlist
-\item
-  He was not dumbing it down. We will see in Section 2 that the
-  regression coefficient \emph{is} that arithmetic, to the last digit.
-\item
-  Three births, one trait: a method that could be \textbf{shown to
-  someone with no training}, and whose weak point --- the counterfactual
-  trend --- is visible on the page.
+  \emph{DiD}: the treated group's pre value plus the control group's
+  change. The ATT is then the treated change minus the control change.
 \end{itemize}
 \end{frame}
 
@@ -434,8 +335,7 @@ Subtractions}\label{four-averages-and-three-subtractions}
 \begin{frame}{The \(2 \times 2\) in one line}
 \protect\phantomsection\label{the-2-times-2-in-one-line}
 Let \(k\) be the group treated at one date, \(U\) a group never treated
-in the window, and \emph{pre} / \emph{post} the periods on either side:
-\[
+in the window: \[
 \hat\delta_{DiD} \;=\; \big(\bar Y_k^{\,post} - \bar Y_k^{\,pre}\big) \;-\; \big(\bar Y_U^{\,post} - \bar Y_U^{\,pre}\big)
 \]
 
@@ -447,7 +347,7 @@ in the window, and \emph{pre} / \emph{post} the periods on either side:
 \item
   The literature now calls this \textbf{the \(2 \times 2\)}
   (Goodman-Bacon 2021; Baker et al.~2025). Everything more complex is
-  built from it, so it is worth knowing in your sleep.
+  built from it.
 \item
   The within-group subtractions delete anything \textbf{fixed about the
   group}. The across-group subtraction deletes anything \textbf{common
@@ -478,13 +378,6 @@ Treated ($\text{Treat}=1$) & $\hat\alpha_0 + \hat\alpha_1$ & $\hat\alpha_0 + \ha
 Plug the cells into the \(2 \times 2\): \[
 \hat\delta_{DiD} = \big[(\hat\alpha_0 + \hat\alpha_1 + \hat\alpha_2 + \hat\delta) - (\hat\alpha_0 + \hat\alpha_1)\big] - \big[(\hat\alpha_0 + \hat\alpha_2) - \hat\alpha_0\big] = (\hat\alpha_2 + \hat\delta) - \hat\alpha_2 = \hat\delta
 \]
-
-\begin{itemize}
-\tightlist
-\item
-  Not approximately. \textbf{Identically.} The interaction coefficient
-  is four averages and three subtractions.
-\end{itemize}
 \end{frame}
 
 \begin{frame}{Castle doctrine: the data}
@@ -556,8 +449,7 @@ $\hat\delta$ & $0.0682359$ & $0.0682359$ & $0.0682359$ & $0.0682359$ \\
 \item
   \textbf{Three regressions, one arithmetic.} With two groups and two
   periods, unit and year fixed effects are just \(\text{Treat}_i\) and
-  \(\text{Post}_t\) in disguise, and the long difference \emph{is} the
-  within-group subtraction.
+  \(\text{Post}_t\) in disguise.
 \item
   This is why ``difference-in-differences'' and ``two-way fixed
   effects'' were synonyms for thirty years. They stop being synonyms
@@ -575,20 +467,6 @@ $\hat\delta$ & $0.0682359$ & $0.0682359$ & $0.0682359$ & $0.0682359$ \\
   For \textbf{standard errors} --- and for adding covariates, more
   periods, more groups. All of which, we will see, come with strings
   attached.
-\end{itemize}
-
-\vspace{0.4em}
-
-\begin{itemize}
-\tightlist
-\item
-  Ashenfelter's lesson is about \textbf{communication}. The regression
-  and the four averages are the same object; one of them can be
-  explained to a minister, a journalist, a referee outside the field.
-\item
-  Keep the arithmetic in reach. When a sophisticated estimator gives a
-  number you cannot reproduce from a few group means, you do not yet
-  understand what it did.
 \end{itemize}
 \end{frame}
 
@@ -617,27 +495,23 @@ outcomes using the switching equation \(Y = D\,Y^1 + (1-D)\,Y^0\): \[
 
 \begin{frame}{Adding a zero}
 \protect\phantomsection\label{adding-a-zero}
-Add and subtract the one thing you cannot observe --- the treated
-group's untreated outcome after treatment,
-\(\mathbb{E}[Y^0_k|\text{Post}]\) --- and regroup: \begin{align*}
-\hat\delta_{DiD} \;=\;& \underbrace{\mathbb{E}[Y^1_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Post}]}_{\textbf{ATT}} \\
+\begin{align*}
+  \hat{\delta}_{DiD} \;=\;& \big ( \underbrace{\mathbb{E}[Y^1_k|\text{Post}] -
+    \mathbb{E}[Y^0_k|\text{Pre}] \big ) - \big ( \mathbb{E}[Y^0_U | \text{Post} ] - \mathbb{E}[ Y^0_U |
+  \text{Pre}]}_{\text{Switching equation}} \big) \\
+  &+ \underbrace{\mathbf{\mathbb{E}[Y_k^{\textbf{0}} |\text{Post}] -
+  \mathbb{E}[Y^{\textbf{0}}_k | \text{Post}]}}_{\text{Adding zero}} \\
+\;=\;& \underbrace{\mathbb{E}[Y^1_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Post}]}_{\textbf{ATT}} \\
 &+\; \underbrace{\big(\mathbb{E}[Y^0_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Pre}]\big) - \big(\mathbb{E}[Y^0_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Pre}]\big)}_{\textbf{non-parallel trends bias}}
 \end{align*}
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{The first term is the only causal parameter DiD can deliver}:
-  the average effect \emph{on the treated}, \emph{in the post period}.
-  Say it that precisely every time.
+  The first term is the average effect \emph{on the treated}, \emph{in
+  the post period}.
 \item
-  \textbf{The second term is a selection bias} --- not in levels of
-  \(Y^0\), as in Lecture 3, but in \emph{changes} of \(Y^0\). It is
-  itself a \(2 \times 2\), computed on \(Y^0\) instead of \(Y\).
-\item
-  Parallel trends is the assumption that the second term is zero: \[
-  \mathbb{E}[Y^0_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Pre}] \;=\; \mathbb{E}[Y^0_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Pre}]
-  \]
+  The second term is a selection bias --- in \emph{changes} of \(Y^0\).
 \end{itemize}
 \end{frame}
 
@@ -646,14 +520,16 @@ group's untreated outcome after treatment,
 \begin{itemize}
 \tightlist
 \item
-  It is a statement about a \textbf{counterfactual}: how the treated
-  group's \(Y^0\) \emph{would have} moved. One of its four terms does
-  not exist in any dataset. \textbf{It cannot be tested.} It can only be
-  argued.
+  Parallel trends is the assumption that the second term is zero: \[
+  \mathbb{E}[Y^0_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Pre}] \;=\; \mathbb{E}[Y^0_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Pre}]
+  \]
 \item
-  It says nothing about \textbf{levels}. Lambeth and S\&V could differ
-  tenfold in 1849; adopters can have twice the homicide rate. Fixed
-  differences are subtracted out. What must match is the \emph{change}.
+  It is a statement about a \textbf{counterfactual}: how the treated
+  group's \(Y^0\) \emph{would have} moved. \textbf{It cannot be tested.}
+\item
+  It says nothing about \textbf{levels}. Adopters can have twice the
+  homicide rate. Fixed differences are subtracted out. What must match
+  is the \emph{change}.
 \item
   It is \textbf{specific to the comparison and the baseline you chose.}
   Change the control group, or the pre period, and you have made a
@@ -670,8 +546,8 @@ group's untreated outcome after treatment,
 \tightlist
 \item
   Three assumptions, in total: \textbf{parallel trends}, \textbf{no
-  anticipation} (next), and SUTVA, which is the same as always --- one
-  version of the treatment, no spillovers onto the controls.
+  anticipation} (next), and SUTVA --- one version of the treatment, no
+  spillovers onto the controls.
 \end{itemize}
 \end{frame}
 
@@ -708,8 +584,7 @@ Change          & $35.51$ & $5.52$  & $5.51$  & $5.52$ \\
 
 \begin{frame}{Same data, different counterfactual}
 \protect\phantomsection\label{same-data-different-counterfactual}
-Change nothing observable. Only group 1's post-period \(Y^0\) --- the
-column no one sees --- is different.
+Change only group 1's post-period \(Y^0\).
 
 \begin{center}\small
 \begin{tabular}{lcc@{\hspace{2.5em}}cc}
@@ -741,25 +616,30 @@ Change          & $35.51$ & $5.52$  & $\mathbf{30.55}$ & $5.52$ \\
 
 \begin{frame}{No anticipation: what it literally says}
 \protect\phantomsection\label{no-anticipation-what-it-literally-says}
+\textbf{The treated group is untreated until it is treated}: \(Y = Y^0\)
+for \(k\) in the pre period. Suppose it fails, so \(Y_k = Y^1_k\) in
+\emph{both} periods. Add \(\pm\,\mathbb{E}[Y^0_k|\text{Post}]\) and
+\(\pm\,\mathbb{E}[Y^0_k|\text{Pre}]\):
+
+\vspace{-0.5em}\small
+
+\begin{align*}
+\hat\delta_{DiD} \;=\;& \big(\mathbb{E}[Y^{1}_k|\text{Post}] - \mathbb{E}[\mathbf{Y^{1}_k}|\text{Pre}]\big) - \big(\mathbb{E}[Y^{0}_U|\text{Post}] - \mathbb{E}[Y^{0}_U|\text{Pre}]\big) \\
+=\;& \underbrace{\mathbb{E}[Y^1_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Post}]}_{\text{ATT}_k(\text{Post})} \\
+&+ \underbrace{\big(\mathbb{E}[Y^0_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Pre}]\big) - \big(\mathbb{E}[Y^0_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Pre}]\big)}_{\text{non-parallel trends bias}} \\
+&- \underbrace{\big(\mathbb{E}[Y^1_k|\text{Pre}] - \mathbb{E}[Y^0_k|\text{Pre}]\big)}_{\text{ATT}_k(\text{Pre})}
+\;=\; \text{ATT}_k(\text{Post}) + \text{PT bias} - \text{ATT}_k(\text{Pre})
+\end{align*} \normalsize\vspace{-0.6em}
+
 \begin{itemize}
+\tightlist
 \item
-  The name suggests psychology. The content is mundane: \textbf{the
-  treated group is untreated until it is treated} --- in the pre period,
-  \(Y = Y^0\) for group \(k\).
+  DiD recovers the ATT only if parallel trends holds \textbf{and}
+  \(\text{ATT}_k(\text{Pre}) = 0\).
 \item
-  Suppose it fails: the ``pre'' period is already treated, so
-  \(Y_k^{pre} = Y^1_k\). Add two zeros and regroup: \[
-  \hat\delta_{DiD} \;=\; \underbrace{\text{ATT}_k(\text{Post})}_{\text{what you want}} \;+\; \underbrace{\text{PT bias}}_{\text{as before}} \;-\; \underbrace{\text{ATT}_k(\text{Pre})}_{\text{the effect already in the baseline}}
-  \]
-\item
-  With \textbf{constant} effects,
-  \(\text{ATT}(\text{Post}) = \text{ATT}(\text{Pre})\) and DiD is
-  \textbf{zero}. With effects that \textbf{grow}, DiD is the
-  \emph{growth} in the effect, not the effect.
-\item
-  Why the name: if units react to a policy \emph{before} it is enforced
-  --- firms hire, fire, exit in anticipation --- then the baseline is
-  already treated, and this is what you estimate.
+  With \textbf{constant} effects DiD is \textbf{zero}; with
+  \textbf{growing} effects it is the \emph{growth} in the effect, not
+  the effect.
 \end{itemize}
 \end{frame}
 
@@ -785,7 +665,7 @@ ATT over the post period & $10$ & $20$ & $10$ & $25$ \\
 \begin{itemize}
 \tightlist
 \item
-  Clean baseline: DiD hits the ATT in both columns.
+  Clean baseline: DiD hits the ATT in both columns (10 and 20).
 \item
   Treated baseline, constant effect: \textbf{zero}. The effect is in
   both periods and cancels.
@@ -833,26 +713,28 @@ ATT over the post period & $10$ & $20$ & $10$ & $25$ \\
 
 \begin{frame}{Avoid already-treated controls}
 \protect\phantomsection\label{avoid-already-treated-controls}
-Not an assumption --- a strong recommendation. Suppose the control group
-\(U\) was treated \emph{before} the window, so \(Y_U = Y^1_U\) in both
-periods. Add three zeros and regroup: \[
-\hat\delta_{DiD} \;=\; \text{ATT}_k \;+\; \text{PT bias} \;-\; \underbrace{\big[\text{ATT}_U(\text{Post}) - \text{ATT}_U(\text{Pre})\big]}_{\Delta \text{ATT}_U:\ \text{how the \emph{control's} effect changed}}
-\]
+Suppose control \(U\) was treated \emph{before} the window:
+\(Y_U = Y^1_U\) in both periods:
+
+\vspace{-0.5em}\small
+
+\begin{align*}
+\hat\delta_{DiD} \;=\;& \big(\mathbb{E}[Y^{1}_k|\text{Post}] - \mathbb{E}[Y^{0}_k|\text{Pre}]\big) - \big(\mathbb{E}[\mathbf{Y^{1}_U}|\text{Post}] - \mathbb{E}[\mathbf{Y^{1}_U}|\text{Pre}]\big) \\
+=\;& \underbrace{\mathbb{E}[Y^1_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Post}]}_{\text{ATT}_k} \\
+&+ \underbrace{\big(\mathbb{E}[Y^0_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Pre}]\big) - \big(\mathbb{E}[Y^0_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Pre}]\big)}_{\text{non-parallel trends bias}} \\
+&- \underbrace{\big[\big(\mathbb{E}[Y^1_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Post}]\big) - \big(\mathbb{E}[Y^1_U|\text{Pre}] - \mathbb{E}[Y^0_U|\text{Pre}]\big)\big]}_{\Delta\text{ATT}_U:\ \text{how the \emph{control's} effect changed}}
+\end{align*} \normalsize\vspace{-0.6em}
 
 \begin{itemize}
 \tightlist
 \item
-  If the control's effect is \textbf{constant}, no harm: it differences
-  out like a fixed effect.
+  So
+  \(\hat\delta_{DiD} = \text{ATT}_k + \text{PT bias} - \Delta\text{ATT}_U\).
+  A \textbf{constant} control effect differences out; a \textbf{fading
+  or growing} one looks like an effect of the opposite sign.
 \item
-  If it is \textbf{still evolving} --- fading, growing --- that
-  evolution is subtracted from your estimate and looks like a treatment
-  effect of the opposite sign.
-\item
-  Obvious? Nobody would \emph{choose} an already-treated control. But
-  when treatment dates differ across units, standard two-way fixed
-  effects \textbf{makes these comparisons for you, silently.} That is
-  the next lecture's subject.
+  Nobody would \emph{choose} such a control. With staggered dates,
+  two-way fixed effects does it \textbf{silently} --- next lecture.
 \end{itemize}
 \end{frame}
 
@@ -985,14 +867,12 @@ Substitute potential outcomes. Before treatment, no anticipation makes
   counterfactual.
 \item
   \(\hat\delta_{-3} = +1.5\) means: from \(\tau=-3\) to the baseline,
-  the treated group's outcome rose \(1.5\) more than the control's. Say
-  it that way.
+  the treated group's outcome rose \(1.5\) more than the control's.
 \item
   \textbf{After treatment}, \(\hat\delta_{+2}\) is the ATT at
   \(\tau = +2\) --- \emph{if} parallel trends holds from the baseline to
   \(\tau=+2\), there is no anticipation, and the control is never- or
-  not-yet-treated. Tedious to say; if it feels tedious, you are not yet
-  sure what you estimated.
+  not-yet-treated.
 \end{itemize}
 \end{frame}
 
@@ -1006,8 +886,7 @@ Substitute potential outcomes. Before treatment, no anticipation makes
 \tightlist
 \item
   Cheng and Hoekstra plotted exactly this, one panel per cohort, so
-  readers could compare the two paths with their own eyes. There is a
-  lot to be said for that transparency.
+  readers could compare the two paths with their own eyes.
 \item
   Two flat, roughly parallel lines for six years; then the adopters move
   up while the others drift down. Note also what the picture does
@@ -1027,7 +906,7 @@ Substitute potential outcomes. Before treatment, no anticipation makes
 \item
   Each point is a \(2 \times 2\) against \(2005\), with a \(95\%\)
   interval, standard errors clustered by state. The hollow point is the
-  omitted baseline: nothing was estimated there.
+  omitted baseline.
 \item
   Pre-period coefficients: \(0.02\) to \(0.06\), none distinguishable
   from zero. Post: \(0.11\) in \(2006\), \(0.16\) in \(2007\), and
@@ -1116,10 +995,11 @@ Substitute potential outcomes. Before treatment, no anticipation makes
   they did, your main result has a rival explanation.
 \item
   \textbf{Same group, alternative outcome.} Cigarette taxes reduce
-  heart-attack admissions. Alternative: public insurance expanded at the
-  same time, in the same states. Then admissions for
-  \textbf{appendicitis and fractures} --- nothing to do with smoking ---
-  should have fallen as well. If they did not, the rival loses.
+  heart-attack admissions. Alternative: that increased preventative
+  healthcare expanded at the same time, in the same states. Then
+  admissions for \textbf{appendicitis and fractures} --- nothing to do
+  with smoking --- should have fallen as well. If they did not, the
+  rival loses.
 \end{itemize}
 
 \vspace{0.3em}
@@ -1128,39 +1008,7 @@ Substitute potential outcomes. Before treatment, no anticipation makes
 \tightlist
 \item
   The design needs a rival theory that makes a \textbf{prediction the
-  treatment does not}. Without one, a ``placebo'' is just another
-  regression.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Falsification: milk is addictive and acne is contagious}
-\protect\phantomsection\label{falsification-milk-is-addictive-and-acne-is-contagious}
-\begin{itemize}
-\tightlist
-\item
-  \textbf{Rational addiction} (Becker and Murphy 1988) gave economists
-  an empirical model, which found alcohol, tobacco and gambling to be
-  rationally addictive. Auld and Grootendorst (2004) ran the same model
-  on \textbf{milk, eggs and oranges}. Milk came out among the most
-  addictive goods in the study.
-\item
-  \textbf{Peer effects.} Obesity, smoking and happiness all seemed to
-  spread through friendship networks (Christakis and Fowler 2007).
-  Cohen-Cole and Fletcher (2008) ran the same model on \textbf{acne,
-  height and headaches}. All three were contagious too.
-\end{itemize}
-
-\vspace{0.3em}
-
-\begin{itemize}
-\tightlist
-\item
-  Neither study attacked the theory. Each showed the \emph{empirical
-  model} produces its result on data where the result cannot be true ---
-  so its result on the real data is not evidence.
-\item
-  Tall people have tall friends because they are on the basketball team
-  together. Ask what the equivalent is for your firms.
+  treatment does not}.
 \end{itemize}
 \end{frame}
 
@@ -1173,8 +1021,7 @@ Substitute potential outcomes. Before treatment, no anticipation makes
   \textbf{at the group level} (a state, an industry), and outcomes that
   are \textbf{serially correlated}. Bertrand, Duflo and Mullainathan
   (2004) showed that conventional standard errors then over-reject
-  badly: placebo laws came out ``significant'' nearly half the time at
-  the \(5\%\) level.
+  badly.
 \item
   Three fixes, from their paper:
 
@@ -1182,8 +1029,7 @@ Substitute potential outcomes. Before treatment, no anticipation makes
   \tightlist
   \item
     \textbf{Cluster} at the level treatment is assigned --- the state,
-    not the restaurant. Standard, and what every table in this lecture
-    does.
+    not the restaurant.
   \item
     \textbf{Aggregate} to one pre and one post observation per unit: the
     long difference. Serial correlation has nowhere to live.
@@ -1200,8 +1046,8 @@ Substitute potential outcomes. Before treatment, no anticipation makes
   With \textbf{few clusters}, or few \emph{treated} clusters, clustering
   itself over-rejects. Castle doctrine has \(13\) adopters. Lecture 6a's
   wild cluster bootstrap applies; with a single treated unit,
-  randomization inference (Buchmueller, DiNardo and Valletta 2011) is
-  the honest option.
+  randomization inference may be an option (Buchmueller, DiNardo and
+  Valletta 2011).
 \end{itemize}
 \end{frame}
 
@@ -1215,8 +1061,7 @@ doubt.
 \begin{itemize}
 \tightlist
 \item
-  Your regression table is the \textbf{claim}. A table of coefficients
-  with asterisks is not a case.
+  Your regression table is the \textbf{claim}.
 \item
   Five elements of a strong DiD paper:
 
@@ -1281,25 +1126,24 @@ death records linked to a large federal survey.
 \begin{itemize}
 \tightlist
 \item
-  So far: an equation and an assumption. Now the question that decides
-  whether the assumption is plausible: \textbf{why} were these units
-  treated and not those?
+  Now the question that decides whether the assumption is plausible:
+  \textbf{why} were these units treated and not those?
 \item
-  Marx, Tamer and Tang (2024) and Ghanem, Sant'Anna and Wüthrich (2024)
-  ask which assignment mechanisms are compatible with parallel trends.
-  The answers are not what intuition suggests:
+  Ghanem, Sant'Anna and Wüthrich (2024) and Marx, Tamer and Tang (2024)
+  ask which mechanisms are compatible with parallel trends. \textbf{Good
+  news}: not sufficient to violate it. \textbf{Bad news}: sufficient.
 \end{itemize}
 
 \begin{center}\footnotesize
-\begin{tabular}{R{6.8cm}R{5.4cm}}
+\begin{tabular}{R{7.2cm}R{5.4cm}}
 \toprule
-Does not, by itself, break parallel trends & Breaks it \\
+Good news: not by itself a violation & Bad news: a violation \\
 \midrule
-a common trend in $Y^0$ & selection on the \textbf{gain} $Y^1 - Y^0$: \\
-selection on a \textbf{fixed effect} & \quad the Roy model, the ``Perfect Doctor'' \\
-selection on the \textbf{baseline level} of $Y^0$ (with a caveat) & selection on a \textbf{transitory dip} in $Y^0$ \\
-selection on observables (conditional PT, next lecture) & \\
-imperfect foresight about the future & \\
+a \textbf{common constant trend} in $Y^0$ & the \textbf{Perfect Doctor}: selection on the \\
+selection on the \textbf{baseline} $Y^0$ & \quad gain $Y^1 - Y^0$ (Roy 1951; ``essential \\
+selection on \textbf{fixed effects} & \quad heterogeneity'', Heckman et al. 2006) \\
+selection on \textbf{observables} (conditional PT) & \\
+selection under \textbf{imperfect foresight} & \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1307,9 +1151,95 @@ imperfect foresight about the future & \\
 \begin{itemize}
 \tightlist
 \item
-  This knowledge comes from \textbf{outside the data}. Kahn-Lang and
-  Lang (2019): say why the groups differed at baseline, and why that
-  does not touch their trends.
+  This knowledge comes from \textbf{outside the data}: institutional
+  detail about how units came to be treated.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Good news: a common constant trend}
+\protect\phantomsection\label{good-news-a-common-constant-trend}
+The one case where parallel trends \textbf{cannot} fail, however the
+treated were chosen.
+
+\begin{itemize}
+\tightlist
+\item
+  Parallel trends compares two \emph{changes} in the untreated outcome:
+  \[
+  \underbrace{\mathbb{E}\big[Y^0_{\text{Post}} - Y^0_{\text{Pre}} \mid \text{treated}\big]}_{\text{how the treated would have moved}}
+  \;=\;
+  \underbrace{\mathbb{E}\big[Y^0_{\text{Post}} - Y^0_{\text{Pre}} \mid \text{control}\big]}_{\text{how the control did move}}
+  \]
+\item
+  Suppose \textbf{every} unit's untreated outcome moves by the same
+  amount, \(\Delta\), from pre to post. Then both sides equal
+  \(\Delta\), whoever is in the treated group.
+\item
+  Levels can differ as much as you like, and the level can be the reason
+  a unit was treated. Only the \emph{change} has to be the same.
+\item
+  This is the world assumed by
+  \(Y_{it} = \alpha_i + \lambda_t + \delta D_{it} + \varepsilon_{it}\):
+  the year effect \(\lambda_t\) \emph{is} the common move. A strong
+  claim.
+\item
+  The simulations that follow \textbf{drop} it: units carry different
+  trends, and we ask which ways of choosing the treated still leave
+  parallel trends intact.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Good news: selection on the baseline \(Y^0\)}
+\protect\phantomsection\label{good-news-selection-on-the-baseline-y0}
+\begin{center}
+\includegraphics[width=0.68\linewidth,height=\textheight,keepaspectratio]{07a_did_fundamentals_files/figure-beamer/sel-y0-plot-1.pdf}
+\end{center}
+
+Betty earns below a threshold and takes the Python course; Ronnie does
+not. Should we worry whether the different levels of the treated and
+control groups impact trends?
+
+\begin{itemize}
+\tightlist
+\item
+  \(2{,}000\) workers, \(8\) periods. \textbf{Treatment effect}: zero
+  before period \(5\), then \(5, 10, 15, 20\) (\(\times\) = truth).
+  \textbf{Untreated outcome} \(Y^0\): a worker fixed effect \(\alpha_i\)
+  (a permanent level), a random walk, and a trend that differs across
+  \textbf{four groups} of workers (slopes \(0.5\) to \(2\), drawn at
+  random). No common constant trend; but group is unrelated to
+  treatment, so trends are parallel \emph{on average}.
+\item
+  \textbf{Post-coefficients on the truth.} Ghanem, Sant'Anna and
+  Wüthrich (2024): selecting on the baseline \(Y^0\) does not violate
+  parallel trends.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Baseline \(Y^0\): broken pre-trends, not a broken
+assumption}
+\protect\phantomsection\label{baseline-y0-broken-pre-trends-not-a-broken-assumption}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{But the pre-coefficients are not zero}, although
+  \(\mathbb{E}[Y^0]\) trends are parallel by group. The baseline is both
+  the point of selection and the omitted category: the treated were
+  picked for being low \emph{then}, so every other period looks high by
+  comparison. A \textbf{mechanical} artefact.
+\item
+  \textbf{No solution, because no problem.} The post-coefficients are
+  unbiased. The casualty is the pre-trend \emph{test}: it rejects, and
+  you wrongly conclude parallel trends failed.
+\item
+  The way out is \textbf{institutional knowledge of the assignment
+  mechanism}. If the agency targeted the lowest-scoring schools, you
+  know in advance: parallel trends intact, pre-trends disrupted.
+  Falsifications (Section 5) then matter more than pre-trends.
+\item
+  \textbf{Caveat}: if the low baseline is a \textbf{transitory dip} that
+  reverts on its own --- Ashenfelter's dip --- trends do differ. Ask the
+  institution, not the data.
 \end{itemize}
 \end{frame}
 
@@ -1319,72 +1249,140 @@ imperfect foresight about the future & \\
 \includegraphics[width=0.74\linewidth,height=\textheight,keepaspectratio]{07a_did_fundamentals_files/figure-beamer/sel-fe-plot-1.pdf}
 \end{center}
 
-\(2{,}000\) workers, \(8\) periods, treated from period \(5\) with an
-effect that grows by \(5\) each period (\(\times\) marks the truth).
-\(Y^0\) has a worker effect, a common trend and an idiosyncratic part.
-\textbf{Treatment goes to the workers with the highest fixed effects.}
+Attributes that are permanent for a unit are its \textbf{fixed effects},
+carried wherever and whenever it goes.
 
 \begin{itemize}
 \tightlist
 \item
-  Permanent traits --- \emph{``there will always be a part of me that's
-  sloppy and dirty''} --- are differenced out. Pre-coefficients at zero,
-  post-coefficients on the truth.
+  Same data. Now \textbf{treatment goes to the workers whose fixed
+  effect is above the median}: only certain \emph{types} enter the
+  programme.
 \item
-  Selection on \emph{who you are} is harmless. Selection on \emph{what
-  is about to happen to you} is not.
+  Does not violate parallel trends, and --- unlike selection on \(Y^0\)
+  --- does \textbf{not} break the pre-trends either. Pre-coefficients at
+  zero, post-coefficients on the truth: permanent traits are differenced
+  out.
+\item
+  Again: learn, ahead of time, whether the mechanism selected on fixed
+  effects.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Good news with a caveat: selection on the baseline level}
-\protect\phantomsection\label{good-news-with-a-caveat-selection-on-the-baseline-level}
-\begin{center}
-\includegraphics[width=0.7\linewidth,height=\textheight,keepaspectratio]{07a_did_fundamentals_files/figure-beamer/sel-y0-plot-1.pdf}
-\end{center}
-
-Treatment now goes to whoever is \textbf{lowest at the baseline}: a
-means test, a programme for the worst schools.
+\begin{frame}{Good news: selection on observables}
+\protect\phantomsection\label{good-news-selection-on-observables}
+Being selected for the programme because of your GPA or your age is not
+itself a violation of parallel trends.
 
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Post-coefficients still on the truth.} Ghanem, Sant'Anna and
-  Wüthrich (2024): selecting on the baseline level does not by itself
-  break parallel trends.
+  Parallel trends may hold only \emph{within} strata of the covariates:
+  \textbf{conditional parallel trends}. Workers of the same age and GPA
+  move in parallel; the treated are simply older, or have higher GPAs,
+  than the controls.
 \item
-  \textbf{Pre-coefficients are not zero.} The baseline is both the
-  selection point and the omitted period: the treated were picked for
-  being low \emph{then}, so every other period looks high by comparison.
-  A pre-trend test rejects, wrongly.
+  Then the covariates must be in the model, so that after accounting for
+  them the untreated trends of treated and control are identical. How to
+  do that correctly --- it is not as simple as adding \(X_i\) to the
+  regression --- is next lecture's subject.
 \item
-  \textbf{The caveat.} True only if a low baseline says nothing about
-  the \emph{future} change in \(Y^0\) (here, a random walk). If it is a
-  \textbf{transitory dip} that reverts on its own, parallel trends fails
-  too --- Ashenfelter's dip. Ask the institution, not the data.
+  Not a guarantee. Selection on observables and non-parallel trends can
+  coexist; the claim is only that this mechanism is not a problem
+  \emph{in and of itself}.
+\end{itemize}
+
+\vspace{0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  The link to Lecture 3: this is the panel version of unconfoundedness.
+  There we assumed the \emph{level} of \(Y^0\) was independent of
+  treatment given \(X\); here only its \emph{change} has to be.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Good news: selection under imperfect foresight}
+\protect\phantomsection\label{good-news-selection-under-imperfect-foresight}
+If units are assigned to treatment \textbf{without fully anticipating
+their future outcomes}, selection cannot depend on the expected
+treatment effect, and parallel trends can hold.
+
+\begin{itemize}
+\tightlist
+\item
+  The leading case: assignment on \emph{past or present} performance,
+  with no knowledge of how the programme will change future earnings.
+  Whatever drives selection is then already in the fixed effect or the
+  baseline --- the good-news cases above.
+\item
+  Most relevant where treatment is not self-selected on anticipated
+  gains: an agency applies a rule, a firm is caught by a threshold, a
+  manager acts on last year's numbers.
+\item
+  Ghanem, Sant'Anna and Wüthrich (2024): imperfect foresight does not by
+  itself mangle parallel trends. It is also the realistic case more
+  often than economists like to admit.
+\end{itemize}
+
+\vspace{0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  Five mechanisms, five ways assignment can interact with \(Y^0\) and
+  leave parallel trends standing. What if none of them applies --- if
+  units choose on the gain itself, and get it right?
 \end{itemize}
 \end{frame}
 
 \begin{frame}{Bad news: the Perfect Doctor}
 \protect\phantomsection\label{bad-news-the-perfect-doctor}
 \begin{center}
-\includegraphics[width=0.96\linewidth,height=\textheight,keepaspectratio]{07a_did_fundamentals_files/figure-beamer/pd-plot-1.pdf}
+\includegraphics[width=0.66\linewidth,height=\textheight,keepaspectratio]{07a_did_fundamentals_files/figure-beamer/pd-plot-1.pdf}
 \end{center}
 
-Gains \(\tau_i\) depend on age and GPA; \textbf{units are treated
-exactly when \(\tau_i > 0\)} (Roy 1951; Heckman, Urzua and Vytlacil
-2006). The \emph{return} to age and GPA in \(Y^0\) rises over time.
+A training programme. Workers enrol \textbf{iff it will help them}, and
+they are right.
 
 \begin{itemize}
 \tightlist
 \item
-  Selecting on the gain selects on age and GPA, and those traits sit on
-  a steeper \(Y^0\) path. \textbf{The groups were never going to move in
-  parallel.} Here the pre-trends warn you; they need not.
+  \textbf{Who gains?} Older, high-GPA workers. \textbf{Whose earnings
+  rise faster anyway?} The same workers: the market pays more for age
+  and GPA every year.
 \item
-  This is the finance case: firms adopt, enter and list when they expect
-  to gain. Unless assignment is at a level firms do not control --- a
-  state law, a regulator's threshold, an index rule --- the Perfect
-  Doctor is the default story.
+  So choosing on the gain \emph{is} choosing the steeper path. The
+  picture shows earnings \emph{without} training: enrollees pull ahead
+  regardless.
+\item
+  DiD credits that head start to the programme (``Adding a zero'',
+  Section 3):
+\end{itemize}
+
+\begin{center}\small
+\begin{tabular}{ccccc}
+DiD & $=$ & ATT & $+$ & non-parallel trends bias \\
+$5.27$ & $=$ & $2.80$ & $+$ & $2.47$ \\
+\end{tabular}
+\end{center}
+\end{frame}
+
+\begin{frame}{Is the Perfect Doctor the rule or the exception?}
+\protect\phantomsection\label{is-the-perfect-doctor-the-rule-or-the-exception}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Not guaranteed.} Imperfect foresight does not mangle parallel
+  trends, and humans are not good at working out what is best for them
+  in counterfactual states
+\item
+  \textbf{Nevertheless.} Firms issue, list, adopt and enter when they
+  expect to gain: the Perfect Doctor by construction. This is why
+  finance looks for treatments imposed on firms, by a state law, a
+  regulator's threshold, an index rule or a court, rather than chosen by
+  them. The next slide lists them.
 \end{itemize}
 \end{frame}
 
@@ -1515,6 +1513,19 @@ exactly when \(\tau_i > 0\)} (Roy 1951; Heckman, Urzua and Vytlacil
   Instrumental Variables in Models with Essential Heterogeneity.
   \emph{REStat} 88(3), 389--432.
 \item
+  Imbens, G. W. and D. B. Rubin (2015). \emph{Causal Inference for
+  Statistics, Social, and Biomedical Sciences.} Cambridge University
+  Press.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{References (continued)}
+\protect\phantomsection\label{references-continued}
+\tiny
+
+\begin{itemize}
+\tightlist
+\item
   Kahn-Lang, A. and K. Lang (2019). The Promise and Pitfalls of
   Differences-in-Differences. \emph{JBES} 38(3), 613--620.
 \item
@@ -1529,6 +1540,9 @@ exactly when \(\tau_i > 0\)} (Roy 1951; Heckman, Urzua and Vytlacil
   Rambachan, A. and J. Roth (2023). A More Credible Approach to Parallel
   Trends. \emph{Review of Economic Studies} 90(5), 2555--2591.
 \item
+  Romer, D. (2006). Do Firms Maximize? Evidence from Professional
+  Football. \emph{Journal of Political Economy} 114(2), 340--365.
+\item
   Roy, A. D. (1951). Some Thoughts on the Distribution of Earnings.
   \emph{Oxford Economic Papers} 3(2), 135--146.
 \item
@@ -1537,37 +1551,12 @@ exactly when \(\tau_i > 0\)} (Roy 1951; Heckman, Urzua and Vytlacil
   of puerperal fever.''
 \item
   Snow, J. (1855). \emph{On the Mode of Communication of Cholera.}
-\end{itemize}
-\end{frame}
-
-\section{Backup}\label{backup}
-
-\begin{frame}[fragile]{Stata: the four equivalences and the
-no-anticipation simulation}
-\protect\phantomsection\label{stata-the-four-equivalences-and-the-no-anticipation-simulation}
-\begin{Shaded}
-\begin{Highlighting}[]
-\KeywordTok{use} \KeywordTok{data}\NormalTok{/castle.dta, }\KeywordTok{clear}
-\KeywordTok{drop} \KeywordTok{if} \FunctionTok{inlist}\NormalTok{(effyear, 2005, 2007, 2008, 2009)          }\CommentTok{// 2006 cohort + never treated}
-\KeywordTok{gen}\NormalTok{ treat = effyear == 2006}
-\KeywordTok{drop} \KeywordTok{post}
-\KeywordTok{gen} \KeywordTok{post}\NormalTok{  = }\FunctionTok{year}\NormalTok{ \textgreater{}= 2006}
-\KeywordTok{reg}\NormalTok{ l\_homicide treat\#\#post, }\KeywordTok{cluster}\NormalTok{(sid)                  }\CommentTok{// interaction OLS  = 0.0682359}
-\NormalTok{xtset sid }\FunctionTok{year}
-\KeywordTok{xtreg}\NormalTok{ l\_homicide c.treat\#c.}\KeywordTok{post}\NormalTok{ i.}\FunctionTok{year}\NormalTok{, }\KeywordTok{fe} \KeywordTok{cluster}\NormalTok{(sid)   }\CommentTok{// two{-}way FE       = 0.0682359}
-\KeywordTok{collapse}\NormalTok{ (}\KeywordTok{mean}\NormalTok{) l\_homicide, }\KeywordTok{by}\NormalTok{(sid treat }\KeywordTok{post}\NormalTok{)}
-\KeywordTok{reshape} \KeywordTok{wide}\NormalTok{ l\_homicide, i(sid treat) j(}\KeywordTok{post}\NormalTok{)}
-\KeywordTok{gen}\NormalTok{ dbar = l\_homicide1 {-} l\_homicide0}
-\KeywordTok{reg}\NormalTok{ dbar treat, }\KeywordTok{cluster}\NormalTok{(sid)                              }\CommentTok{// long difference  = 0.0682359}
-\end{Highlighting}
-\end{Shaded}
-
-\begin{itemize}
-\tightlist
 \item
-  Full file, including the no-anticipation simulation (constant and
-  dynamic effects, clean and treated baselines):
-  \texttt{07a\_did\_sim.do}.
+  Tversky, A. and D. Kahneman (1974). Judgment under Uncertainty:
+  Heuristics and Biases. \emph{Science} 185(4157), 1124--1131.
+\item
+  Walker, M. and J. Wooders (2001). Minimax Play at Wimbledon.
+  \emph{American Economic Review} 91(5), 1521--1538.
 \end{itemize}
 \end{frame}
 

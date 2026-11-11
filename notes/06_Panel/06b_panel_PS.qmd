@@ -1,0 +1,158 @@
+---
+title: "Problem Set: Dynamic Panel Models"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+<!--
+*Three required problems, plus one optional problem at the end. Problem 3 asks you to fit models in R (or Stata); attach your code and output. The rest need only a pen.*
+
+*Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
+
+*The problems follow the deck "Dynamic Panel Models", where $\alpha$ is the coefficient on the lagged outcome and the firm effect is $\mu_i$.*
+
+*Problem 3 uses the Arellano--Bond panel of UK firms. It ships with R (`data("EmplUK", package = "plm")`) and with Stata (`webuse abdata`).*
+-->
+
+## Problem 1 (Dynamic panels: why the lagged outcome is endogenous)
+
+Throughout Problems 1 and 2 the model is
+$$
+Y_{it} = \alpha\,Y_{i,t-1} + \mu_i + \varepsilon_{it}, \qquad 0 \le \alpha < 1,
+$$
+where $\varepsilon_{it}$ is i.i.d. with mean zero and variance $\sigma^2_\varepsilon$, independent of $\mu_i$, which has variance $\sigma^2_\mu$. Unless told otherwise, assume the process has been running for a long time, so that
+$$
+Y_{it} = \frac{\mu_i}{1-\alpha} + \sum_{s=0}^{\infty} \alpha^s\,\varepsilon_{i,t-s}.
+$$
+You may use, without proof,
+$$
+\operatorname{Var}(Y_{it}) = \frac{\sigma^2_\mu}{(1-\alpha)^2} + \frac{\sigma^2_\varepsilon}{1-\alpha^2},
+\qquad
+\operatorname{Var}(\Delta Y_{it}) = \frac{2\sigma^2_\varepsilon}{1+\alpha}.
+$$
+
+(a) **Pooled OLS.** Show that $\operatorname{Cov}(Y_{i,t-1},\, \mu_i + \varepsilon_{it}) = \sigma^2_\mu/(1-\alpha)$, and hence that
+$$
+\operatorname{plim}\hat\alpha_{\text{OLS}} = \alpha + (1-\alpha)\,\pi,
+$$
+where $\pi$ is the share of $\operatorname{Var}(Y_{it})$ that is due to the firm effects. Evaluate the probability limit at $\alpha = 0.5$ and at $\alpha = 0.9$, with $\sigma^2_\mu = \sigma^2_\varepsilon$. Is the bias larger or smaller when the series is more persistent?
+
+(b) **First differences.** Show that $\operatorname{Cov}(\Delta Y_{i,t-1}, \Delta\varepsilon_{it}) = -\sigma^2_\varepsilon$, and hence that OLS on the differenced equation gives
+$$
+\operatorname{plim}\hat\alpha_{\text{FD}} = \frac{\alpha - 1}{2}.
+$$
+Evaluate at $\alpha = 0.5$ and $\alpha = 0.9$. The deck's simulation produced median first-difference estimates of $-0.25$ and $-0.05$ in those two cases. Does the formula agree? Say what is striking about its sign, and whether more firms or more years would help.
+
+(c) **The within estimator.** Explain in one or two sentences where the bias of the within estimator comes from and why it is of order $1/T$. With $T = 2$ usable periods (you observe $Y_{i0}, Y_{i1}, Y_{i2}$) the within estimator and the first-difference estimator coincide. What, then, does fixed effects deliver when the truth is $\alpha = 0.9$? Which dimension of the sample must grow for the bias to vanish, and what does that imply for a typical Compustat panel?
+
+(d) **Speed of adjustment.** In a partial-adjustment model of leverage, $1 - \alpha$ is the fraction of the gap to target that a firm closes each year, and the half-life of a deviation is $\ln(0.5)/\ln(\alpha)$ years. A paper reports $\hat\alpha = 0.87$ by pooled OLS and $\hat\alpha = 0.62$ with firm fixed effects. Translate each into a speed of adjustment and a half-life. Without running anything else, what can you say about the true speed? Explain in one sentence each why the two estimates err in the directions they do.
+
+\newpage
+
+## Problem 2 (Internal instruments: Anderson--Hsiao, difference GMM, system GMM)
+
+Keep the model of Problem 1, observed for $t = 0, 1, \dots, T$.
+
+(a) Take the differenced equation at $t = 4$: $\Delta Y_{i4} = \alpha\,\Delta Y_{i3} + \Delta\varepsilon_{i4}$. For each of $Y_{i3}$, $Y_{i2}$, $Y_{i1}$ and $Y_{i0}$, say whether it is a valid instrument, by listing the dates of the shocks it contains. Which of them does Anderson--Hsiao use, and which does difference GMM use?
+
+(b) How many moment conditions does difference GMM have when $T = 4$? When $T = 8$? Give the general formula. There is one parameter. Explain why no value of $\alpha$ will set all the *sample* moments to zero, even though all the *population* moments are zero at the truth, and say what GMM does instead.
+
+(c) Suppose the news is not serially uncorrelated after all: $\varepsilon_{it} = e_{it} + \theta\,e_{i,t-1}$ with $e_{it}$ i.i.d. and $\theta \ne 0$.
+
+    i. Compute $\operatorname{Cov}(Y_{i,t-2}, \Delta\varepsilon_{it})$. Is $Y_{i,t-2}$ still a valid instrument? Which is now the most recent valid level?
+    ii. The deck's summary mentions an AR(2) test on the *differenced* residuals. Explain why first-order correlation in $\Delta\hat\varepsilon_{it}$ is expected even when everything is fine, and why second-order correlation is the warning sign.
+
+(d) **Weak instruments.** Using $\operatorname{Cov}(\Delta Y_{i,t-1}, Y_{i,t-2}) = -\sigma^2_\varepsilon/(1+\alpha)$ and the two variances given in Problem 1, compute the first-stage correlation $\operatorname{Corr}(\Delta Y_{i,t-1}, Y_{i,t-2})$ at $\alpha = 0.5$ and at $\alpha = 0.9$, with $\sigma^2_\mu = \sigma^2_\varepsilon$. Check your answers against the table in the deck. Then explain in one sentence each why a high $\alpha$, and why a large $\sigma^2_\mu$, weakens the instrument.
+
+(e) **System GMM, relevance.** In the levels equation the regressor is $Y_{i,t-1}$ and the instrument is $\Delta Y_{i,t-1}$. Use $Y_{i,t-1} = Y_{i,t-2} + \Delta Y_{i,t-1}$ to show that $\operatorname{Cov}(Y_{i,t-1}, \Delta Y_{i,t-1}) = \sigma^2_\varepsilon/(1+\alpha)$, and hence that the first-stage slope of the regressor on the instrument equals $\tfrac12$ for every $\alpha$ and every $\sigma^2_\mu$. Compare it with the first-stage slope in the differenced equation, $\operatorname{Cov}(\Delta Y_{i,t-1}, Y_{i,t-2})/\operatorname{Var}(Y_{i,t-2})$, evaluated at $\alpha = 0.9$ and $\sigma^2_\mu = \sigma^2_\varepsilon$.
+
+(f) **System GMM, validity.** Do *not* assume here that the process has been running for a long time.
+
+    i. Show that $\Delta Y_{it} = -(1-\alpha)\Big(Y_{i,t-1} - \dfrac{\mu_i}{1-\alpha}\Big) + \varepsilon_{it}$. Conclude what must be true of a firm's gap to its long-run level for $\operatorname{Cov}(\Delta Y_{it}, \mu_i) = 0$ to hold.
+    ii. A panel begins at IPO, and every firm starts at $Y_{i0} = 0$. Compute $\operatorname{Cov}(\Delta Y_{i1}, \mu_i)$ and $\operatorname{Cov}(\Delta Y_{i2}, \mu_i)$.
+    iii. Sign the resulting bias of system GMM. Say how quickly the problem fades as the panel ages, and why that is bad news in exactly the case that motivated system GMM.
+
+\newpage
+
+## Problem 3 (Computational: employment dynamics in UK firms)
+
+The Arellano--Bond data follow $140$ UK manufacturing firms over $1976$--$1984$, an unbalanced panel of $1{,}031$ firm-years. Work in logs throughout: $n$ is log employment, $w$ the log real wage and $k$ the log capital stock. In R these are `log(emp)`, `log(wage)` and `log(capital)`; in Stata the variables `n`, `w` and `k` are already in logs. Include year dummies in every regression, and cluster standard errors by firm unless told otherwise.
+
+(a) **Static, pooled.** Regress $n$ on $w$, $k$ and year dummies. Report the coefficient on $w$ with (i) the conventional standard error and (ii) the standard error clustered by firm. By what factor do they differ? Which of the two failures of pooled OLS does that factor reveal?
+
+(b) **Static, fixed effects.** Add firm effects. Report the coefficients on $w$ and $k$. Then perform "the habit": for each of $n$, $w$ and $k$, compute the share of its variance that survives the firm and year effects. Comment on what the fixed-effects estimates are built from.
+
+(c) **Dynamic, OLS and fixed effects.** Add the lagged outcome:
+$$
+n_{it} = \alpha\,n_{i,t-1} + \beta_1 w_{it} + \beta_2 k_{it} + \lambda_t + \mu_i + \varepsilon_{it}.
+$$
+Estimate it by pooled OLS (year dummies only), and by fixed effects (firm and year). Report $\hat\alpha$ from each. State the range in which the true $\alpha$ should lie, and why.
+
+(d) **First differences and Anderson--Hsiao.** Difference the equation. Estimate it first by OLS, then by 2SLS with $n_{i,t-2}$ as the instrument for $\Delta n_{i,t-1}$. Report $\hat\alpha$ and its standard error from each, and the first-stage $F$-statistic. Say what has gone wrong with each estimate.
+
+(e) **Difference and system GMM.** Estimate the model by two-step difference GMM and by two-step system GMM, using every available lag of $n$ dated $t-2$ or earlier as instruments, treating $w$ and $k$ as exogenous, and reporting robust standard errors. Report $\hat\alpha$, its standard error and the number of instruments for each. Place both estimates against the range from part (c), and diagnose what you see.
+
+(f) **Reading the table.** Convert each of your six estimates of $\alpha$ into a speed of adjustment, $1 - \hat\alpha$. Which column would you report as your preferred estimate, and which columns would you print beside it? State the assumption you would have to defend, and argue briefly whether it is plausible for these firms in these years.
+
+\newpage
+
+**Commands for Problem 3.** Estimates from R and Stata agree exactly for parts (a)--(d) and for difference GMM. System GMM differs in the second decimal, because the two programs build the instrument matrix for the levels equation slightly differently. The conclusions do not depend on it.
+
+```r
+library(plm); library(fixest)
+data("EmplUK", package = "plm")
+pd <- pdata.frame(EmplUK, index = c("firm", "year"))
+# lags and differences that respect the panel: plm::lag(pd$x, 1), diff(pd$x)
+# OLS and FE:   feols(y ~ x | firm + year, data, cluster = ~firm)
+# 2SLS:         feols(y ~ exog | year | endog ~ instrument, data, cluster = ~firm)
+m <- pgmm(log(emp) ~ lag(log(emp), 1) + log(wage) + log(capital) |
+            lag(log(emp), 2:99),
+          data = pd, effect = "twoways", model = "twosteps",
+          transformation = "d")          # "ld" for system GMM
+summary(m, robust = TRUE)
+```
+
+```stata
+webuse abdata, clear
+xtset id year
+reghdfe n w k, absorb(id year) vce(cluster id)
+ivregress 2sls D.n (LD.n = L2.n) D.w D.k i.year, vce(cluster id)
+estat firststage
+ssc install xtabond2
+xtabond2 n L.n w k yr*, gmm(L.n) iv(w k yr*) noleveleq twostep robust
+xtabond2 n L.n w k yr*, gmm(L.n) iv(w k yr*) twostep robust
+```
+
+\vspace{1em}
+
+## Optional Problem A (Nickell bias when there is nothing to find)
+
+Suppose the truth is $\alpha = 0$: the outcome has no state dependence at all, $Y_{it} = \mu_i + \varepsilon_{it}$ for $t = 0, 1, \dots, T$. You nevertheless regress $Y_{it}$ on $Y_{i,t-1}$ with firm fixed effects, using observations $t = 1, \dots, T$.
+
+(a) Write the demeaned regressor and the demeaned error in terms of the shocks alone. Define $\bar\varepsilon_i = \frac1T\sum_{t=1}^{T}\varepsilon_{it}$ and $\bar\varepsilon_{i,-1} = \frac1T\sum_{t=1}^{T}\varepsilon_{i,t-1}$.
+
+(b) Show that
+$$
+E\Big[\sum_{t=1}^{T}(\varepsilon_{i,t-1} - \bar\varepsilon_{i,-1})(\varepsilon_{it} - \bar\varepsilon_i)\Big] = -\frac{T-1}{T}\,\sigma^2_\varepsilon,
+\qquad
+E\Big[\sum_{t=1}^{T}(\varepsilon_{i,t-1} - \bar\varepsilon_{i,-1})^2\Big] = (T-1)\,\sigma^2_\varepsilon .
+$$
+*Hint: $\sum_t (a_t - \bar a)(b_t - \bar b) = \sum_t a_t b_t - T\,\bar a\,\bar b$, and the two averages share $T - 1$ shocks.*
+
+(c) Conclude that $\operatorname{plim}_{N\to\infty}\hat\alpha_{\text{FE}} = -1/T$. Check that this agrees with Problem 1(c) at $T = 2$.
+
+(d) A study regresses a mutual fund's annual alpha on its own lagged alpha with fund fixed effects, using five years per fund, and reports a coefficient of $-0.20$ with a tiny standard error. It concludes that "performance reverses: last year's winners become this year's losers." What do you tell the authors?

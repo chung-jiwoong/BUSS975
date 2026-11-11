@@ -50,17 +50,20 @@ k$post  <- as.numeric(k$year >= 2006)
 
 ## Where we left off
 
-- Lecture 6a ended on a $2 \times 2$ panel: two firms, two years, one of them treated in year two. Firm effects removed *size*, year effects removed the *boom*, and what was left was $(15 - 10) - (7 - 4) = 2$.
-- That calculation has a name. It is older than fixed effects, older than regression, and was invented three separate times by people trying to save lives.
+- Lecture 6a, two firms and two years: A treated in year 2, B never.
+$$
+\hat\delta = (15 - 10) - (7 - 4) = 2
+$$
+That was two-way fixed effects. It is also **difference-in-differences**.
 
-\vspace{0.4em}
+\vspace{0.6em}
 
-- Lecture 6b asked of every estimator: *which way is it wrong?* The answer there came from the model.
-- This week the answer comes from one **counterfactual** you will never see: what would have happened to the treated, had they not been treated. Everything in difference-in-differences is a claim about that one number.
+- B's change ($+3$) stands in for what A would have done **without treatment**.
+- DiD is right exactly when that stand-in is right. This lecture is about when to believe it.
 
 ## The plan
 
-1. **Three births.** Vienna, London, Washington --- and why the method keeps being reinvented.
+1. Read Remix ch. 9 on Semmelweis, Snow and Ashenfelter: it is a good story.
 2. **Four averages and three subtractions.** The $2 \times 2$, and three regressions that compute it exactly.
 3. **What makes it causal.** Potential outcomes, parallel trends, no anticipation, and what goes wrong without them.
 4. **Card and Krueger.** The study that made it mainstream, and a picture of what regression imputes.
@@ -71,6 +74,29 @@ k$post  <- as.numeric(k$year >= 2006)
 
 - One running question: **what is the counterfactual trend, and why do I believe the control group has it?**
 
+
+## What we are after
+
+A group $k$ is treated at some date; a group $U$ is not. We see $Y$ for both, before and after. Each unit has potential outcomes $Y^1$ and $Y^0$; we observe $Y = D\,Y^1 + (1-D)\,Y^0$.
+
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & Pre & Post \\
+\midrule
+Control $U$ & $Y^0$ observed & $Y^0$ observed \\
+Treated $k$ & $Y^0$ observed & $Y^1$ observed; \;\textcolor{red}{$Y^0$ missing} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **The target** is the average effect on the treated, after treatment:
+$\text{ATT} = \mathbb{E}[Y^1_k \mid \text{Post}] - \mathbb{E}[Y^0_k \mid \text{Post}]$. The second is missing.
+- The treated group's own *pre* value? The control group's *post* value? 
+- *DiD*: the treated group's pre value plus the control group's change. The ATT is then the treated change minus the control change.
+
+<!-- Section 1 is not covered in class: students read Remix ch. 9 instead. Kept here for reference. -->
+<!--
 # 1. Three Births
 
 ## Vienna, 1847: Semmelweis
@@ -139,18 +165,20 @@ Southwark \& Vauxhall & 1849 & $SV$ & & \\
 
 - He was not dumbing it down. We will see in Section 2 that the regression coefficient *is* that arithmetic, to the last digit.
 - Three births, one trait: a method that could be **shown to someone with no training**, and whose weak point --- the counterfactual trend --- is visible on the page.
+-->
+
 
 # 2. Four Averages and Three Subtractions
 
 ## The $2 \times 2$ in one line
 
-Let $k$ be the group treated at one date, $U$ a group never treated in the window, and *pre* / *post* the periods on either side:
+Let $k$ be the group treated at one date, $U$ a group never treated in the window:
 $$
 \hat\delta_{DiD} \;=\; \big(\bar Y_k^{\,post} - \bar Y_k^{\,pre}\big) \;-\; \big(\bar Y_U^{\,post} - \bar Y_U^{\,pre}\big)
 $$
 
 - **Four averages**: each group in each period. **Three subtractions**: two within groups, one across.
-- The literature now calls this **the $2 \times 2$** (Goodman-Bacon 2021; Baker et al. 2025). Everything more complex is built from it, so it is worth knowing in your sleep.
+- The literature now calls this **the $2 \times 2$** (Goodman-Bacon 2021; Baker et al. 2025). Everything more complex is built from it.
 - The within-group subtractions delete anything **fixed about the group**. The across-group subtraction deletes anything **common to the period**. What survives is the effect --- and any difference in trends.
 
 ## The same number from a regression
@@ -177,7 +205,6 @@ $$
 \hat\delta_{DiD} = \big[(\hat\alpha_0 + \hat\alpha_1 + \hat\alpha_2 + \hat\delta) - (\hat\alpha_0 + \hat\alpha_1)\big] - \big[(\hat\alpha_0 + \hat\alpha_2) - \hat\alpha_0\big] = (\hat\alpha_2 + \hat\delta) - \hat\alpha_2 = \hat\delta
 $$
 
-- Not approximately. **Identically.** The interaction coefficient is four averages and three subtractions.
 
 ## Castle doctrine: the data
 
@@ -235,18 +262,21 @@ $\hat\delta$ & $`r sprintf("%.7f", ests[1])`$ & $`r sprintf("%.7f", ests[2])`$ &
 \end{tabular}
 \end{center}
 
-- **Three regressions, one arithmetic.** With two groups and two periods, unit and year fixed effects are just $\text{Treat}_i$ and $\text{Post}_t$ in disguise, and the long difference *is* the within-group subtraction.
+- **Three regressions, one arithmetic.** With two groups and two periods, unit and year fixed effects are just $\text{Treat}_i$ and $\text{Post}_t$ in disguise. 
 - This is why "difference-in-differences" and "two-way fixed effects" were synonyms for thirty years. They stop being synonyms when treatment dates differ across units --- next lecture.
+<!-- The **long difference** collapses each state to one number, post-mean minus pre-mean, and regresses it on $\text{Treat}_i$: the within-group subtractions are done before the regression sees the data. -->
 
 ## Why regression, then?
 
 - Not for the point estimate: that is fixed by the arithmetic.
 - For **standard errors** --- and for adding covariates, more periods, more groups. All of which, we will see, come with strings attached.
 
+<!--
 \vspace{0.4em}
 
-- Ashenfelter's lesson is about **communication**. The regression and the four averages are the same object; one of them can be explained to a minister, a journalist, a referee outside the field.
+- Ashenfelter's lesson (from the reading) is about **communication**. He estimated two-way fixed effects for the Department of Labor and explained it as four averages and three subtractions, because the regression and the arithmetic are the same object --- and one of them can be explained to a minister, a journalist, a referee outside the field.
 - Keep the arithmetic in reach. When a sophisticated estimator gives a number you cannot reproduce from a few group means, you do not yet understand what it did.
+-->
 
 # 3. What Makes It Causal
 
@@ -265,29 +295,34 @@ $$
 
 ## Adding a zero
 
-Add and subtract the one thing you cannot observe --- the treated group's untreated outcome after treatment, $\mathbb{E}[Y^0_k|\text{Post}]$ --- and regroup:
 \begin{align*}
-\hat\delta_{DiD} \;=\;& \underbrace{\mathbb{E}[Y^1_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Post}]}_{\textbf{ATT}} \\
+  \hat{\delta}_{DiD} \;=\;& \big ( \underbrace{\mathbb{E}[Y^1_k|\text{Post}] -
+    \mathbb{E}[Y^0_k|\text{Pre}] \big ) - \big ( \mathbb{E}[Y^0_U | \text{Post} ] - \mathbb{E}[ Y^0_U |
+  \text{Pre}]}_{\text{Switching equation}} \big) \\
+  &+ \underbrace{\mathbf{\mathbb{E}[Y_k^{\textbf{0}} |\text{Post}] -
+  \mathbb{E}[Y^{\textbf{0}}_k | \text{Post}]}}_{\text{Adding zero}} \\
+\;=\;& \underbrace{\mathbb{E}[Y^1_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Post}]}_{\textbf{ATT}} \\
 &+\; \underbrace{\big(\mathbb{E}[Y^0_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Pre}]\big) - \big(\mathbb{E}[Y^0_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Pre}]\big)}_{\textbf{non-parallel trends bias}}
 \end{align*}
 
-- **The first term is the only causal parameter DiD can deliver**: the average effect *on the treated*, *in the post period*. Say it that precisely every time.
-- **The second term is a selection bias** --- not in levels of $Y^0$, as in Lecture 3, but in *changes* of $Y^0$. It is itself a $2 \times 2$, computed on $Y^0$ instead of $Y$.
+- The first term is the average effect *on the treated*, *in the post period*. 
+- The second term is a selection bias --- in *changes* of $Y^0$.
+
+
+## What parallel trends says, and does not
+
 - Parallel trends is the assumption that the second term is zero:
 $$
 \mathbb{E}[Y^0_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Pre}] \;=\; \mathbb{E}[Y^0_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Pre}]
 $$
-
-## What parallel trends says, and does not
-
-- It is a statement about a **counterfactual**: how the treated group's $Y^0$ *would have* moved. One of its four terms does not exist in any dataset. **It cannot be tested.** It can only be argued.
-- It says nothing about **levels**. Lambeth and S\&V could differ tenfold in 1849; adopters can have twice the homicide rate. Fixed differences are subtracted out. What must match is the *change*.
+- It is a statement about a **counterfactual**: how the treated group's $Y^0$ *would have* moved. **It cannot be tested.** 
+- It says nothing about **levels**. Adopters can have twice the homicide rate. Fixed differences are subtracted out. What must match is the *change*.
 - It is **specific to the comparison and the baseline you chose.** Change the control group, or the pre period, and you have made a different assumption.
 - It is a statement in a particular **scale**: parallel in levels is not parallel in logs. Pick the scale by the economics, before you see the estimate.
 
 \vspace{0.3em}
 
-- Three assumptions, in total: **parallel trends**, **no anticipation** (next), and SUTVA, which is the same as always --- one version of the treatment, no spillovers onto the controls.
+- Three assumptions, in total: **parallel trends**, **no anticipation** (next), and SUTVA --- one version of the treatment, no spillovers onto the controls.
 
 ## A numerical example: parallel trends holds
 
@@ -312,7 +347,7 @@ Change          & $35.51$ & $5.52$  & $5.51$  & $5.52$ \\
 
 ## Same data, different counterfactual
 
-Change nothing observable. Only group 1's post-period $Y^0$ --- the column no one sees --- is different.
+Change only group 1's post-period $Y^0$.
 
 \begin{center}\small
 \begin{tabular}{lcc@{\hspace{2.5em}}cc}
@@ -333,14 +368,20 @@ Change          & $35.51$ & $5.52$  & $\mathbf{30.55}$ & $5.52$ \\
 
 ## No anticipation: what it literally says
 
-- The name suggests psychology. The content is mundane: **the treated group is untreated until it is treated** --- in the pre period, $Y = Y^0$ for group $k$.
-- Suppose it fails: the "pre" period is already treated, so $Y_k^{pre} = Y^1_k$. Add two zeros and regroup:
-$$
-\hat\delta_{DiD} \;=\; \underbrace{\text{ATT}_k(\text{Post})}_{\text{what you want}} \;+\; \underbrace{\text{PT bias}}_{\text{as before}} \;-\; \underbrace{\text{ATT}_k(\text{Pre})}_{\text{the effect already in the baseline}}
-$$
+**The treated group is untreated until it is treated**: $Y = Y^0$ for $k$ in the pre period. Suppose it fails, so $Y_k = Y^1_k$ in *both* periods. Add $\pm\,\mathbb{E}[Y^0_k|\text{Post}]$ and $\pm\,\mathbb{E}[Y^0_k|\text{Pre}]$:
 
-- With **constant** effects, $\text{ATT}(\text{Post}) = \text{ATT}(\text{Pre})$ and DiD is **zero**. With effects that **grow**, DiD is the *growth* in the effect, not the effect.
-- Why the name: if units react to a policy *before* it is enforced --- firms hire, fire, exit in anticipation --- then the baseline is already treated, and this is what you estimate.
+\vspace{-0.5em}\small
+\begin{align*}
+\hat\delta_{DiD} \;=\;& \big(\mathbb{E}[Y^{1}_k|\text{Post}] - \mathbb{E}[\mathbf{Y^{1}_k}|\text{Pre}]\big) - \big(\mathbb{E}[Y^{0}_U|\text{Post}] - \mathbb{E}[Y^{0}_U|\text{Pre}]\big) \\
+=\;& \underbrace{\mathbb{E}[Y^1_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Post}]}_{\text{ATT}_k(\text{Post})} \\
+&+ \underbrace{\big(\mathbb{E}[Y^0_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Pre}]\big) - \big(\mathbb{E}[Y^0_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Pre}]\big)}_{\text{non-parallel trends bias}} \\
+&- \underbrace{\big(\mathbb{E}[Y^1_k|\text{Pre}] - \mathbb{E}[Y^0_k|\text{Pre}]\big)}_{\text{ATT}_k(\text{Pre})}
+\;=\; \text{ATT}_k(\text{Post}) + \text{PT bias} - \text{ATT}_k(\text{Pre})
+\end{align*}
+\normalsize\vspace{-0.6em}
+
+- DiD recovers the ATT only if parallel trends holds **and** $\text{ATT}_k(\text{Pre}) = 0$. 
+- With **constant** effects DiD is **zero**; with **growing** effects it is the *growth* in the effect, not the effect.
 
 ## No anticipation, simulated
 
@@ -373,7 +414,7 @@ ATT over the post period & $10$ & $20$ & $10$ & $25$ \\
 \end{tabular}
 \end{center}
 
-- Clean baseline: DiD hits the ATT in both columns.
+- Clean baseline: DiD hits the ATT in both columns (10 and 20).
 - Treated baseline, constant effect: **zero**. The effect is in both periods and cancels.
 - Treated baseline, dynamic effect: $25 - 10 = 15$. You estimate the *change* in the effect and call it the effect.
 
@@ -391,14 +432,19 @@ ATT over the post period & $10$ & $20$ & $10$ & $25$ \\
 
 ## Avoid already-treated controls
 
-Not an assumption --- a strong recommendation. Suppose the control group $U$ was treated *before* the window, so $Y_U = Y^1_U$ in both periods. Add three zeros and regroup:
-$$
-\hat\delta_{DiD} \;=\; \text{ATT}_k \;+\; \text{PT bias} \;-\; \underbrace{\big[\text{ATT}_U(\text{Post}) - \text{ATT}_U(\text{Pre})\big]}_{\Delta \text{ATT}_U:\ \text{how the \emph{control's} effect changed}}
-$$
+Suppose control $U$ was treated *before* the window: $Y_U = Y^1_U$ in both periods:
 
-- If the control's effect is **constant**, no harm: it differences out like a fixed effect.
-- If it is **still evolving** --- fading, growing --- that evolution is subtracted from your estimate and looks like a treatment effect of the opposite sign.
-- Obvious? Nobody would *choose* an already-treated control. But when treatment dates differ across units, standard two-way fixed effects **makes these comparisons for you, silently.** That is the next lecture's subject.
+\vspace{-0.5em}\small
+\begin{align*}
+\hat\delta_{DiD} \;=\;& \big(\mathbb{E}[Y^{1}_k|\text{Post}] - \mathbb{E}[Y^{0}_k|\text{Pre}]\big) - \big(\mathbb{E}[\mathbf{Y^{1}_U}|\text{Post}] - \mathbb{E}[\mathbf{Y^{1}_U}|\text{Pre}]\big) \\
+=\;& \underbrace{\mathbb{E}[Y^1_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Post}]}_{\text{ATT}_k} \\
+&+ \underbrace{\big(\mathbb{E}[Y^0_k|\text{Post}] - \mathbb{E}[Y^0_k|\text{Pre}]\big) - \big(\mathbb{E}[Y^0_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Pre}]\big)}_{\text{non-parallel trends bias}} \\
+&- \underbrace{\big[\big(\mathbb{E}[Y^1_U|\text{Post}] - \mathbb{E}[Y^0_U|\text{Post}]\big) - \big(\mathbb{E}[Y^1_U|\text{Pre}] - \mathbb{E}[Y^0_U|\text{Pre}]\big)\big]}_{\Delta\text{ATT}_U:\ \text{how the \emph{control's} effect changed}}
+\end{align*}
+\normalsize\vspace{-0.6em}
+
+- So $\hat\delta_{DiD} = \text{ATT}_k + \text{PT bias} - \Delta\text{ATT}_U$. A **constant** control effect differences out; a **fading or growing** one looks like an effect of the opposite sign.
+- Nobody would *choose* such a control. With staggered dates, two-way fixed effects does it **silently** --- next lecture.
 
 # 4. Card and Krueger
 
@@ -484,8 +530,8 @@ $$
 $$
 
 - **All four terms are observable.** A pre-period coefficient is the *differential pre-trend* in untreated outcomes --- which is a fact about the data, **not the parallel trends assumption.** Parallel trends is about the post period, where one term is counterfactual.
-- $\hat\delta_{-3} = +1.5$ means: from $\tau=-3$ to the baseline, the treated group's outcome rose $1.5$ more than the control's. Say it that way.
-- **After treatment**, $\hat\delta_{+2}$ is the ATT at $\tau = +2$ --- *if* parallel trends holds from the baseline to $\tau=+2$, there is no anticipation, and the control is never- or not-yet-treated. Tedious to say; if it feels tedious, you are not yet sure what you estimated.
+- $\hat\delta_{-3} = +1.5$ means: from $\tau=-3$ to the baseline, the treated group's outcome rose $1.5$ more than the control's. 
+- **After treatment**, $\hat\delta_{+2}$ is the ATT at $\tau = +2$ --- *if* parallel trends holds from the baseline to $\tau=+2$, there is no anticipation, and the control is never- or not-yet-treated. 
 
 ## Castle doctrine: the raw data first
 
@@ -502,7 +548,7 @@ abline(v = 2005.5, col = "grey50", lty = 3)
 legend("left", bty = "n", lwd = 2, lty = 1:2, pch = c(16, 1), cex = 0.9, legend = c("adopted in 2006 (13 states)", "never adopted (29 states)"))
 ```
 
-- Cheng and Hoekstra plotted exactly this, one panel per cohort, so readers could compare the two paths with their own eyes. There is a lot to be said for that transparency.
+- Cheng and Hoekstra plotted exactly this, one panel per cohort, so readers could compare the two paths with their own eyes. 
 - Two flat, roughly parallel lines for six years; then the adopters move up while the others drift down. Note also what the picture does *not* show: how either line would have moved in the other state of the world.
 
 ## Castle doctrine: the coefficients
@@ -520,7 +566,7 @@ arrows(yrs_es, b - 1.96 * s, yrs_es, b + 1.96 * s, angle = 90, code = 3, length 
 points(2005, 0, pch = 1); abline(h = 0, col = "grey60"); abline(v = 2005.5, col = "grey50", lty = 3)
 ```
 
-- Each point is a $2 \times 2$ against $2005$, with a $95\%$ interval, standard errors clustered by state. The hollow point is the omitted baseline: nothing was estimated there.
+- Each point is a $2 \times 2$ against $2005$, with a $95\%$ interval, standard errors clustered by state. The hollow point is the omitted baseline.
 - Pre-period coefficients: $`r f2(min(b[yrs_es < 2005]))`$ to $`r f2(max(b[yrs_es < 2005]))`$, none distinguishable from zero. Post: $`r f2(b["year::2006:treat"])`$ in $2006$, $`r f2(b["year::2007:treat"])`$ in $2007$, and positive throughout.
 - The $2 \times 2$ of $`r f3(did)`$ is a weighted average of the five post coefficients, less a weighted average of the pre ones.
 
@@ -549,12 +595,14 @@ points(2005, 0, pch = 1); abline(h = 0, col = "grey60"); abline(v = 2005.5, col 
 ## Falsification: two examples
 
 - **Same outcome, alternative group.** You find the minimum wage reduced low-wage employment. Alternative: the whole state economy was sinking. Then **high-wage** workers --- untouched by the floor --- should have lost jobs too. Re-run the $2 \times 2$ on them. If they did, your main result has a rival explanation.
-- **Same group, alternative outcome.** Cigarette taxes reduce heart-attack admissions. Alternative: public insurance expanded at the same time, in the same states. Then admissions for **appendicitis and fractures** --- nothing to do with smoking --- should have fallen as well. If they did not, the rival loses.
+- **Same group, alternative outcome.** Cigarette taxes reduce heart-attack admissions. Alternative: that increased preventative healthcare expanded at the same time, in the same states. Then admissions for **appendicitis and fractures** --- nothing to do with smoking --- should have fallen as well. If they did not, the rival loses.
 
 \vspace{0.3em}
 
-- The design needs a rival theory that makes a **prediction the treatment does not**. Without one, a "placebo" is just another regression.
+- The design needs a rival theory that makes a **prediction the treatment does not**. 
+<!-- Without one, a "placebo" is just another regression. --> 
 
+<!-- 
 ## Falsification: milk is addictive and acne is contagious
 
 - **Rational addiction** (Becker and Murphy 1988) gave economists an empirical model, which found alcohol, tobacco and gambling to be rationally addictive. Auld and Grootendorst (2004) ran the same model on **milk, eggs and oranges**. Milk came out among the most addictive goods in the study.
@@ -562,26 +610,27 @@ points(2005, 0, pch = 1); abline(h = 0, col = "grey60"); abline(v = 2005.5, col 
 
 \vspace{0.3em}
 
-- Neither study attacked the theory. Each showed the *empirical model* produces its result on data where the result cannot be true --- so its result on the real data is not evidence.
+- Neither study attacked the theory. Each showed the *empirical model* produces its result on data where the result cannot be true 
 - Tall people have tall friends because they are on the basketball team together. Ask what the equivalent is for your firms.
+-->
 
 ## Inference
 
-- Most DiD panels have **many periods**, treatment that varies **at the group level** (a state, an industry), and outcomes that are **serially correlated**. Bertrand, Duflo and Mullainathan (2004) showed that conventional standard errors then over-reject badly: placebo laws came out "significant" nearly half the time at the $5\%$ level.
+- Most DiD panels have **many periods**, treatment that varies **at the group level** (a state, an industry), and outcomes that are **serially correlated**. Bertrand, Duflo and Mullainathan (2004) showed that conventional standard errors then over-reject badly. <!--: placebo laws came out "significant" nearly half the time at the $5\%$ level. -->
 - Three fixes, from their paper:
-  1. **Cluster** at the level treatment is assigned --- the state, not the restaurant. Standard, and what every table in this lecture does.
+  1. **Cluster** at the level treatment is assigned --- the state, not the restaurant. 
   2. **Aggregate** to one pre and one post observation per unit: the long difference. Serial correlation has nowhere to live.
   3. **Block bootstrap**: resample whole states.
 
 \vspace{0.3em}
 
-- With **few clusters**, or few *treated* clusters, clustering itself over-rejects. Castle doctrine has $13$ adopters. Lecture 6a's wild cluster bootstrap applies; with a single treated unit, randomization inference (Buchmueller, DiNardo and Valletta 2011) is the honest option.
+- With **few clusters**, or few *treated* clusters, clustering itself over-rejects. Castle doctrine has $13$ adopters. Lecture 6a's wild cluster bootstrap applies; with a single treated unit, randomization inference may be an option (Buchmueller, DiNardo and Valletta 2011).
 
 ## DiD in the courtroom
 
 A prosecutor has three things: a **claim** of guilt, **evidence** for it, and a **motive**. The claim is not evidence, and a case with no motive is hard to believe beyond reasonable doubt.
 
-- Your regression table is the **claim**. A table of coefficients with asterisks is not a case.
+- Your regression table is the **claim**. 
 - Five elements of a strong DiD paper:
   1. **Bite**: the policy moved what it was meant to move.
   2. **Event studies**: the two groups moved together before.
@@ -606,33 +655,51 @@ The 2014 Medicaid expansion was adopted by some states and not others. Outcome: 
 
 ## The assignment mechanism
 
-- So far: an equation and an assumption. Now the question that decides whether the assumption is plausible: **why** were these units treated and not those?
-- Marx, Tamer and Tang (2024) and Ghanem, Sant'Anna and Wüthrich (2024) ask which assignment mechanisms are compatible with parallel trends. The answers are not what intuition suggests:
+- Now the question that decides whether the assumption is plausible: **why** were these units treated and not those? 
+<!-- Not *who* --- the *how* and the *why* (the design tradition: Neyman, Fisher, Imbens and Rubin 2015). -->
+- Ghanem, Sant'Anna and Wüthrich (2024) and Marx, Tamer and Tang (2024) ask which mechanisms are compatible with parallel trends. **Good news**: not sufficient to violate it. **Bad news**: sufficient.
 
 \begin{center}\footnotesize
-\begin{tabular}{R{6.8cm}R{5.4cm}}
+\begin{tabular}{R{7.2cm}R{5.4cm}}
 \toprule
-Does not, by itself, break parallel trends & Breaks it \\
+Good news: not by itself a violation & Bad news: a violation \\
 \midrule
-a common trend in $Y^0$ & selection on the \textbf{gain} $Y^1 - Y^0$: \\
-selection on a \textbf{fixed effect} & \quad the Roy model, the ``Perfect Doctor'' \\
-selection on the \textbf{baseline level} of $Y^0$ (with a caveat) & selection on a \textbf{transitory dip} in $Y^0$ \\
-selection on observables (conditional PT, next lecture) & \\
-imperfect foresight about the future & \\
+a \textbf{common constant trend} in $Y^0$ & the \textbf{Perfect Doctor}: selection on the \\
+selection on the \textbf{baseline} $Y^0$ & \quad gain $Y^1 - Y^0$ (Roy 1951; ``essential \\
+selection on \textbf{fixed effects} & \quad heterogeneity'', Heckman et al. 2006) \\
+selection on \textbf{observables} (conditional PT) & \\
+selection under \textbf{imperfect foresight} & \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-- This knowledge comes from **outside the data**. Kahn-Lang and Lang (2019): say why the groups differed at baseline, and why that does not touch their trends.
+- This knowledge comes from **outside the data**: institutional detail about how units came to be treated.
 
-## Good news: selection on fixed effects
+## Good news: a common constant trend
+
+The one case where parallel trends **cannot** fail, however the treated were chosen.
+
+- Parallel trends compares two *changes* in the untreated outcome:
+$$
+\underbrace{\mathbb{E}\big[Y^0_{\text{Post}} - Y^0_{\text{Pre}} \mid \text{treated}\big]}_{\text{how the treated would have moved}}
+\;=\;
+\underbrace{\mathbb{E}\big[Y^0_{\text{Post}} - Y^0_{\text{Pre}} \mid \text{control}\big]}_{\text{how the control did move}}
+$$
+- Suppose **every** unit's untreated outcome moves by the same amount, $\Delta$, from pre to post. Then both sides equal $\Delta$, whoever is in the treated group. 
+<!-- Pick the treated as the richest, the poorest, or those with the biggest gains from treatment: the equality still holds. -->
+- Levels can differ as much as you like, and the level can be the reason a unit was treated. Only the *change* has to be the same.
+- This is the world assumed by $Y_{it} = \alpha_i + \lambda_t + \delta D_{it} + \varepsilon_{it}$: the year effect $\lambda_t$ *is* the common move. A strong claim. <!-- , and the one you make when you run that regression without comment. -->
+- The simulations that follow **drop** it: units carry different trends, and we ask which ways of choosing the treated still leave parallel trends intact.
+
+## Good news: selection on the baseline $Y^0$
 
 ```{r sel-sims}
 set.seed(1)
 sel_sim <- function(rule, n = 2000, Tn = 8, base = 4, tau = 5) {
-  alpha <- rnorm(n, 0, 2); lam <- 0:(Tn - 1)
-  rw <- t(apply(matrix(rnorm(n * Tn, 0, 1.5), n, Tn), 1, cumsum))            # random-walk idiosyncratic part
-  y0 <- alpha + outer(rep(1, n), lam) + rw
+  alpha <- rnorm(n, 0, 2)
+  g <- sample(1:4, n, replace = TRUE); slope <- c(0.5, 1, 1.5, 2)[g]                 # four groups, four trends in Y0
+  rw <- t(apply(matrix(rnorm(n * Tn, 0, 1.5), n, Tn), 1, cumsum))                     # random-walk idiosyncratic part
+  y0 <- alpha + outer(slope, 1:Tn - base) + rw
   D <- if (rule == "y0") as.numeric(y0[, base] < quantile(y0[, base], 0.25)) else as.numeric(alpha > median(alpha))
   att_t <- pmax(tau * (1:Tn - base), 0)
   y <- y0; for (t in (base + 1):Tn) y[D == 1, t] <- y0[D == 1, t] + att_t[t]
@@ -646,8 +713,32 @@ es_plot <- function(r, title) {
   points(r$t, r$true, pch = 4, col = "grey40", cex = 1.2); points(r$base, 0, pch = 1)
   abline(h = 0, col = "grey60"); abline(v = r$base + 0.5, col = "grey50", lty = 3)
 }
-s_fe <- sel_sim("fe"); s_y0 <- sel_sim("y0")
+s_y0 <- sel_sim("y0"); s_fe <- sel_sim("fe")
 ```
+
+```{r sel-y0-plot}
+#| fig-width: 8
+#| fig-height: 2.0
+#| out-width: 68%
+#| fig-align: center
+par(mar = c(2.6, 3.2, 1.6, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
+es_plot(s_y0, "Treated: units in the bottom quartile of Y at the baseline (period 4)")
+```
+
+Betty earns below a threshold and takes the Python course; Ronnie does not. Should we worry whether the different levels of the treated and control groups impact trends?
+
+- $2{,}000$ workers, $8$ periods. **Treatment effect**: zero before period $5$, then $5, 10, 15, 20$ ($\times$ = truth). **Untreated outcome** $Y^0$: a worker fixed effect $\alpha_i$ (a permanent level), a random walk, and a trend that differs across **four groups** of workers (slopes $0.5$ to $2$, drawn at random). No common constant trend; but group is unrelated to treatment, so trends are parallel *on average*.
+- **Post-coefficients on the truth.** Ghanem, Sant'Anna and Wüthrich (2024): selecting on the baseline $Y^0$ does not violate parallel trends.
+
+## Baseline $Y^0$: broken pre-trends, not a broken assumption
+
+- **But the pre-coefficients are not zero**, although $\mathbb{E}[Y^0]$ trends are parallel by group. The baseline is both the point of selection and the omitted category: the treated were picked for being low *then*, so every other period looks high by comparison. A **mechanical** artefact.
+- **No solution, because no problem.** The post-coefficients are unbiased. The casualty is the pre-trend *test*: it rejects, and you wrongly conclude parallel trends failed.
+<!-- - Do not "fix" it by re-basing to $t-2$: that may flatten the pre-trends and *break* parallel trends, which held from the baseline. -->
+- The way out is **institutional knowledge of the assignment mechanism**. If the agency targeted the lowest-scoring schools, you know in advance: parallel trends intact, pre-trends disrupted. Falsifications (Section 5) then matter more than pre-trends.
+- **Caveat**: if the low baseline is a **transitory dip** that reverts on its own --- Ashenfelter's dip --- trends do differ. Ask the institution, not the data.
+
+## Good news: selection on fixed effects
 
 ```{r sel-fe-plot}
 #| fig-width: 8
@@ -658,62 +749,95 @@ par(mar = c(2.6, 3.2, 1.6, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
 es_plot(s_fe, "Treated: units with an above-median fixed effect")
 ```
 
-$2{,}000$ workers, $8$ periods, treated from period $5$ with an effect that grows by $5$ each period ($\times$ marks the truth). $Y^0$ has a worker effect, a common trend and an idiosyncratic part. **Treatment goes to the workers with the highest fixed effects.**
+<!-- *"There will always be a part of me that's sloppy and dirty"* (Tiffany Maxwell, *Silver Linings Playbook*).--> Attributes that are permanent for a unit are its **fixed effects**, carried wherever and whenever it goes.
 
-- Permanent traits --- *"there will always be a part of me that's sloppy and dirty"* --- are differenced out. Pre-coefficients at zero, post-coefficients on the truth.
-- Selection on *who you are* is harmless. Selection on *what is about to happen to you* is not.
+- Same data. Now **treatment goes to the workers whose fixed effect is above the median**: only certain *types* enter the programme.
+- Does not violate parallel trends, and --- unlike selection on $Y^0$ --- does **not** break the pre-trends either. Pre-coefficients at zero, post-coefficients on the truth: permanent traits are differenced out.
+- Again: learn, ahead of time, whether the mechanism selected on fixed effects.
 
-## Good news with a caveat: selection on the baseline level
+## Good news: selection on observables
 
-```{r sel-y0-plot}
-#| fig-width: 8
-#| fig-height: 2.0
-#| out-width: 70%
-#| fig-align: center
-par(mar = c(2.6, 3.2, 1.6, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
-es_plot(s_y0, "Treated: units in the bottom quartile of Y at the baseline (period 4)")
-```
+Being selected for the programme because of your GPA or your age is not itself a violation of parallel trends.
 
-Treatment now goes to whoever is **lowest at the baseline**: a means test, a programme for the worst schools.
+- Parallel trends may hold only *within* strata of the covariates: **conditional parallel trends**. Workers of the same age and GPA move in parallel; the treated are simply older, or have higher GPAs, than the controls.
+- Then the covariates must be in the model, so that after accounting for them the untreated trends of treated and control are identical. How to do that correctly --- it is not as simple as adding $X_i$ to the regression --- is next lecture's subject.
+- Not a guarantee. Selection on observables and non-parallel trends can coexist; the claim is only that this mechanism is not a problem *in and of itself*.
 
-- **Post-coefficients still on the truth.** Ghanem, Sant'Anna and Wüthrich (2024): selecting on the baseline level does not by itself break parallel trends.
-- **Pre-coefficients are not zero.** The baseline is both the selection point and the omitted period: the treated were picked for being low *then*, so every other period looks high by comparison. A pre-trend test rejects, wrongly.
-- **The caveat.** True only if a low baseline says nothing about the *future* change in $Y^0$ (here, a random walk). If it is a **transitory dip** that reverts on its own, parallel trends fails too --- Ashenfelter's dip. Ask the institution, not the data.
+\vspace{0.3em}
+
+- The link to Lecture 3: this is the panel version of unconfoundedness. There we assumed the *level* of $Y^0$ was independent of treatment given $X$; here only its *change* has to be.
+
+## Good news: selection under imperfect foresight
+
+If units are assigned to treatment **without fully anticipating their future outcomes**, selection cannot depend on the expected treatment effect, and parallel trends can hold.
+
+- The leading case: assignment on *past or present* performance, with no knowledge of how the programme will change future earnings. Whatever drives selection is then already in the fixed effect or the baseline --- the good-news cases above.
+- Most relevant where treatment is not self-selected on anticipated gains: an agency applies a rule, a firm is caught by a threshold, a manager acts on last year's numbers.
+- Ghanem, Sant'Anna and Wüthrich (2024): imperfect foresight does not by itself mangle parallel trends. It is also the realistic case more often than economists like to admit.
+
+\vspace{0.3em}
+
+- Five mechanisms, five ways assignment can interact with $Y^0$ and leave parallel trends standing. What if none of them applies --- if units choose on the gain itself, and get it right?
 
 ## Bad news: the Perfect Doctor
 
 ```{r pd-sim}
-set.seed(2)
-n <- 2000; Tn <- 8; base <- 4
-age <- rnorm(n); gpa <- rnorm(n); alpha <- rnorm(n)
-bt <- seq(0, 2, length.out = Tn)                                               # the return to age and GPA grows over time
-y0 <- alpha + outer(rep(1, n), 1:Tn) + outer(age, bt) + outer(gpa, bt) + matrix(rnorm(n * Tn), n, Tn)
-tau <- 1 + 2 * age + 2 * gpa + rnorm(n)                                        # gains, correlated with age and GPA
-D <- as.numeric(tau > 0)                                                       # Perfect Doctor: treat if it helps
-y <- y0; for (t in (base + 1):Tn) y[D == 1, t] <- y0[D == 1, t] + tau[D == 1]
-att <- mean(tau[D == 1])
-pdd <- data.frame(id = rep(1:n, Tn), t = rep(1:Tn, each = n), y = as.vector(y), D = rep(D, Tn))
-es_pd <- feols(y ~ i(t, D, ref = base) | id + t, pdd, cluster = ~id)
-r_pd <- list(t = (1:Tn)[-base], true = c(rep(0, base - 1), rep(att, Tn - base)), b = coef(es_pd), s = se(es_pd), base = base)
+pd_draw <- function(n = 2000, Tn = 8, base = 4) {
+  age <- rnorm(n); gpa <- rnorm(n); alpha <- rnorm(n)
+  bt <- seq(0, 2, length.out = Tn)                                               # the market's return to age and GPA rises every year
+  y0 <- alpha + outer(rep(1, n), 1:Tn) + outer(age, bt) + outer(gpa, bt) + matrix(rnorm(n * Tn), n, Tn)
+  tau <- 1 + 2 * age + 2 * gpa + rnorm(n)                                        # the programme also helps the old and high-GPA most
+  D <- as.numeric(tau > 0)                                                       # Perfect Doctor: enrol iff it helps
+  y <- y0; y[D == 1, (base + 1):Tn] <- y0[D == 1, (base + 1):Tn] + tau[D == 1]
+  list(y0 = y0, y = y, D = D, tau = tau, Tn = Tn, base = base)
+}
+dd22 <- function(s, v) {
+  pre <- 1:s$base; post <- (s$base + 1):s$Tn; m <- s[[v]]
+  (mean(m[s$D == 1, post]) - mean(m[s$D == 1, pre])) - (mean(m[s$D == 0, post]) - mean(m[s$D == 0, pre]))
+}
+set.seed(2); pd <- pd_draw()
+reps <- replicate(500, { s <- pd_draw(); c(dd22(s, "y"), mean(s$tau[s$D == 1]), dd22(s, "y0")) })
+did_pd <- mean(reps[1, ]); att_pd <- mean(reps[2, ]); ptb_pd <- mean(reps[3, ])
 ```
 
 ```{r pd-plot}
-#| fig-width: 9
+#| fig-width: 8
 #| fig-height: 2.1
-#| out-width: 96%
+#| out-width: 66%
 #| fig-align: center
-par(mfrow = c(1, 2), mar = c(2.6, 3.2, 1.6, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
-plot(1:Tn, colMeans(y0[D == 1, ]), type = "b", pch = 16, lwd = 2, ylim = range(colMeans(y0[D == 1, ]), colMeans(y0[D == 0, ])), xlab = "period", ylab = expression(E*"["*Y^0*"]"), las = 1, main = "Untreated outcome, by group", font.main = 1, cex.main = 1)
-lines(1:Tn, colMeans(y0[D == 0, ]), type = "b", pch = 1, lwd = 2, lty = 2)
-abline(v = base + 0.5, col = "grey50", lty = 3)
-legend("topleft", bty = "n", lwd = 2, lty = 1:2, pch = c(16, 1), cex = 0.85, legend = c("treated", "control"))
-es_plot(r_pd, sprintf("Event study; true ATT = %.2f", att))
+par(mar = c(2.6, 3.2, 1.6, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
+plot(1:pd$Tn, colMeans(pd$y0[pd$D == 1, ]), type = "b", pch = 16, lwd = 2, ylim = range(colMeans(pd$y0[pd$D == 1, ]), colMeans(pd$y0[pd$D == 0, ])), xlab = "period", ylab = expression(E*"["*Y^0*"]"), las = 1, main = "Earnings without training", font.main = 1, cex.main = 1)
+lines(1:pd$Tn, colMeans(pd$y0[pd$D == 0, ]), type = "b", pch = 1, lwd = 2, lty = 2)
+abline(v = pd$base + 0.5, col = "grey50", lty = 3); text(pd$base + 0.6, max(colMeans(pd$y0[pd$D == 1, ])) * 0.95, "programme starts", adj = 0, cex = 0.85)
+legend("topleft", bty = "n", lwd = 2, lty = 1:2, pch = c(16, 1), cex = 0.85, legend = c("enrol (gain > 0)", "do not enrol"))
 ```
 
-Gains $\tau_i$ depend on age and GPA; **units are treated exactly when $\tau_i > 0$** (Roy 1951; Heckman, Urzua and Vytlacil 2006). The *return* to age and GPA in $Y^0$ rises over time.
+A training programme. Workers enrol **iff it will help them**, and they are right.
 
-- Selecting on the gain selects on age and GPA, and those traits sit on a steeper $Y^0$ path. **The groups were never going to move in parallel.** Here the pre-trends warn you; they need not.
-- This is the finance case: firms adopt, enter and list when they expect to gain. Unless assignment is at a level firms do not control --- a state law, a regulator's threshold, an index rule --- the Perfect Doctor is the default story.
+- **Who gains?** Older, high-GPA workers. **Whose earnings rise faster anyway?** The same workers: the market pays more for age and GPA every year.
+- So choosing on the gain *is* choosing the steeper path. The picture shows earnings *without* training: enrollees pull ahead regardless.
+- DiD credits that head start to the programme ("Adding a zero", Section 3):
+
+\begin{center}\small
+\begin{tabular}{ccccc}
+DiD & $=$ & ATT & $+$ & non-parallel trends bias \\
+$`r sprintf("%.2f", did_pd)`$ & $=$ & $`r sprintf("%.2f", att_pd)`$ & $+$ & $`r sprintf("%.2f", ptb_pd)`$ \\
+\end{tabular}
+\end{center}
+
+## Is the Perfect Doctor the rule or the exception?
+
+- **Not guaranteed.** Imperfect foresight does not mangle parallel trends, and humans are not good at working out what is best for them in counterfactual states 
+<!-- --- even elite tennis players and professional football teams get it wrong (Tversky and Kahneman 1974; Walker and Wooders 2001; Romer 2006). Perhaps the Perfect Doctor is the exception.-->
+- **Nevertheless.**  Firms issue, list, adopt and enter when they expect to gain: the Perfect Doctor by construction. This is why finance looks for treatments imposed on firms, by a state law, a regulator's threshold, an index rule or a court, rather than chosen by them. The next slide lists them.
+
+<!--
+Cunningham, as a microeconomist: *not terribly comfortable using diff-in-diff when individuals choose their own treatments*, unless one of the Ghanem, Sant'Anna and Wüthrich cases can be argued --- fixed effects, say.
+
+\vspace{0.3em}
+- **For us.** 
+--> 
+
 
 ## Difference-in-differences in finance
 
@@ -755,14 +879,25 @@ Gains $\tau_i$ depend on age and GPA; **units are treated exactly when $\tau_i >
 - Ghanem, D., P. Sant'Anna and K. Wüthrich (2024). Selection and Parallel Trends. Working paper.
 - Goodman-Bacon, A. (2021). Difference-in-Differences with Variation in Treatment Timing. *Journal of Econometrics* 225(2), 254--277.
 - Heckman, J., S. Urzua and E. Vytlacil (2006). Understanding Instrumental Variables in Models with Essential Heterogeneity. *REStat* 88(3), 389--432.
+- Imbens, G. W. and D. B. Rubin (2015). *Causal Inference for Statistics, Social, and Biomedical Sciences.* Cambridge University Press.
+
+## References (continued)
+
+\tiny
+
 - Kahn-Lang, A. and K. Lang (2019). The Promise and Pitfalls of Differences-in-Differences. *JBES* 38(3), 613--620.
 - Marx, P., E. Tamer and X. Tang (2024). Parallel Trends and Dynamic Choices. *Journal of Political Economy Microeconomics* 2(1), 129--171.
 - Miller, S., N. Johnson and L. Wherry (2021). Medicaid and Mortality: New Evidence from Linked Survey and Administrative Data. *QJE* 136(3), 1783--1829.
 - Rambachan, A. and J. Roth (2023). A More Credible Approach to Parallel Trends. *Review of Economic Studies* 90(5), 2555--2591.
+- Romer, D. (2006). Do Firms Maximize? Evidence from Professional Football. *Journal of Political Economy* 114(2), 340--365.
 - Roy, A. D. (1951). Some Thoughts on the Distribution of Earnings. *Oxford Economic Papers* 3(2), 135--146.
 - Semmelweis, I. (1861). *The Etiology, Concept, and Prophylaxis of Childbed Fever.* Clinic data: Wikipedia, "Historical mortality rates of puerperal fever."
 - Snow, J. (1855). *On the Mode of Communication of Cholera.*
+- Tversky, A. and D. Kahneman (1974). Judgment under Uncertainty: Heuristics and Biases. *Science* 185(4157), 1124--1131.
+- Walker, M. and J. Wooders (2001). Minimax Play at Wimbledon. *American Economic Review* 91(5), 1521--1538.
 
+
+<!-- 
 # Backup
 
 ## Stata: the four equivalences and the no-anticipation simulation
@@ -783,3 +918,4 @@ reg dbar treat, cluster(sid)                              // long difference  = 
 ```
 
 - Full file, including the no-anticipation simulation (constant and dynamic effects, clean and treated baselines): `07a_did_sim.do`.
+--> 
