@@ -856,7 +856,7 @@ abline(v = pd$base + 0.5, col = "grey50", lty = 3); text(pd$base + 0.6, max(colM
 legend("topleft", bty = "n", lwd = 2, lty = 1:2, pch = c(16, 1), cex = 0.85, legend = c("enrol (gain > 0)", "do not enrol"))
 ```
 
-A training programme. Workers enrol **iff it will help them**, and they are right.
+A training programme. Workers enrol **if it will help them**, and they are right.
 
 - **Who gains?** Older, high-GPA workers. **Whose earnings rise faster anyway?** The same workers: the market pays more for age and GPA every year.
 - So choosing on the gain *is* choosing the steeper path. The picture shows earnings *without* training: enrollees pull ahead regardless.
@@ -871,7 +871,7 @@ $`r sprintf("%.2f", did_pd)`$ & $=$ & $`r sprintf("%.2f", att_pd)`$ & $+$ & $`r 
 
 ## Is the Perfect Doctor the rule or the exception?
 
-- **Not guaranteed.** Imperfect foresight does not mangle parallel trends, and humans are not good at working out what is best for them in counterfactual states 
+- Imperfect foresight does not mangle parallel trends, and humans are not good at working out what is best for them in counterfactual states 
 <!-- --- even elite tennis players and professional football teams get it wrong (Tversky and Kahneman 1974; Walker and Wooders 2001; Romer 2006). Perhaps the Perfect Doctor is the exception.-->
 - **Nevertheless.**  Firms issue, list, adopt and enter when they expect to gain: the Perfect Doctor by construction. This is why finance looks for treatments imposed on firms, by a state law, a regulator's threshold, an index rule or a court, rather than chosen by them. The next slide lists them.
 
