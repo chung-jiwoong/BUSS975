@@ -268,8 +268,27 @@ $\hat\delta$ & $`r sprintf("%.7f", ests[1])`$ & $`r sprintf("%.7f", ests[2])`$ &
 
 ## Why regression, then?
 
-- Not for the point estimate: that is fixed by the arithmetic.
-- For **standard errors** --- and for adding covariates, more periods, more groups. All of which, we will see, come with strings attached.
+- Not for the point estimate, but for what it lets you **add**:
+
+\begin{center}\footnotesize
+\begin{tabular}{R{2.5cm}R{3.7cm}R{6.3cm}}
+\toprule
+What you add & What regression gives & The string attached \\
+\midrule
+\textbf{Standard errors} & a clustered standard error in one line & cluster where treatment is assigned; few treated clusters still over-reject \\
+\addlinespace
+\textbf{Covariates} & controls for differences between groups & unit effects already absorb fixed covariates; a covariate the treatment moves is a bad control \\
+\addlinespace
+\textbf{More periods} & one coefficient per period: the event study & each is a $2 \times 2$ against one baseline: parallel trends is assumed from that baseline; change it and the estimates change \\
+\addlinespace
+\textbf{More groups and dates} & one two-way fixed-effects coefficient & with staggered dates it averages $2 \times 2$'s, some using already-treated controls \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Regression adds machinery, **not identification**. 
+
+<!-- What "the baseline is part of the assumption" means. Each event-study coefficient compares a period with the omitted baseline period. Reading a post-period coefficient as an effect assumes the groups would have moved in parallel from that particular baseline. A different baseline is a different assumption, and it gives different estimates. In the castle data, 2005 alone as the baseline gives about 0.11. The 2000 to 2005 average gives 0.068, because adopters were unusually low in 2005. -->
 
 <!--
 \vspace{0.4em}
@@ -323,6 +342,31 @@ $$
 \vspace{0.3em}
 
 - Three assumptions, in total: **parallel trends**, **no anticipation** (next), and SUTVA --- one version of the treatment, no spillovers onto the controls.
+
+<!-- DISCUSS in CLASS!
+## Parallel trends is relative: to a comparison, a baseline, a scale
+
+- **The comparison.** The assumption names a control group: "the treated would have moved like *these* units." Never-treated states and later adopters are two control groups, so two assumptions. One can hold while the other fails.
+- **The baseline.** The assumption runs from the pre period you chose. If the treated group was unusually low in its last pre year, a one-year baseline counts the rebound as an effect; a longer one counts less.
+- **The scale.** Treated firms go $100 \to 120$, controls $50 \to 60$:
+
+\begin{center}\small
+\begin{tabular}{lcccc}
+\toprule
+ & Treated change & Control change & DiD & Imputed $Y^0_k$, post \\
+\midrule
+Levels & $+20$ & $+10$ & $10$ & $100 + 10 = 110$ \\
+Logs & $+20\%$ & $+20\%$ & $0$ & $100 \times 1.2 = 120$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Both hold only if the groups start at the same level or the control does not move.
+- **Choose by the economics**, before you see the estimate:
+  - **Logs** if common shocks are a *percentage*: sales, assets, wages, stock prices.
+  - **Levels** if they are an *amount*: ratios and rates --- leverage, ROA, default rates.
+-->
+
 
 ## A numerical example: parallel trends holds
 
@@ -665,8 +709,8 @@ The 2014 Medicaid expansion was adopted by some states and not others. Outcome: 
 Good news: not by itself a violation & Bad news: a violation \\
 \midrule
 a \textbf{common constant trend} in $Y^0$ & the \textbf{Perfect Doctor}: selection on the \\
-selection on the \textbf{baseline} $Y^0$ & \quad gain $Y^1 - Y^0$ (Roy 1951; ``essential \\
-selection on \textbf{fixed effects} & \quad heterogeneity'', Heckman et al. 2006) \\
+selection on the \textbf{baseline} $Y^0$ & \quad gain $Y^1 - Y^0$  \\
+selection on \textbf{fixed effects} &  \\
 selection on \textbf{observables} (conditional PT) & \\
 selection under \textbf{imperfect foresight} & \\
 \bottomrule
@@ -689,7 +733,7 @@ $$
 <!-- Pick the treated as the richest, the poorest, or those with the biggest gains from treatment: the equality still holds. -->
 - Levels can differ as much as you like, and the level can be the reason a unit was treated. Only the *change* has to be the same.
 - This is the world assumed by $Y_{it} = \alpha_i + \lambda_t + \delta D_{it} + \varepsilon_{it}$: the year effect $\lambda_t$ *is* the common move. A strong claim. <!-- , and the one you make when you run that regression without comment. -->
-- The simulations that follow **drop** it: units carry different trends, and we ask which ways of choosing the treated still leave parallel trends intact.
+- **Next slides: no common trend.** Each unit's $Y^0$ now moves by a different amount, so parallel trends is no longer automatic. It holds only if the treated and control groups move by the same amount *on average* --- and that depends on **how the treated were chosen**. We take the selection rules one at a time.
 
 ## Good news: selection on the baseline $Y^0$
 

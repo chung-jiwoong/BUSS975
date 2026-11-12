@@ -462,11 +462,29 @@ $\hat\delta$ & $0.0682359$ & $0.0682359$ & $0.0682359$ & $0.0682359$ \\
 \begin{itemize}
 \tightlist
 \item
-  Not for the point estimate: that is fixed by the arithmetic.
+  Not for the point estimate, but for what it lets you \textbf{add}:
+\end{itemize}
+
+\begin{center}\footnotesize
+\begin{tabular}{R{2.5cm}R{3.7cm}R{6.3cm}}
+\toprule
+What you add & What regression gives & The string attached \\
+\midrule
+\textbf{Standard errors} & a clustered standard error in one line & cluster where treatment is assigned; few treated clusters still over-reject \\
+\addlinespace
+\textbf{Covariates} & controls for differences between groups & unit effects already absorb fixed covariates; a covariate the treatment moves is a bad control \\
+\addlinespace
+\textbf{More periods} & one coefficient per period: the event study & each is a $2 \times 2$ against one baseline: parallel trends is assumed from that baseline; change it and the estimates change \\
+\addlinespace
+\textbf{More groups and dates} & one two-way fixed-effects coefficient & with staggered dates it averages $2 \times 2$'s, some using already-treated controls \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
 \item
-  For \textbf{standard errors} --- and for adding covariates, more
-  periods, more groups. All of which, we will see, come with strings
-  attached.
+  Regression adds machinery, \textbf{not identification}.
 \end{itemize}
 \end{frame}
 
@@ -1140,8 +1158,8 @@ death records linked to a large federal survey.
 Good news: not by itself a violation & Bad news: a violation \\
 \midrule
 a \textbf{common constant trend} in $Y^0$ & the \textbf{Perfect Doctor}: selection on the \\
-selection on the \textbf{baseline} $Y^0$ & \quad gain $Y^1 - Y^0$ (Roy 1951; ``essential \\
-selection on \textbf{fixed effects} & \quad heterogeneity'', Heckman et al. 2006) \\
+selection on the \textbf{baseline} $Y^0$ & \quad gain $Y^1 - Y^0$  \\
+selection on \textbf{fixed effects} &  \\
 selection on \textbf{observables} (conditional PT) & \\
 selection under \textbf{imperfect foresight} & \\
 \bottomrule
@@ -1183,9 +1201,11 @@ treated were chosen.
   the year effect \(\lambda_t\) \emph{is} the common move. A strong
   claim.
 \item
-  The simulations that follow \textbf{drop} it: units carry different
-  trends, and we ask which ways of choosing the treated still leave
-  parallel trends intact.
+  \textbf{Next slides: no common trend.} Each unit's \(Y^0\) now moves
+  by a different amount, so parallel trends is no longer automatic. It
+  holds only if the treated and control groups move by the same amount
+  \emph{on average} --- and that depends on \textbf{how the treated were
+  chosen}. We take the selection rules one at a time.
 \end{itemize}
 \end{frame}
 
