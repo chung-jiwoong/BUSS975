@@ -51,7 +51,7 @@ C & $0,\,0$ & $2$ & $4$  \\
 
 (d) State in one sentence the comparison that the estimate in (c) makes, naming the firms. Then suppose you add $\text{founder}_i$, a dummy equal to one for firm A in both years. What happens to its coefficient, and what should you conclude if your software prints one anyway?
 
-(e) Now suppose $D$ is a restructuring, and firms tend to adopt it in year 2 *after a bad shock in year 1*. Name the assumption that fails, sign the bias of the estimate in (c), and say whether a two-period panel lets you detect the problem.
+(e) Now add an idiosyncratic shock $\varepsilon_{it}$ to the truth, and suppose $D$ is a restructuring that firms tend to adopt in year 2 *after a bad shock in year 1*. Name the assumption that fails, sign the bias of the estimate in (c), and say whether a two-period panel lets you detect the problem.
 
 ## Problem 2 (Richer fixed effects: what industry $\times$ year buys, and what it costs)
 
@@ -97,19 +97,73 @@ S & 2 & $3$  & $5$  & $5$  & $5$  \\
     ii. Leverage regressed on a founder-CEO dummy, in a ten-year sample in which no firm changes its CEO.
     iii. Tobin's $q$ regressed on institutional ownership over fifteen years, a period in which analyst coverage and disclosure quality improved at some firms and not at others.
 
-(b) Investment depends on true investment opportunities $q^*_{it}$, but you observe $q_{it} = q^*_{it} + e_{it}$ with classical measurement error. The noise-to-signal ratio is $\sigma^2_e/\sigma^2_{q^*} = 0.25$. The signal is persistent, with first-order autocorrelation $\rho = 0.9$; the noise is serially uncorrelated, $r = 0$. Compute the attenuation factor $\operatorname{plim}\hat\delta/\delta$ in levels and in first differences.
+(b) **Reverse causality.** The deck reported Cornwell and Trumbull's (1994) county panel, in which Becker's theory predicts that more police means less crime:
 
-(c) Recompute the first-difference factor for $r = 0.9$, and again for $r = 1$. State in one sentence the rule that decides whether differencing makes measurement error better or worse.
+    \begin{center}
+    \small
+    \begin{tabular}{lcccc}
+    \toprule
+    Crime rate on & Between & Within & 2SLS (FE) & 2SLS (no FE) \\
+    \midrule
+    Police & $0.364$ & $0.413$ & $0.504$ & $0.419$ \\
+           & $(0.060)$ & $(0.027)$ & $(0.617)$ & $(0.218)$ \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
 
-(d) A paper reports that the coefficient of investment on $q$ falls from $0.040$ in pooled OLS to $0.014$ with firm fixed effects, and concludes that "most of the sensitivity reflected unobserved firm heterogeneity." Use part (b) to give a competing explanation, with numbers. Then name one further regression that would help tell the two explanations apart, and say what each explanation predicts for it.
+    i. Every column says more police, *more* crime. Name the problem, and explain why demeaning cannot remove it.
+    ii. A colleague argues: *"Fixed effects raised the estimate from $0.364$ to $0.413$, so fixed county traits were biasing the between estimate down, and the within estimate is closer to the truth."* Evaluate the argument.
+    iii. What does the 2SLS estimate with fixed effects, $0.504$ ($0.617$), tell you about the effect of police on crime?
 
-(e) You estimate CEO fixed effects in ROA, with an average of $T = 6$ years per CEO. The idiosyncratic standard deviation of ROA is $6$ percentage points. Suppose there is no CEO effect at all: $u_i = 0$ for everyone. What is the standard deviation of the estimated effects $\hat u_i$? Does doubling the number of CEOs shrink it? Say what this implies for reading the spread of $\hat u_i$ as evidence of managerial "style."
+(c) **Time-varying confounders.** The deck also reported Cornwell and Rupert's (1997) estimates of the marriage premium for young men:
 
-(f) You want firm fixed effects in a probit for whether a firm initiates a dividend. Say what goes wrong. Then name two things you could run instead, and what each one costs you.
+    \begin{center}
+    \small
+    \begin{tabular}{lcccc}
+    \toprule
+    Log wage on & RE & Within & Within & Within \\
+    \midrule
+    Married & $0.083$ & $0.056$ & $0.051$ & $0.033$ \\
+            & $(0.022)$ & $(0.026)$ & $(0.026)$ & $(0.028)$ \\
+    \midrule
+    Education controls & Yes & No & No & No \\
+    Tenure & No & No & Yes & Yes \\
+    Quadratic in years married & No & No & No & Yes \\
+    \bottomrule
+    \end{tabular}
+    \end{center}
+
+    i. The coefficient falls from $0.083$ with random effects to $0.056$ within. What does the fall suggest about who marries, and which assumption of random effects does it cast doubt on? Why do the within columns have no education controls?
+    ii. Adding tenure lowers the estimate to $0.051$. Tell one story in which tenure is a time-varying *confounder* and one in which it is a *channel* through which marriage raises wages. In each story, which of $0.056$ and $0.051$ answers "what does marriage do to a man's wage?"
+    iii. The last column adds a quadratic in years married (zero for men who are not married), and the coefficient falls to an insignificant $0.033$. Explain why this is not evidence that the marriage premium is smaller than in the previous column.
 
 \newpage
 
-## Problem 4 (Inference: clusters, and too few of them)
+## Problem 4 (What fixed effects cost)
+
+(a) Investment depends on true investment opportunities $q^*_{it}$, but you observe $q_{it} = q^*_{it} + e_{it}$ with classical measurement error. The noise-to-signal ratio is $\sigma^2_e/\sigma^2_{q^*} = 0.25$. The signal is persistent, with first-order autocorrelation $\rho = 0.9$; the noise is serially uncorrelated, $r = 0$. Compute the attenuation factor $\operatorname{plim}\hat\delta/\delta$ in levels and in first differences.
+
+(b) Recompute the first-difference factor for $r = 0.9$, and again for $r = 1$. State in one sentence the rule that decides whether differencing makes measurement error better or worse.
+
+(c) **From first differences to fixed effects.** The deck derived part (a)'s formula for first differences, which subtract last year's value. Fixed effects subtract the firm's $T$-year average instead. For the same signal and noise as in (a), the within estimator over $T$ years gives (Griliches and Hausman 1986, Section II, with the signal's autocorrelations $\rho_k = \rho^k$)
+$$
+\frac{\operatorname{plim}\hat\delta_{\text{FE}}}{\delta} = \frac{1}{1 + \dfrac{\sigma^2_e}{\sigma^2_{q^*}} \cdot \dfrac{1 - 1/T}{1 - V_T}},
+\qquad
+V_T = \frac{1}{T}\Big[1 + 2\sum_{k=1}^{T-1}\Big(1 - \frac{k}{T}\Big)\rho^k\Big],
+$$
+where $V_T = \operatorname{Var}(\bar q^*_i)/\sigma^2_{q^*}$ is the share of the signal's variance that the firm's own average absorbs, and $1 - 1/T$ is the share of the (serially uncorrelated) noise that survives demeaning.
+
+    i. Show that with $T = 2$ the formula is the first-difference factor of part (a).
+    ii. With $T = 10$ and $\rho = 0.9$, $V_{10} = 0.728$. Compute the attenuation factor. Explain why fixed effects attenuate more than levels but less than first differences, and what happens as $T$ grows.
+    iii. A paper with a ten-year panel reports that the coefficient of investment on $q$ falls from $0.040$ in pooled OLS to $0.027$ with firm fixed effects, and concludes that "a third of the sensitivity reflected unobserved firm heterogeneity." Give a competing explanation, with numbers. Then say what first differences, and longer differences, would show under each explanation.
+
+(d) You estimate CEO fixed effects in ROA, with an average of $T = 6$ years per CEO. The idiosyncratic standard deviation of ROA is $6$ percentage points. Suppose there is no CEO effect at all: $u_i = 0$ for everyone. What is the standard deviation of the estimated effects $\hat u_i$? Does doubling the number of CEOs shrink it? Say what this implies for reading the spread of $\hat u_i$ as evidence of managerial "style."
+
+(e) You want firm fixed effects in a probit for whether a firm initiates a dividend. Say what goes wrong. Then name two things you could run instead, and what each one costs you.
+
+\newpage
+
+## Problem 5 (Inference: clusters, and too few of them)
 
 (a) A coauthor says: *"We already have firm fixed effects, so the correlation of errors within a firm is taken care of. Clustering by firm is redundant."* Say what the fixed effects do remove from the error, what they leave behind, and why the claim is wrong.
 

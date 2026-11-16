@@ -1173,7 +1173,7 @@ levels, classical attenuation says
 \protect\phantomsection\label{but-it-depends-on-what-persists}
 Write \(\rho\) for the autocorrelation of the \textbf{signal} and \(r\)
 for the autocorrelation of the \textbf{noise}. For first differences (FE
-behaves the same way; the algebra is messier):
+is attenuated the same way, but less when \(T\) is long):
 
 \[
 \operatorname{plim}\hat\delta \;=\; \delta \cdot \frac{1}{1 + \dfrac{\sigma_e^2\,(1-r)}{\sigma_{x^*}^2\,(1-\rho)}} .
@@ -1198,6 +1198,9 @@ $r = 1$          & the mismeasurement is \emph{constant} & FE \textbf{eliminates
 \item
   Fixed effects worsens measurement error \textbf{whenever the noise is
   less persistent than the signal}.
+\item
+  With \(\rho = 0.9\), \(r = 0\), noise-to-signal \(0.25\): levels
+  \(0.80\); FE over \(10\) years \(0.55\); FD \(0.29\).
 \end{itemize}
 \end{frame}
 

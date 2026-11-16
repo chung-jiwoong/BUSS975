@@ -1,0 +1,917 @@
+---
+title: "Difference-in-Differences: Staggered Adoption"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+author: "Professor Ji-Woong Chung"
+institute: "Korea University"
+format:
+  beamer:
+    aspectratio: 169
+    fontsize: 11pt
+    slide-level: 2
+    toc: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    keep-tex: true
+    include-in-header:
+      text: |
+        \setbeamertemplate{navigation symbols}{}
+        \setbeamertemplate{footline}[frame number]
+        \setbeamertemplate{itemize items}[circle]
+        \setbeamertemplate{itemize subitem}[triangle]
+        \setbeamercolor{frametitle}{fg=black}
+        \setbeamerfont{frametitle}{series=\bfseries}
+        \usepackage{amsmath}
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+        \usepackage{array}
+        \usepackage{adjustbox}
+        \newcommand{\src}[1]{\par\vspace{-0.2em}{\tiny\color{gray} Source: #1}\par}
+        \usepackage{fancyvrb}
+        \fvset{fontsize=\scriptsize}
+        \makeatletter
+        \def\verbatim@font{\scriptsize\ttfamily}
+        \makeatother
+execute:
+  echo: false
+  warning: false
+  message: false
+  cache: false
+---
+
+```{r setup}
+suppressPackageStartupMessages({ library(haven); library(fixest) })
+f1 <- function(x) sprintf("%.1f", x)
+f2 <- function(x) sprintf("%.2f", x)
+f3 <- function(x) sprintf("%.3f", x)
+# Baker simulation (Cunningham, Remix ch. 10): 1,000 firms, 1980-2009, four cohorts of 250 treated in 1986/92/98/2004.
+b <- as.data.frame(read_dta("data/baker.dta"))
+b <- b[, c("id", "group", "year", "treat_date", "treat", "y", "y2", "time_til")]
+# Cheng and Hoekstra (2013), all 50 states: cohorts 2005-2009 and 29 never-treated.
+cst <- as.data.frame(read_dta("data/castle.dta"))
+cst$treat_date <- cst$effyear; cst$id <- cst$sid
+cst$post <- as.numeric(!is.na(cst$effyear) & cst$year >= cst$effyear)
+cst$time_til <- ifelse(is.na(cst$effyear), -1, cst$year - cst$effyear)
+
+# One group-time ATT, by hand: a 2x2 of cohort g from g-1 to t, against units untreated in both periods.
+att_gt <- function(d, yvar, g, t, control = c("notyet", "never")) {
+  control <- match.arg(control); base <- g - 1
+  gd <- d$treat_date; nev <- is.na(gd); tr <- !nev & gd == g
+  co <- if (control == "notyet") (nev | gd > max(t, base)) & !tr else nev
+  if (!any(co) || !any(tr & d$year == t)) return(NA_real_)
+  m <- function(w, yr) mean(d[[yvar]][w & d$year == yr])
+  (m(tr, t) - m(tr, base)) - (m(co, t) - m(co, base))
+}
+cs_table <- function(d, yvar, control = "notyet") {
+  gs <- sort(unique(d$treat_date)); yrs <- sort(unique(d$year))
+  o <- expand.grid(g = gs, t = yrs); o$rel <- o$t - o$g
+  o$att <- mapply(function(g, t) att_gt(d, yvar, g, t, control), o$g, o$t)
+  o$n <- as.numeric(table(d$treat_date[d$year == min(d$year)])[as.character(o$g)])
+  o
+}
+# Goodman-Bacon (2021) decomposition, by hand (as in 7b).
+bacon <- function(d, yvar, idvar = "id", tvar = "year", gvar = "treat_date") {
+  Tn <- length(unique(d[[tvar]])); t0 <- min(d[[tvar]]); tmax <- max(d[[tvar]]); N <- length(unique(d[[idvar]]))
+  d$D <- as.numeric(!is.na(d[[gvar]]) & d[[tvar]] >= d[[gvar]])
+  Dt <- d$D - ave(d$D, d[[idvar]]) - ave(d$D, d[[tvar]]) + mean(d$D); VD <- mean(Dt^2)
+  units <- d[!duplicated(d[[idvar]]), c(idvar, gvar)]
+  grps <- sort(unique(units[[gvar]][!is.na(units[[gvar]])])); grps <- grps[grps > t0]
+  nU <- mean(is.na(units[[gvar]])); nk <- sapply(grps, function(g) sum(units[[gvar]] == g, na.rm = TRUE) / N)
+  Dbar <- (tmax - grps + 1) / Tn
+  m <- function(gsel, yr) mean(d[[yvar]][gsel & d[[tvar]] >= yr[1] & d[[tvar]] <= yr[2]])
+  out <- list()
+  for (i in seq_along(grps)) {
+    k <- grps[i]; gk <- !is.na(d[[gvar]]) & d[[gvar]] == k
+    if (nU > 0) {
+      gU <- is.na(d[[gvar]]); nkU <- nk[i] / (nk[i] + nU)
+      dd <- (m(gk, c(k, tmax)) - m(gk, c(t0, k - 1))) - (m(gU, c(k, tmax)) - m(gU, c(t0, k - 1)))
+      w <- (nk[i] + nU)^2 * nkU * (1 - nkU) * Dbar[i] * (1 - Dbar[i]) / VD
+      out[[length(out) + 1]] <- data.frame(type = "Treated vs never treated", k = k, l = NA, dd = dd, w = w)
+    }
+    for (j in seq_along(grps)) if (grps[j] > k) {
+      l <- grps[j]; gl <- !is.na(d[[gvar]]) & d[[gvar]] == l
+      nkl <- nk[i] / (nk[i] + nk[j]); Dk <- Dbar[i]; Dl <- Dbar[j]
+      dd1 <- (m(gk, c(k, l - 1)) - m(gk, c(t0, k - 1))) - (m(gl, c(k, l - 1)) - m(gl, c(t0, k - 1)))
+      w1 <- ((nk[i] + nk[j]) * (1 - Dl))^2 * nkl * (1 - nkl) * ((Dk - Dl) / (1 - Dl)) * ((1 - Dk) / (1 - Dl)) / VD
+      dd2 <- (m(gl, c(l, tmax)) - m(gl, c(k, l - 1))) - (m(gk, c(l, tmax)) - m(gk, c(k, l - 1)))
+      w2 <- ((nk[i] + nk[j]) * Dk)^2 * nkl * (1 - nkl) * (Dl / Dk) * ((Dk - Dl) / Dk) / VD
+      out[[length(out) + 1]] <- data.frame(type = "Earlier treated vs later control", k = k, l = l, dd = dd1, w = w1)
+      out[[length(out) + 1]] <- data.frame(type = "Later treated vs earlier control", k = k, l = l, dd = dd2, w = w2)
+    }
+  }
+  do.call(rbind, out)
+}
+bysum <- function(x) do.call(rbind, lapply(split(x, x$type), function(z) data.frame(type = z$type[1], weight = sum(z$w), avg = sum(z$w * z$dd) / sum(z$w))))
+tw_d <- feols(y ~ treat | id + year, b, cluster = ~id)
+bks <- bysum(bacon(b, "y"))
+tw_cst <- feols(l_homicide ~ post | sid + year, cst, cluster = ~sid)
+bcs <- bysum(bacon(cst, "l_homicide", idvar = "sid", tvar = "year", gvar = "effyear"))
+```
+
+## Where we left off
+
+- Lecture 7b: under staggered adoption, TWFE is a weighted average of **every** $2 \times 2$ in the data, weighted by group size and treatment variance.
+- Some of those $2 \times 2$'s use an **already-treated** control. They subtract the control's own growing effect:
+$$
+\operatorname{plim}\hat\delta^{TWFE} = \text{VWATT} + \text{VWPT} - \Delta\text{ATT}.
+$$
+- Baker simulation: all effects positive, parallel trends exact. True simple ATT $82$; TWFE $`r f2(coef(tw_d))`$. Weight $`r f2(bks$weight[2])`$ on forbidden comparisons averaging $`r f1(bks$avg[2])`$.
+
+\vspace{0.4em}
+
+- Today: estimators that **never** make the forbidden comparison, how to read their event studies, and a checklist for your own design.
+
+## The plan
+
+1. **Callaway and Sant'Anna**: build group-time $2 \times 2$'s, then aggregate.
+2. **Sun and Abraham**: what goes wrong in the TWFE *event study*, and the interaction-weighted fix.
+3. **de Chaisemartin and D'Haultfoeuille**: treatments that switch off.
+4. **Borusyak, Jaravel and Spiess**: imputation.
+5. **Reading an event study**: long differences, short gaps, honest bounds.
+6. **A checklist**, worked through Brazil's mental-health reform.
+
+\vspace{0.4em}
+
+- One running question: **which $2 \times 2$'s are inside my estimate, and what weight does each carry?**
+
+# 1. Callaway and Sant'Anna
+
+## Stop asking for one number
+
+- TWFE asks for **one** $\delta$ and lets OLS decide how to average. CS reverses the order:
+  1. estimate many small, clean effects;
+  2. average them with weights **you** choose.
+- The small effect is the **group-time ATT** (Callaway and Sant'Anna 2021). For the cohort first treated at $g$, in calendar period $t$,
+$$
+\text{ATT}(g, t) = \mathbb{E}[Y^1_t - Y^0_t \mid G_g = 1].
+$$
+- Example: $\text{ATT}(1992, 1995)$ is the effect on firms treated in 1992, measured in 1995, their fourth treated year.
+- Useful when effects depend on adoption date, change with time since treatment, or vary with macro conditions.
+
+## Each $\text{ATT}(g,t)$ is a $2 \times 2$ you would choose by hand
+
+Cohort $g$ from its baseline $g - 1$ to $t$, against units **untreated in both periods**. For $\text{ATT}(1992, 1995)$ in the Baker data:
+
+\begin{center}\small
+\begin{tabular}{lccl}
+\toprule
+Cohort & 1991 (baseline) & 1995 & Role \\
+\midrule
+1986 & treated & treated & already treated: \textbf{excluded} \\
+1992 & untreated & treated & the treated group \\
+1998 & untreated & untreated & control (not yet treated) \\
+2004 & untreated & untreated & control (not yet treated) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+```{r cs-one-cell}
+a9295 <- att_gt(b, "y", 1992, 1995)
+```
+
+- $\widehat{\text{ATT}}(1992, 1995) = `r f2(a9295)`$; the truth is $8 \times 4 = 32$.
+- Controls are either **never-treated** or **not-yet-treated**. Never a unit that is already treated.
+
+## With covariates, and the assumptions
+
+The $2 \times 2$ becomes 7b's IPW, OR or DR estimator, with a score estimated among cohort $g$ and its controls $C$, $\hat p(X) = \Pr(G_g = 1 \mid X, G_g + C = 1)$:
+$$
+\text{ATT}(g,t) = \mathbb{E}\!\left[\left(\frac{G_g}{\mathbb{E}[G_g]} - \frac{\frac{\hat p(X) C}{1 - \hat p(X)}}{\mathbb{E}\!\left[\frac{\hat p(X) C}{1 - \hat p(X)}\right]}\right)\big(Y_t - Y_{g-1}\big)\right].
+$$
+
+1. **Absorbing** treatment: once on, always on.
+2. **No anticipation.**
+3. **Parallel trends**, given $X$, between cohort $g$ and the chosen controls.
+4. **Weak overlap**, and one correct nuisance model if $X$ is used.
+
+The score changes cohort by cohort, because the pool of untreated controls shrinks.
+
+## Aggregation: the weights are yours
+
+Once you have the cells, any non-negative average of them is a valid parameter:
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+Parameter & Averages $\text{ATT}(g,t)$ over & Answers \\
+\midrule
+Simple ATT & all post-treatment cells, by size & average effect on treated unit-years \\
+Group ATT & $t \ge g$ within cohort, then cohorts & average effect per adopting cohort \\
+Event study $\theta(\ell)$ & cohorts at the same $\ell = t - g$ & how effects evolve with exposure \\
+Calendar $\theta(t)$ & cohorts treated by $t$ & effect in a given year \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Compare TWFE: one average, weights set by treatment variance, some cells from forbidden comparisons.
+- Here the weights are written down **before** estimation and have a meaning.
+
+## Which cells exist
+
+Baker data, dynamic effects. A cell is estimable only while some unit is still untreated at $t$:
+
+\begin{center}\scriptsize
+\begin{tabular}{lccccc}
+\toprule
+Year & $g = 1986$ & $g = 1992$ & $g = 1998$ & $g = 2004$ & Untreated control? \\
+\midrule
+1985 & 0 & 0 & 0 & 0 & yes \\
+1986 & 10 & 0 & 0 & 0 & yes \\
+1992 & 70 & 8 & 0 & 0 & yes \\
+1998 & 130 & 56 & 6 & 0 & yes \\
+2003 & 180 & 96 & 36 & 0 & yes \\
+2004 & 190 & 104 & 42 & 4 & \textbf{no} \\
+2009 & 240 & 144 & 72 & 24 & \textbf{no} \\
+\midrule
+ATT($g$), all cells & 125 & 76 & 39 & 14 & \\
+ATT($g$), feasible cells & 95 & 52 & 21 & -- & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- From 2004 everyone is treated. The 2004 cohort exists only as a control.
+
+## What the data can and cannot tell you
+
+- Feasible simple ATT $68.3$ and feasible group ATT $56$, against $82$ and $63.5$ using every cell.
+- The gap is not estimator bias. The late, large effects are not identified by **any** honest comparison: there is no one left to compare with.
+- TWFE used those years anyway, through forbidden comparisons. That is where its answer came from.
+
+\vspace{0.4em}
+
+- A general lesson: an honest estimator may target a **smaller** parameter than you hoped. Say which one.
+
+## One cell by hand, then all of them
+
+```{r baker-cs}
+cs <- cs_table(b, "y")
+post <- cs[cs$rel >= 0 & !is.na(cs$att), ]
+grp <- tapply(post$att, post$g, mean)
+a1 <- att_gt(b, "y", 1986, 1986)
+```
+
+$\text{ATT}(1986, 1986)$: the 1986 cohort's change from 1985 to 1986, less the change for firms not yet treated in 1986 (the 1992, 1998 and 2004 cohorts):
+$$
+\widehat{\text{ATT}}(1986,1986) = (\bar y_{1986}^{\,g=1986} - \bar y_{1985}^{\,g=1986}) - (\bar y_{1986}^{\,C} - \bar y_{1985}^{\,C}) = `r f2(a1)` \qquad (\text{truth } 10).
+$$
+
+- Four averages and three subtractions. With covariates they become four *weighted* averages.
+- That is the whole estimator; the package only loops over $(g, t)$.
+
+## All $`r nrow(post)`$ feasible cells, aggregated
+
+\begin{center}\small
+\begin{tabular}{lccc}
+\toprule
+ & Estimate & Feasible truth & Full truth \\
+\midrule
+Simple ATT: mean over cells & $`r f2(mean(post$att))`$ & $68.33$ & $82$ \\
+Group ATT: mean of ATT($g$) & $`r f2(mean(grp))`$ & $56$ & $63.5$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- ATT($g$) by cohort: $`r f1(grp[1])`$, $`r f1(grp[2])`$, $`r f1(grp[3])`$, against $95$, $52$, $21$.
+- TWFE said $`r f2(coef(tw_d))`$. Same data, same assumptions; the only change is which comparisons are allowed.
+- Stata: `csdid2 y, ivar(id) time(year) gvar(treat_date) notyet method(stdipw) long2`. R: `did::att_gt`.
+
+## Event studies from building blocks
+
+```{r baker-es}
+#| fig-width: 8
+#| fig-height: 2.4
+#| out-width: 76%
+#| fig-align: center
+bs <- b[b$year <= 2003, ]
+es_tw <- feols(y ~ i(time_til, ref = -1) | id + year, bs, cluster = ~id)
+dropped <- as.numeric(sub("time_til::", "", es_tw$collin.var))   # lags fixest removes as collinear
+bs$tt0 <- ifelse(bs$treat_date == 2004, -1, bs$time_til)        # 2004 cohort coded as never treated
+es_tw0 <- feols(y ~ i(tt0, ref = -1) | id + year, bs, cluster = ~id)
+c0 <- coef(es_tw0)
+es_sa <- feols(y ~ sunab(treat_date, year, ref.c = 2004) | id + year, bs, cluster = ~id)
+rt <- -6:11
+ctw <- coef(es_tw)[paste0("time_til::", rt)]; csa <- coef(es_sa)[paste0("year::", rt)]
+ctw[is.na(ctw)] <- 0; csa[is.na(csa)] <- 0                     # the omitted baseline
+ccs <- sapply(rt, function(r) mean(cs$att[cs$rel == r], na.rm = TRUE))
+par(mar = c(2.6, 3.2, 0.3, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
+plot(rt, ccs, type = "b", pch = 16, lwd = 2, col = "steelblue", ylim = range(c(ctw, csa, ccs, 0)), xlab = "years since treatment", ylab = "coefficient", las = 1)
+lines(rt, csa, type = "b", pch = 1, lwd = 2, lty = 2, col = "darkgreen")
+lines(rt, ctw, type = "b", pch = 4, lwd = 2, col = "firebrick")
+abline(h = 0, col = "grey60"); abline(v = -0.5, col = "grey50", lty = 3)
+legend("topleft", bty = "n", lwd = 2, col = c("steelblue", "darkgreen", "firebrick"), pch = c(16, 1, 4), lty = c(1, 2, 1), cex = 0.85, legend = c("Callaway-Sant'Anna, by hand", "Sun-Abraham (fixest::sunab)", "TWFE event study"))
+```
+
+- Average the cells by **relative time** $\ell = t - g$. Years to 2003, so the 2004 cohort is the untreated control.
+
+## Reading the event study: CS and SA
+
+- CS and SA sit on the truth.
+  - At $\ell = 0$ all three cohorts contribute: $(10 + 8 + 6)/3 = 8$.
+  - At $\ell = 6$ only 1986 and 1992 remain: $(70 + 56)/2 = 63$.
+- The staircase is real, but partly a **composition effect**: later lags are early adopters' effects.
+- Moving right along the axis changes both the time since treatment and **who is averaged**.
+
+## Reading the event study: what went wrong with TWFE
+
+- The TWFE line, as usually run, gives the 2004 cohort lead dummies too. No unit is left as a reference.
+- Relative time is then collinear with the fixed effects, and fixest **silently drops $\ell = `r min(dropped)`, \dots, `r max(dropped)`$**.
+- Those dropped post periods load onto every other coefficient (Section 2): a falling "pre-trend" and near-zero effects that do not exist.
+
+\vspace{0.4em}
+
+- Code the 2004 cohort as never treated and TWFE is identified: leads $`r f1(c0["tt0::-6"])`$ to $`r f1(c0["tt0::-2"])`$, $\hat\mu_0 = `r f1(c0["tt0::0"])`$, $\hat\mu_{6} = `r f1(c0["tt0::6"])`$, against $8$ and $63$.
+- Contaminated, but mildly. Most of the damage in the figure came from the dropped periods.
+
+## Castle doctrine, all cohorts: CS against TWFE
+
+```{r castle-cs}
+csc <- cs_table(cst, "l_homicide", control = "never")
+pc <- csc[csc$rel >= 0, ]
+simple_cs <- weighted.mean(pc$att, pc$n)
+evc <- sapply(split(csc, csc$rel), function(x) weighted.mean(x$att, x$n, na.rm = TRUE))
+es_c <- feols(l_homicide ~ i(time_til, ref = -1) | sid + year, cst, cluster = ~sid)
+```
+
+\begin{center}\small
+\begin{tabular}{lcccccccc}
+\toprule
+ & Static & $\ell=-3$ & $\ell=-2$ & $\ell=0$ & $\ell=1$ & $\ell=2$ & $\ell=3$ & $\ell=4$ \\
+\midrule
+TWFE & $`r f3(coef(tw_cst))`$ & $`r f3(coef(es_c)["time_til::-3"])`$ & $`r f3(coef(es_c)["time_til::-2"])`$ & $`r f3(coef(es_c)["time_til::0"])`$ & $`r f3(coef(es_c)["time_til::1"])`$ & $`r f3(coef(es_c)["time_til::2"])`$ & $`r f3(coef(es_c)["time_til::3"])`$ & $`r f3(coef(es_c)["time_til::4"])`$ \\
+CS, never-treated & $`r f3(simple_cs)`$ & $`r f3(evc["-3"])`$ & $`r f3(evc["-2"])`$ & $`r f3(evc["0"])`$ & $`r f3(evc["1"])`$ & $`r f3(evc["2"])`$ & $`r f3(evc["3"])`$ & $`r f3(evc["4"])`$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- CS: $`r nrow(pc)`$ group-time cells against the $29$ never-adopting states, weighted by cohort size ($1, 13, 4, 2, 1$ states). Each cell uses the fixed baseline $g-1$.
+
+## Castle doctrine: why the static numbers differ
+
+- Static CS: $`r round(100 * simple_cs)`$ percent. TWFE: $`r round(100 * coef(tw_cst))`$ percent.
+- Not the forbidden comparisons: TWFE's clean treated-vs-never $2 \times 2$'s alone average $`r f3(bcs$avg[3])`$.
+- The rest is **weighting and baseline**:
+  - TWFE weights cohorts by treatment variance and compares *all* post years with *all* pre years;
+  - CS weights by cohort size and differences each year from $g - 1$.
+- The event-study coefficients barely move. Here the two agree on the story.
+- In Baker, Larcker and Wang's replications they did not. You cannot know which case you are in without looking.
+
+# 2. Sun and Abraham
+
+## The TWFE event study and its three assumptions
+
+The canonical event study under differential timing:
+$$
+Y_{it} = \alpha_i + \lambda_t + \sum_{\ell \ne -1}\mu_\ell\,\mathbf{1}\{t - E_i = \ell\} + \varepsilon_{it}.
+$$
+
+For $\hat\mu_\ell$ to mean "the effect $\ell$ periods after treatment", three things must hold:
+
+1. **parallel trends** for every cohort;
+2. **no anticipation**;
+3. a **homogeneous effect profile**: every cohort follows the same path of effects after treatment.
+
+- Dynamics are fine. What is not fine is cohorts with **different** dynamics: early adopters' effects growing faster, say.
+
+## Contamination: what each coefficient really contains
+
+Sun and Abraham (2021) write each $\hat\mu_\ell$ in terms of cohort-specific effects $\text{CATT}_{e,\ell}$:
+
+$$
+\hat\mu_\ell = \underbrace{\sum_e w^{\ell}_{e,\ell}\,\text{CATT}_{e,\ell}}_{\text{own period: sum to } 1} +
+\underbrace{\sum_{\ell' \ne \ell}\sum_e w^{\ell}_{e,\ell'}\,\text{CATT}_{e,\ell'}}_{\text{other included periods: sum to } 0} +
+\underbrace{\sum_{\ell' \in \text{excl}}\sum_e w^{\ell}_{e,\ell'}\,\text{CATT}_{e,\ell'}}_{\text{excluded periods: sum to } -1}.
+$$
+
+- Weights that sum to zero must contain negatives: the coefficient for $\ell = -2$ can contain effects from $\ell = +5$.
+- **Contamination**, the same disease as judge dummies in Lecture 5b (Goldsmith-Pinkham, Hull and Kolesár 2024).
+
+## The two-cohort example
+
+Three periods ($t = 0, 1, 2$). Cohort 1 is treated in period 1, cohort 2 in period 2. Include dummies for $\ell \in \{-2, 0\}$; exclude $\{-1, +1\}$. Then
+$$
+\hat\mu_{-2} = \underbrace{\text{CATT}_{2,-2}}_{\text{own}} + \underbrace{\tfrac12\text{CATT}_{1,0} - \tfrac12\text{CATT}_{2,0}}_{\text{other included}} + \underbrace{\tfrac12\text{CATT}_{1,1} - \text{CATT}_{1,-1} - \tfrac12\text{CATT}_{2,-1}}_{\text{excluded}}.
+$$
+
+- A **pre-period** coefficient, built from five cohort-period effects, some of them **post-treatment**.
+- Now switch on the three assumptions one at a time.
+
+## Switching on the assumptions
+
+- **Parallel trends** makes every term a causal effect rather than a trend difference.
+- **No anticipation** deletes the three pre-period terms.
+- **Homogeneous profiles** make $\text{CATT}_{1,0} = \text{CATT}_{2,0}$, so the middle cancels.
+
+\vspace{0.4em}
+
+- What survives is $\tfrac12\text{CATT}_{1,1}$: a "pre-trend" made of a **post-treatment effect from an excluded period**.
+- Nobody excludes a post period on purpose. Software does it when no unit is untreated: fixest dropped $\ell \ge `r min(dropped)`$ in the Baker figure. Binning distant lags into the reference group does it too.
+- With heterogeneous profiles the middle term survives as well.
+
+## The interaction-weighted estimator
+
+1. Run a $2 \times 2$ for **each cohort and each relative period**, against the **never-treated** or the **last-treated** cohort. These are the $\text{CATT}_{e,\ell}$.
+2. Weight each cohort by its share of the units observed at relative time $\ell$.
+3. Sum. The result is consistent for $\text{ATT}_\ell$ under parallel trends and no anticipation alone.
+
+\vspace{0.3em}
+
+- In the Baker figure it gives the truth, with the 2004 cohort as control. R: `fixest::sunab(cohort, period)`; Stata: `eventstudyinteract`.
+- The key difference from CS is the control: **not** the not-yet-treated.
+- CS and SA are the same building blocks with different default controls and aggregations. If they disagree, parallel trends holds for one control group and not the other: a fact about your design.
+
+# 3. de Chaisemartin and D'Haultfoeuille
+
+## Negative weights on unit-time effects
+
+- dCDH diagnose the same disease one level down. TWFE is a weighted sum of **every treated cell's effect**, and some weights are **negative**.
+- Which cells? Mostly long-treated units in heavily treated periods: exactly the already-treated controls of 7b.
+- A negative weight means a *larger* effect in that cell *lowers* the coefficient.
+- If you must report TWFE, report the share of negative weights (Stata: `twowayfeweights`).
+- Bacon's weights are all positive and dCDH's are not. Both are right: Bacon weights $2 \times 2$ *comparisons*; dCDH weight *treatment effects*.
+
+## Treatments that switch off: $\text{DID}_M$
+
+At each date, average two kinds of $2 \times 2$:
+
+- **joiners**: units switching **into** treatment at $t$, against units untreated at both $t-1$ and $t$;
+- **leavers**: units switching **out**, against units treated at both.
+
+\vspace{0.3em}
+
+- So the treatment may **turn off**. With absorbing treatment it reduces to a joiner average.
+- The price is **no carryover**: the outcome at $t$ depends on treatment at $t$ only. The road is dry the moment it stops raining. That is no anticipation pointed the other way, and often harder to believe.
+- Newer work relaxes it: `did_multiplegt_dyn` lets outcomes depend on treatment history, and handles non-binary and continuous treatments.
+
+# 4. Imputation
+
+## Borusyak, Jaravel and Spiess (2024)
+
+1. Using **untreated cells only** (never-treated and not-yet-treated), fit $Y_{it} = \alpha_i + \tau_t + \varepsilon_{it}$.
+2. Predict $\hat Y^0_{it} = \hat\alpha_i + \hat\tau_t$ for every treated cell.
+3. $\hat\tau_{it} = Y_{it} - \hat Y^0_{it}$ for each treated cell; average with the weights your target parameter demands.
+4. Standard errors from the implied linear combination of outcomes.
+
+\vspace{0.4em}
+
+- Intuition: the unit effect $\hat\alpha_i$ comes from the unit's own pre-treatment years; the year effect $\hat\tau_t$ comes from whoever is untreated that year.
+- Treated cells never help estimate the counterfactual, so no treated unit can act as a control.
+
+## Imputation on the Baker data, by hand
+
+```{r baker-bjs}
+fe0 <- feols(y ~ 1 | id + year, b[b$treat == 0, ])
+tr <- b[b$treat == 1 & b$year <= 2003, ]
+tr$tau <- tr$y - predict(fe0, newdata = tr)
+```
+
+- Years to 2003; after that no one is untreated, so there is no year effect to estimate.
+- Simple ATT $`r f2(mean(tr$tau))`$ against CS's $`r f2(mean(post$att))`$. Cohort ATTs $`r f1(tapply(tr$tau, tr$treat_date, mean)[1])`$, $`r f1(tapply(tr$tau, tr$treat_date, mean)[2])`$, $`r f1(tapply(tr$tau, tr$treat_date, mean)[3])`$.
+
+\vspace{0.4em}
+
+- The assumption is stronger: parallel trends **in every period and for every unit**, not just from $g - 1$.
+- In exchange it uses every pre-period, and it is the most efficient under homoskedasticity.
+- Wooldridge (2021) is numerically the same in balanced panels; Gardner (2021) is the two-stage version.
+
+## Four estimators side by side
+
+\begin{center}\scriptsize
+\begin{tabular}{lllll}
+\toprule
+ & Controls & Baseline & Parallel trends needed & Treatment \\
+\midrule
+CS & never or not-yet-treated & $g - 1$ & from $g - 1$ to $t$ & absorbing \\
+SA & never or last-treated & $\ell = -1$ & cohort vs. that control & absorbing \\
+dCDH & same status at $t-1$ and $t$ & $t - 1$ & one period at a time & can switch; no carryover \\
+BJS & all untreated cells & all pre-periods & every period, every unit & absorbing \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- All four refuse the forbidden comparison. They differ in **which** clean comparison they trust.
+- Choose by the assumption, not the standard error: CS relies less on parallel trends far from the baseline; BJS buys precision with more of it.
+- Many covariates? Imputation or Wooldridge's regression may beat CS, whose propensity scores can run into support problems; the price is functional form.
+
+## Does it matter? Finance and accounting
+
+- Baker, Larcker and Wang (2022): over $700$ DiD papers in top finance and accounting journals, about $400$ with staggered adoption, nearly all estimated by TWFE.
+- They replicated two: **bank deregulation** (interstate branching) and **board reforms** across countries. With the estimators above, the headline results were weakened or overturned.
+- The mechanism is Baker's: effects that build over time, cohorts that differ, a regression that subtracts early adopters' growing effects from late adopters' estimates.
+
+## What this means for your own paper
+
+- What Baker, Larcker and Wang do **not** say: that staggered DiD is dead, or every old result wrong.
+- What they do say: for a decade the field reported a number without knowing which comparisons were inside it.
+
+\vspace{0.4em}
+
+In a staggered design, report:
+
+1. which $(g, t)$ cells are estimable;
+2. which control group you use, and why;
+3. how you aggregate, and what parameter that gives;
+4. if you also report TWFE, the Bacon weights beside it.
+
+# 5. Reading an Event Study
+
+## Two ways to compute a pre-period coefficient (Roth 2024)
+
+**Long difference**: every period against **one** baseline, $\ell = -1$. This is what OLS does.
+$$
+\hat\delta_{-3} = (\bar Y_T^{\,-3} - \bar Y_T^{\,-1}) - (\bar Y_C^{\,-3} - \bar Y_C^{\,-1}).
+$$
+**Short gap**: every period against **the one before it**. Some packages do this by default.
+$$
+\hat\delta_{-3} = (\bar Y_T^{\,-3} - \bar Y_T^{\,-2}) - (\bar Y_C^{\,-3} - \bar Y_C^{\,-2}).
+$$
+
+- Both are four averages and three subtractions. They answer **different questions**: "how far from the baseline?" against "how much did the gap change this year?"
+
+## The same data, both ways
+
+```{r roth}
+tt <- -5:5
+mu_c <- 10 + 0.5 * (tt + 5); mu_t <- 12 + 0.8 * (tt + 5) + 3 * (tt >= 0)
+long <- (mu_t - mu_t[tt == -1]) - (mu_c - mu_c[tt == -1]); short <- c(NA, diff(mu_t) - diff(mu_c))
+```
+
+\begin{center}\small
+\begin{tabular}{lrrrrrrrrrrr}
+\toprule
+$\ell$ & $-5$ & $-4$ & $-3$ & $-2$ & $-1$ & $0$ & $1$ & $2$ & $3$ & $4$ & $5$ \\
+\midrule
+Long difference & `r paste(f1(long), collapse = " & ")` \\
+Short gap & -- & `r paste(f1(short[-1]), collapse = " & ")` \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Noise-free: the treated group trends $0.3$ a year faster than controls throughout, plus an effect of $3$ at $\ell = 0$.
+- **Long:** pre-period coefficients slope up to zero, then keep climbing. The trend is visible.
+- **Short:** a flat $0.3$ with one spike. The trend looks like a small constant, easy to read as "no pre-trend".
+- The tell: a coefficient **with a confidence interval** at $\ell = -1$ means short gaps.
+
+## Roth's picture: one dataset, three ways to plot it
+
+```{r roth-panels}
+#| fig-width: 8
+#| fig-height: 3.1
+#| out-width: 100%
+#| fig-align: center
+# Two groups, periods -16..9, treated at 0. The treated group trends 0.5 a period faster; there is NO effect.
+set.seed(12)
+N <- 1000; per <- -16:9
+r <- expand.grid(id = 1:N, t = per); r$D <- as.numeric(r$id <= N / 2)
+r$y <- rnorm(N)[r$id] + rnorm(length(per), 0, 0.5)[r$t + 17] + 0.5 * r$D * (r$t + 16) + rnorm(nrow(r), 0, 4)
+tw <- feols(y ~ i(t, D, ref = -1) | id + t, r, cluster = ~id)
+btw <- coef(tw)[paste0("t::", per, ":D")]; stw <- se(tw)[names(btw)]; btw[is.na(btw)] <- 0; stw[is.na(stw)] <- 0
+gap <- function(a, b) { e <- feols(y ~ I(D * (t == b)) | id + t, r[r$t %in% c(a, b), ], cluster = ~id); c(coef(e), se(e)) }
+sg <- t(sapply(per[-1], function(p) if (p < 0) gap(p - 1, p) else gap(-1, p)))      # short gaps before, long after
+pre_bjs <- feols(y ~ i(t, D, ref = -16) | id + t, r[r$D == 0 | r$t < 0, ], cluster = ~id)
+bpre <- coef(pre_bjs)[paste0("t::", -15:-1, ":D")]; spre <- se(pre_bjs)[names(bpre)]
+imp <- function(rr) { f <- feols(y ~ 1 | id + t, rr[rr$D == 0 | rr$t < 0, ])
+  tr <- rr[rr$D == 1 & rr$t >= 0, ]; tapply(tr$y - predict(f, newdata = tr), tr$t, mean) }
+bpost <- imp(r)
+idx <- split(seq_len(nrow(r)), r$id)
+spost <- apply(replicate(99, { ids <- sample(N, N, TRUE); rr <- r[unlist(idx[ids]), ]
+  rr$id <- rep(seq_along(ids), lengths(idx[ids])); imp(rr) }), 1, sd)
+par(mfrow = c(1, 3), mar = c(2.6, 2.6, 1.6, 0.4), mgp = c(1.5, 0.45, 0), cex = 0.75, las = 1)
+ci <- function(x, b, s, col, pch = 16) { segments(x, b - 1.96 * s, x, b + 1.96 * s, col = col); points(x, b, pch = pch, col = col, cex = 0.8) }
+rframe <- function(title) { plot(NA, xlim = range(per), ylim = c(-8.5, 9), xlab = "periods since treatment", ylab = "", main = title, font.main = 1)
+  abline(h = 0, col = "grey60"); abline(v = -0.5, lty = 3, col = "grey50") }
+rframe("(a) TWFE: long differences"); ci(per, btw, stw, "black")
+pp <- per[-1] < 0
+rframe("(b) CS / dCDH: short gaps before"); ci(per[-1][pp], sg[pp, 1], sg[pp, 2], "firebrick"); ci(per[-1][!pp], sg[!pp, 1], sg[!pp, 2], "steelblue")
+rframe("(c) BJS: imputation"); ci(-15:-1, bpre, spre, "firebrick", 15); ci(0:9, bpost, spost, "steelblue")
+```
+\src{Simulated, after Roth (2024) and Cunningham (2025), Figure 10.12: one treated and one control group; the treated group trends $0.5$ a period faster, and the true effect is zero.}
+
+## Reading Roth's picture
+
+- **(a) TWFE**: long differences. The pre-trend is a straight line through the baseline, and it carries on after treatment: the "effects" are the trend.
+- **(b) CS** and **dCDH**, as plotted by default: short gaps before treatment. The same trend becomes a flat row of small bumps at $0.5$. Post-treatment coefficients are the same as TWFE's.
+- **(c) BJS**: pre-coefficients rise, then the series **kinks** at treatment.
+  - The post estimates assume parallel trends in **all** periods; the pre estimates test it.
+  - If the trends are not parallel, the two halves are built differently and do not join up. Not a bug; a different object.
+
+## Which to show: long differences
+
+- Post-treatment effects are always long differences from the baseline $g - 1$.
+- A falsification should apply the **same** calculation to periods where the effect is known to be zero. So show pre-period **long differences** too.
+- Readers trained on TWFE will read your plot as long differences regardless.
+
+\vspace{0.4em}
+
+- Check your software:
+  - Stata: `csdid ... long2` (the default in `csdid2`);
+  - R: `did::att_gt(..., base_period = "universal")`;
+  - dCDH: the Stata default is long; check the R package.
+
+## The "all the DiDs" plot
+
+\begin{center}
+\includegraphics[height=4.1cm]{figs/remix10-13.png}
+\end{center}
+\src{Braghieri, Levy and Makarin (2022), Facebook's rollout and student mental health; Cunningham (2025), Figure 10.13.}
+
+- Five estimators, one figure. Less reassuring than it looks: different controls, baselines, weights and assumptions. They are not robustness checks for one another.
+- Pick the estimator from the design, before the results. If you truly cannot choose in advance, report both.
+
+## Honest DiD (Rambachan and Roth 2023)
+
+- We already use pre-trends as *evidence about* parallel trends, informally. Make it formal:
+  - bound how badly parallel trends may fail **after** treatment, relative to before;
+  - report the set of ATTs consistent with the data under each bound.
+- Two common bounds:
+  - **relative magnitudes**: the post-period violation is at most $M$ times the largest pre-period violation. $M = 0$ is parallel trends; $M = 1$ lets the post period go as wrong as the pre period ever did;
+  - **smoothness**: the differential trend may bend by at most $M$ per period. $M = 0$ extrapolates a linear pre-trend.
+- The set widens with $M$. The question is **at what $M$ it first covers zero.**
+
+## Honest DiD in practice: legal services and welfare
+
+\begin{center}
+\includegraphics[height=4.4cm]{figs/remix10-14.png}
+\end{center}
+\src{Cunningham and Goodman-Bacon (2024), Figure 5; Cunningham (2025), Figure 10.14.}
+
+- Pre-trend $m \approx 0.2$ AFDC cases per $1{,}000$ women a year. Netting out linear trends of $0.1$--$0.4$ leaves long-run effects of $7.5$--$10.5$.
+- Smoothness bound $M = 0.1$ (shaded): zero is rejected at every event time but the last two.
+
+## What honest DiD is, and is not
+
+- **Not** a test that parallel trends failed. Parallel trends concerns counterfactuals and cannot be tested.
+- It states **how far parallel trends can fail before the conclusion does.**
+- A robustness check that **removes** an assumption instead of adding a model.
+- R and Stata: `honestdid`.
+
+# 6. A Checklist
+
+## Ten steps, in order
+
+1. **Define the target parameter**: which potential outcomes, which population, which weights.
+2. **Count the units in each cohort**, including never- and always-treated.
+3. **Plot the rollout.**
+4. **Pick the control group** and defend it.
+5. **Unconditional or conditional** parallel trends; if conditional, which covariates.
+6. **Check imbalance**, several ways.
+7. **Plot average outcomes by cohort**: the first time you look at $Y$.
+8. **Choose the estimator** from the design; state its assumptions.
+9. **Falsify**: event study, placebos, sensitivity bounds. Know how your pre-trends were computed.
+10. **DDDiD**, Don't Do Diff-in-Diff. Fold a losing hand early.
+
+## Why an order, and the running example
+
+- Steps $1$--$6$ never look at the outcome. Design before analysis (Rubin 2008).
+- Each step closes off a "forking path" before the results can tempt you down it.
+
+\vspace{0.4em}
+
+- **Running example:** Dias and Fontes (2024). Brazil's mental-health reform moved patients from psychiatric hospitals to community centres (CAPS).
+- CAPS opened in about $1{,}600$ municipalities, $2002$--$2016$. Outcome: homicide rate.
+- Question: did deinstitutionalization raise violence?
+
+## Step 1: the parameter comes before the model
+
+Ten people in two municipalities, each with both potential outcomes for "murdered":
+
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+Municipality & Residents & Average $\delta_i$ \\
+\midrule
+1 (urban) & 8 & $0.50$ \\
+2 (rural) & 2 & $-1.00$ \\
+\midrule
+ATE, average municipality: $\tfrac12(0.50 - 1.00)$ & & $-0.25$ \\
+ATE, average person: $\tfrac{1}{10}(8 \times 0.50 - 2 \times 1.00)$ & & $0.20$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Same ten effects, two correct averages, **opposite signs**.
+- Weighting municipal data by population recovers the per-person number; not weighting answers for the average municipality.
+
+## Step 1: when the two averages diverge
+
+```{r texas}
+#| fig-width: 8
+#| fig-height: 2.5
+#| out-width: 84%
+#| fig-align: center
+# 30 million Texans: half with delta ~ N(-1, 0.7), half with delta ~ N(5, 1), so E[delta] = 2. Each draw stands for 10 people.
+# Sorted by delta: the top half fills the 5 big counties (3m each), the bottom half the 249 small ones (60k each).
+set.seed(16); M <- 3e6
+dl <- sort(c(rnorm(M / 2, -1, 0.7), rnorm(M / 2, 5, 1)))
+h <- seq_len(M / 2) / (M / 2)
+cty <- tapply(dl, c(ceiling(h * 249), 249 + ceiling(h * 5)), mean)
+ate_p <- mean(dl); ate_c <- mean(cty)
+par(mar = c(1.6, 3.2, 0.3, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9, las = 1)
+bcol <- c(rep("grey55", 249), rep("steelblue", 5))
+barplot(unname(cty), col = bcol, border = bcol, space = 0, ylim = c(-3, 7))
+mtext("county ATE", 2, 2.2, las = 0, cex = 0.9); mtext("254 counties, sorted (blue: the five big urban counties)", 1, 0.4, cex = 0.85)
+abline(h = ate_p, lty = 2, lwd = 1.5); abline(h = ate_c, lty = 2, lwd = 1.5, col = "firebrick")
+legend("topleft", bty = "n", lty = 2, lwd = 1.5, col = c("black", "firebrick"), cex = 0.85,
+  legend = c(sprintf("average person: %.2f", ate_p), sprintf("average county: %.2f", ate_c)))
+```
+\src{Simulated, after Cunningham (2025), Figure 10.16: the people with the largest effects live in the five big urban counties.}
+
+- They diverge when effects are **heterogeneous** and people **sort** on them (Solon, Haider and Wooldridge 2015). Per person: $2$. Per county: $-0.88$.
+- Neither is biased. Choose by **who decides**: a mayor cares about the average municipality, a ministry about the average person.
+
+## Steps 2--3: count the cohorts, plot the rollout
+
+:::: {.columns}
+::: {.column width="52%"}
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+CAPS cohort & Munic. & Share \\
+\midrule
+2003 & 47 & 0.03 \\
+2006 (largest) & 216 & 0.16 \\
+2016 & 78 & 0.06 \\
+Treated 2003--16 & 1,344 & 1.00 \\
+Always-treated (2002) & 296 & -- \\
+Never-treated & 3,836 & -- \\
+\bottomrule
+\end{tabular}
+\end{center}
+:::
+::: {.column width="48%"}
+\begin{center}
+\adjincludegraphics[height=4.2cm, trim={{.04\width} {.25\height} {.03\width} {.22\height}}, clip]{figs/remix10-17.png}
+\end{center}
+\src{Cunningham (2025), Figure 10.17.}
+:::
+::::
+
+- **Always-treated** units have no untreated baseline: drop them.
+- The largest cohort will dominate any aggregation. Know that before you aggregate.
+- The rollout plot (`panelView` in R and Stata) shows the not-yet-treated pool shrinking year by year.
+
+## Step 4: choose the control group
+
+- The more random the assignment, the less the choice matters.
+- CAPS placement was not random. The never-treated municipalities are small and rural.
+- Not-yet-treated municipalities, which did get a CAPS eventually, may be the closer comparison.
+- Decide **before** results. Unsure? Run both and report both.
+
+## Steps 5--6: covariates and balance
+
+- Conditional parallel trends needs covariates that drive **both** CAPS placement and homicide trends: economics, demographics, urbanization, policing, social programmes.
+- Cunningham uses Dias and Fontes's list rather than his own: a specification chosen by someone who had not seen these results.
+- Standardized differences at baseline, treated vs. never-treated:
+  - rural share $-0.60$; population $0.69$;
+  - health spending $-0.45$; women aged 20--29 $0.75$.
+- Many are past $0.25$. Those go in.
+
+## Step 6: look at the propensity score
+
+:::: {.columns}
+::: {.column width="55%"}
+\begin{center}
+\includegraphics[height=4.3cm]{figs/remix10-19.png}
+\end{center}
+\src{Cunningham (2025), Figure 10.19.}
+:::
+::: {.column width="45%"}
+\small
+- Controls pile up near zero; a spike of treated near one.
+- $11$ control municipalities above $0.995$. One at $0.999971$ gets weight
+$$
+\frac{0.999971}{1 - 0.999971} \approx 34{,}000 .
+$$
+- One municipality counts as thirty-four thousand. Trim before estimating.
+- R's `did` trims automatically; not every package does.
+:::
+::::
+
+## Steps 7--8: look at the outcome, then estimate
+
+- **Step 7.** Mean homicide rate by cohort over time: trends similar, **levels** very different, never-treated lowest of all.
+  - That is the rural pattern from the balance table: $76$ percent of Brazil's homicides are urban.
+  - Kahn-Lang and Lang again: explain the levels.
+- **Step 8.** Callaway--Sant'Anna, doubly robust, not-yet-treated controls, long differences, with the imbalanced covariates:
+
+\vspace{0.2em}
+\scriptsize
+`csdid2 homicide_rate $controls, gvar(g) ivar(cod) time(ano) long2 method(drimp) notyet`
+\normalsize
+
+## Step 8: the results
+
+:::: {.columns}
+::: {.column width="50%"}
+\begin{center}
+\includegraphics[height=3.9cm]{figs/remix10-22.png}
+
+\footnotesize All leads and lags
+\end{center}
+:::
+::: {.column width="50%"}
+\begin{center}
+\includegraphics[height=3.9cm]{figs/remix10-23.png}
+
+\footnotesize Balanced window, $-5$ to $+3$
+\end{center}
+:::
+::::
+\src{Cunningham (2025), Figures 10.22 and 10.23.}
+
+- **All:** pre-period average $-0.073$ ($0.069$); post average $0.495$ ($0.080$), about $1$ homicide per $10{,}000$ after ten years.
+- But the far right is **three early cohorts** and the far left is late adopters: the composition changes along the axis.
+
+## Step 8: why restrict the window
+
+- In the full plot, each point averages a **different set of cohorts**. A rising line may be rising effects, or a change in who is averaged.
+- In a window where most cohorts contribute, $-5$ to $+3$, the composition is roughly fixed.
+- There: effects positive from the first full year, about $0.275$ per $10{,}000$ at $\ell = +3$ against a baseline of $1.38$, roughly $20$ percent.
+- The lead at $\ell = -4$ is negative and significant: something for step 9.
+
+## Step 9: how wrong can parallel trends be?
+
+:::: {.columns}
+::: {.column width="52%"}
+\begin{center}
+\includegraphics[height=4.4cm]{figs/remix10-24.png}
+\end{center}
+\src{Cunningham (2025), Figure 10.24.}
+:::
+::: {.column width="48%"}
+\small
+- Honest DiD on the average of the four post lags, $0.234$.
+- Relative magnitudes: the set excludes zero up to $M = 1.5$, post-period violations one and a half times the worst pre-period violation.
+- The result survives.
+- Cunningham was sceptical and now is not: a different estimator, a checklist and tolerant bounds all agree.
+:::
+::::
+
+## Step 10: when to walk away
+
+- Every estimator in these two lectures rests on parallel trends.
+- Put the design down when you cannot believe it with a straight face:
+  - the selection mechanism in Ghanem, Sant'Anna and Wüthrich (2024) is clearly at work;
+  - common support is unattainable;
+  - the pre-trends are a roller coaster;
+  - the bounds collapse at $M = 0.2$.
+- Imbens's "DDDiD": Don't Do Diff-in-Diff.
+- Next lecture: one of the alternatives, synthetic control.
+
+## Conclusion
+
+1. **Build, then aggregate.** CS estimates each $\text{ATT}(g,t)$ as a clean $2 \times 2$ and averages with weights you choose.
+2. **Honest estimators may target less.** Cells without an untreated comparison are not identified by anyone; say what you estimate.
+3. **TWFE event studies are contaminated** when cohorts have different effect paths, or when software drops periods. Sun--Abraham's interaction weights fix it.
+4. **dCDH** handles treatments that switch off; **imputation** buys efficiency with stronger parallel trends. Choose by the assumption.
+5. **Read event studies carefully**: long differences vs. short gaps, the imputation kink, honest bounds instead of "the pre-trends look fine."
+6. **Checklist.** Parameter, cohorts, rollout, controls, covariates, balance; then the outcome, the estimator, the bounds. If it is not credible, walk away.
+
+## References
+
+\tiny
+
+- Baker, A. C., D. F. Larcker and C. C. Y. Wang (2022). How Much Should We Trust Staggered Difference-in-Differences Estimates? *Journal of Financial Economics* 144(2), 370--395.
+- Baker, A., B. Callaway, S. Cunningham, A. Goodman-Bacon and P. Sant'Anna (2025). Difference-in-Differences Designs: A Practitioner's Guide. Working paper.
+- Borusyak, K., X. Jaravel and J. Spiess (2024). Revisiting Event-Study Designs: Robust and Efficient Estimation. *Review of Economic Studies* 91(6), 3253--3285.
+- Braghieri, L., R. Levy and A. Makarin (2022). Social Media and Mental Health. *AER* 112(11), 3660--3693.
+- Callaway, B. and P. Sant'Anna (2021). Difference-in-Differences with Multiple Time Periods. *Journal of Econometrics* 225(2), 200--230.
+- de Chaisemartin, C. and X. D'Haultfoeuille (2020). Two-Way Fixed Effects Estimators with Heterogeneous Treatment Effects. *AER* 110(9), 2964--2996.
+- Cheng, C. and M. Hoekstra (2013). Does Strengthening Self-Defense Law Deter Crime or Escalate Violence? Evidence from Expansions to Castle Doctrine. *Journal of Human Resources* 48(3), 821--854.
+- Cunningham, S. (2025). *Causal Inference: The Remix*, ch. 10 --- the source for this lecture, including the Baker simulation data and the reproduced figures.
+- Cunningham, J. and A. Goodman-Bacon (2024). Legal Services, Divorce and Welfare. Working paper.
+- Dias, M. and L. F. Fontes (2024). The Effects of a Large-Scale Mental Health Reform: Evidence from Brazil. Working paper.
+- Gardner, J. (2021). Two-Stage Differences-in-Differences. Working paper.
+- Ghanem, D., P. Sant'Anna and K. Wüthrich (2024). Selection and Parallel Trends. Working paper.
+- Goldsmith-Pinkham, P., P. Hull and M. Kolesár (2024). Contamination Bias in Linear Regressions. *AER* 114(12), 4015--4051.
+
+## References (cont.)
+
+\tiny
+
+- Goodman-Bacon, A. (2021). Difference-in-Differences with Variation in Treatment Timing. *Journal of Econometrics* 225(2), 254--277.
+- Kahn-Lang, A. and K. Lang (2020). The Promise and Pitfalls of Differences-in-Differences: Reflections on 16 and Pregnant and Other Applications. *JBES* 38(3), 613--620.
+- Rambachan, A. and J. Roth (2023). A More Credible Approach to Parallel Trends. *Review of Economic Studies* 90(5), 2555--2591.
+- Roth, J. (2024). Interpreting Event-Studies from Recent Difference-in-Differences Methods. Working paper.
+- Rubin, D. B. (2008). For Objective Causal Inference, Design Trumps Analysis. *Annals of Applied Statistics* 2(3), 808--840.
+- Solon, G., S. Haider and J. Wooldridge (2015). What Are We Weighting For? *Journal of Human Resources* 50(2), 301--316.
+- Sun, L. and S. Abraham (2021). Estimating Dynamic Treatment Effects in Event Studies with Heterogeneous Treatment Effects. *Journal of Econometrics* 225(2), 175--199.
+- Wooldridge, J. M. (2021). Two-Way Fixed Effects, the Two-Way Mundlak Regression, and Difference-in-Differences Estimators. Working paper.
+
+# Backup
+
+## Stata: the estimators of this lecture
+
+```stata
+use https://raw.githubusercontent.com/scunning1975/mixtape/master/baker.dta, clear
+csdid2 y, ivar(id) time(year) gvar(treat_date) notyet method(stdipw) long2
+estat simple                                         // 68.3
+estat group                                          // 56
+estat event                                          // relative-time aggregation
+eventstudyinteract y lead* lag*, cohort(treat_date) control_cohort(last) absorb(id year)
+did_imputation y id year treat_date, autosample      // Borusyak-Jaravel-Spiess
+did_multiplegt_dyn y id year treat                   // de Chaisemartin-D'Haultfoeuille
+twowayfeweights y id year treat, type(feTR)          // share of negative TWFE weights
+honestdid, pre(1/4) post(5/8) mvec(0(0.5)2)          // Rambachan-Roth, after an event study
+```
+
+- R equivalents: `did` (`att_gt`, `aggte`), `fixest::sunab`, `didimputation`, `DIDmultiplegtDYN`, `TwoWayFEWeights`, `HonestDiD`. This deck computes CS and the imputation estimator from group means with `fixest` and base R only.

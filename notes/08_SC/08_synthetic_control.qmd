@@ -228,7 +228,7 @@ placeboplot <- function(x, P, keep, trj, vline, ylab) {
 
 ## Where we left off
 
-- Lectures 7a--7b: difference-in-differences identifies the ATT if untreated outcomes move in parallel. The staggered-adoption estimators refuse the forbidden comparison, but every one of them **still needs parallel trends for a control group you chose**.
+- Lectures 7a--7c: difference-in-differences identifies the ATT if untreated outcomes move in parallel. The staggered-adoption estimators refuse the forbidden comparison, but every one of them **still needs parallel trends for a control group you chose**.
 - Two questions stayed open:
   - What if the treated "group" is **one unit**: a state, a country, an exchange? One unit cannot choose its control group by regression, and there is nothing to cluster on.
   - What if no untreated group is parallel to it, but **some weighted average of them** might be?
@@ -300,7 +300,7 @@ a **nested** optimisation: a quadratic programme for $W$ inside a search over $V
 ## Three advantages (Abadie, Diamond and Hainmueller 2010)
 
 1. **No extrapolation.** The counterfactual is a convex combination of *contemporaneous* donor outcomes. It never projects forward from the treated unit's own history and never steps outside the data, where regression is most model-dependent (King and Zeng 2006).
-2. **Design before outcomes.** The weights use only pre-treatment data. Fix the model, publish the weights, and only then look at the post period (Rubin 2007, 2008): the "do not peek" principle of the 7b checklist, built into the estimator.
+2. **Design before outcomes.** The weights use only pre-treatment data. Fix the model, publish the weights, and only then look at the post period (Rubin 2007, 2008): the "do not peek" principle of the 7c checklist, built into the estimator.
 3. **Transparency.** The weights say exactly what each donor contributes. A regression also weights the donors, but the weights are buried in $(X'X)^{-1}X'$ and nobody shows them.
 
 \vspace{0.4em}
@@ -789,7 +789,7 @@ Arkhangelsky et al.\ (2021), Table 1 & $-27.3$ & $-19.6$ & $-15.6$ \\
   3. **no anticipation**, or a treatment date moved back to when behaviour changed;
   4. the treated unit **inside the convex hull**: not the largest, smallest or strangest unit in the pool;
   5. a **long pre-period** and enough post-periods for the effect to appear.
-- Examples that follow the recipe: Billmeier and Nannicini (2013) on economic liberalisation; Born et al. (2019) on the Brexit vote and UK GDP; Cavallo et al. (2013) on disasters and growth. With hundreds of treated firms you are back in Lecture 7b, or in SDID and matrix completion with staggered timing.
+- Examples that follow the recipe: Billmeier and Nannicini (2013) on economic liberalisation; Born et al. (2019) on the Brexit vote and UK GDP; Cavallo et al. (2013) on disasters and growth. With hundreds of treated firms you are back in Lecture 7c, or in SDID and matrix completion with staggered timing.
 
 ## Conclusion
 

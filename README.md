@@ -19,7 +19,7 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 4. Regression Discontinuity | [Slides][rd-pdf] | [Problem][rd-ps] |
 | 5a. Instrumental Variables | [Slides][iv-a-pdf] | [Problem][iv-a-ps] |
 | 5b. Five IV Designs | [Slides][iv-b-pdf] | [Problem][iv-b-ps] |
-| 6a. Causal Panel Designs | [Slides][panel-a-pdf] | |
+| 6a. Causal Panel Designs | [Slides][panel-a-pdf] | [Problem][panel-a-ps] |
 | 6b. Dynamic Panel Models (not covered in class) | [Slides][panel-b-pdf] | |
 | 7a. Difference-in-Differences: Fundamentals | [Slides][did-a-pdf] | |
 
@@ -51,6 +51,7 @@ Course materials for BUSS975, including lecture slides and problem sets.
 [iv-b-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05b_iv_PS.pdf
 
 [panel-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06a_panel_data.pdf
+[panel-a-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06a_panel_PS.pdf
 [panel-b-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06b_dynamic_panel_models.pdf
 [dpanel-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06b_dynamic_panel.pdf
 
