@@ -1116,7 +1116,7 @@ Never-treated & 3,836 & -- \\
 :::
 ::: {.column width="48%"}
 \begin{center}
-\adjincludegraphics[height=4.2cm, trim={{.04\width} {.25\height} {.03\width} {.22\height}}, clip]{figs/remix10-17.png}
+\adjincludegraphics[height=4.2cm, trim={ {.04\width} {.25\height} {.03\width} {.22\height} }, clip]{figs/remix10-17.png}
 \end{center}
 \src{Cunningham (2025), Figure 10.17.}
 :::
