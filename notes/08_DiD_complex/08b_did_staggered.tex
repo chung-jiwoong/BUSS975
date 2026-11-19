@@ -245,18 +245,14 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \begin{itemize}
 \tightlist
 \item
-  Lecture 7b: under staggered adoption, TWFE is a weighted average of
-  \textbf{every} \(2 \times 2\) in the data, weighted by group size and
-  treatment variance.
+  Lecture 7: difference-in-differences is \textbf{four averages and
+  three subtractions}. With one treated group, one control group and one
+  date, the interaction, two-way fixed effects (TWFE) and the long
+  difference give the same number.
 \item
-  Some of those \(2 \times 2\)'s use an \textbf{already-treated}
-  control. They subtract the control's own growing effect: \[
-  \operatorname{plim}\hat\delta^{TWFE} = \text{VWATT} + \text{VWPT} - \Delta\text{ATT}.
-  \]
-\item
-  Baker simulation: all effects positive, parallel trends exact. True
-  simple ATT \(82\); TWFE \(-6.69\). Weight \(0.50\) on forbidden
-  comparisons averaging \(-65.2\).
+  Lecture 8a: three ways the single \(2 \times 2\) breaks. The sample
+  changes, a second DiD shares the bias, or parallel trends holds only
+  among units with the same covariates.
 \end{itemize}
 
 \vspace{0.4em}
@@ -264,8 +260,10 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \begin{itemize}
 \tightlist
 \item
-  Today: estimators that \textbf{never} make the forbidden comparison,
-  how to read their event studies, and a checklist for your own design.
+  Today: the fourth. \textbf{Treatment arrives at different dates.} What
+  TWFE computes then, estimators that \textbf{never} make its forbidden
+  comparison, how to read their event studies, and a checklist for your
+  own design.
 \end{itemize}
 \end{frame}
 
@@ -273,6 +271,9 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \protect\phantomsection\label{the-plan}
 \begin{enumerate}
 \tightlist
+\item
+  \textbf{Differential timing and TWFE}: what the regression everyone
+  runs averages, and why it can get the sign wrong.
 \item
   \textbf{Callaway and Sant'Anna}: build group-time \(2 \times 2\)'s,
   then aggregate.
@@ -301,7 +302,547 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \end{itemize}
 \end{frame}
 
-\section{1. Callaway and Sant'Anna}\label{callaway-and-santanna}
+\section{1. Differential Timing and Two-Way Fixed
+Effects}\label{differential-timing-and-two-way-fixed-effects}
+
+\begin{frame}{When ``Post'' has no meaning}
+\protect\phantomsection\label{when-post-has-no-meaning}
+Card and Krueger again, but suppose New York also raised its minimum
+wage, in 1993.
+
+\begin{center}\scriptsize
+\begin{tabular}{lccc|lccc|lccc}
+\toprule
+Year & State & Treat & Post & Year & State & Treat & Post & Year & State & Treat & Post \\
+\midrule
+1991 & NJ & 1 & 0 & 1991 & NY & 1 & 0 & 1991 & PA & 0 & 0 \\
+1992 & NJ & 1 & 1 & 1992 & NY & 1 & 0 & 1992 & PA & 0 & ? \\
+1993 & NJ & 1 & 1 & 1993 & NY & 1 & 1 & 1993 & PA & 0 & ? \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Is Pennsylvania's ``Post'' relative to 1992 or 1993? The interaction
+  regression cannot even be written down.
+\item
+  So everyone runs the version that can: \[
+  Y_{ist} = \beta_0 + \delta D_{ist} + \tau_t + \sigma_s + \varepsilon_{ist}, \qquad D_{ist} = \mathbf{1}\{\text{unit } s \text{ is treated at } t\}.
+  \]
+\item
+  Coding \(D\) is trivial. The question is what \(\hat\delta^{TWFE}\)
+  \emph{is}, in potential outcomes.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What does TWFE average?}
+\protect\phantomsection\label{what-does-twfe-average}
+\begin{itemize}
+\tightlist
+\item
+  By Frisch--Waugh--Lovell, \(\hat\delta^{TWFE}\) is the slope of \(Y\)
+  on \(D\) after both are demeaned by unit and by period: \[
+  \hat\delta = \frac{\sum_{s,t} \tilde D_{st}\tilde Y_{st}}{\sum_{s,t} \tilde D_{st}^2}.
+  \]
+\item
+  Goodman-Bacon (2021): this slope is \textbf{exactly} a weighted
+  average of all the simple \(2 \times 2\) DiDs in the data.
+\item
+  A warm-up: the average of \(4\), \(10\) and \(3\) is \(5.67\), weight
+  \(\tfrac13\) each. If TWFE averages nine \(2 \times 2\)'s, are the
+  weights \(\tfrac19\)?
+\item
+  No.~OLS picks weights that are best for \textbf{predicting} \(Y\), not
+  for averaging treatment effects (Słoczyński 2022).
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Nine \(2 \times 2\)'s from three timing groups}
+\protect\phantomsection\label{nine-2-times-2s-from-three-timing-groups}
+Groups \(a\) (treated 1980), \(b\) (1983), \(c\) (1986), and a
+never-treated group \(U\):
+
+\begin{center}\small
+\begin{tabular}{ccc}
+\toprule
+$a$ vs $b$ & $b$ vs $a$ & $c$ vs $a$ \\
+$a$ vs $c$ & $b$ vs $c$ & $c$ vs $b$ \\
+$a$ vs $U$ & $b$ vs $U$ & $c$ vs $U$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Bottom row}: never-treated control. Fine.
+\item
+  \textbf{Left of the diagonal} (\(a\) vs \(b\), \(a\) vs \(c\), \(b\)
+  vs \(c\)): the control is \textbf{not yet treated} during the window.
+  Fine.
+\item
+  \textbf{Upper right} (\(b\) vs \(a\), \(c\) vs \(a\), \(c\) vs \(b\)):
+  the control was \textbf{already treated}. Three of the nine. Nobody
+  chose them; OLS did.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The four kinds of \(2 \times 2\), drawn}
+\protect\phantomsection\label{the-four-kinds-of-2-times-2-drawn}
+\begin{center}
+\includegraphics[width=0.8\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/four-2x2-1.pdf}
+\end{center}
+
+\src{After Goodman-Bacon (2021), Figure 1, and Cunningham (2025), Figure 10.6. Grey: the group not used in that $2 \times 2$.}
+\end{frame}
+
+\begin{frame}{Reading the four panels}
+\protect\phantomsection\label{reading-the-four-panels}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{A. Early vs.~untreated.} \(k\) before and after its date,
+  against \(U\). The Lecture 7 design.
+\item
+  \textbf{B. Late vs.~untreated.} The same for \(l\).
+\item
+  \textbf{C. Early vs.~late, before \(l\).} \(l\) is still untreated
+  during the window \emph{mid}\((k,l)\): a \textbf{not-yet-treated}
+  control. Legal.
+\item
+  \textbf{D. Late vs.~early, after \(k\).} \(l\) switches on; \(k\) is
+  already treated throughout. The \textbf{already-treated} control: the
+  ``forbidden comparison'' (Borusyak, Jaravel and Spiess).
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  In panel D, both of \(k\)'s windows are \(Y^1\). Any change in \(k\)'s
+  \emph{effect} between the windows looks like a change in the
+  counterfactual.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The three kinds, as formulas}
+\protect\phantomsection\label{the-three-kinds-as-formulas}
+\[
+\begin{aligned}
+\hat\delta^{2\times2}_{kU} &= (\bar y_k^{\,post(k)} - \bar y_k^{\,pre(k)}) - (\bar y_U^{\,post(k)} - \bar y_U^{\,pre(k)}) &&\text{never-treated control} \\[2pt]
+\hat\delta^{2\times2}_{kl} &= (\bar y_k^{\,mid} - \bar y_k^{\,pre(k)}) - (\bar y_l^{\,mid} - \bar y_l^{\,pre(k)}) &&\text{not-yet-treated control} \\[2pt]
+\hat\delta^{2\times2}_{lk} &= (\bar y_l^{\,post(l)} - \bar y_l^{\,mid}) - (\bar y_k^{\,post(l)} - \bar y_k^{\,mid}) &&\text{already-treated control}
+\end{aligned}
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Each is four averages and three subtractions; only the windows and the
+  control group change.
+\item
+  Substitute potential outcomes. The first two give an ATT plus the
+  usual parallel-trends bias.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Why the third is forbidden}
+\protect\phantomsection\label{why-the-third-is-forbidden}
+With no anticipation, as in Lecture 7: \[
+\hat\delta^{2\times2}_{lk} = \text{ATT}_l(post) + \text{PT bias} - \underbrace{\big[\text{ATT}_k(post(l)) - \text{ATT}_k(mid)\big]}_{\text{growth in } k\text{'s own effect}} .
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  The control \(k\) is treated in both windows. Its outcome rises if its
+  \textbf{effect} grows, and that rise is subtracted from \(l\)'s
+  estimate.
+\item
+  If \(k\)'s effect is constant, the bracket is zero: a treated control
+  whose effect does not move differences out like a fixed effect.
+\item
+  ``Forbidden comparison'' is Borusyak, Jaravel and Spiess's phrase. de
+  Chaisemartin and D'Haultfoeuille (2020), Goodman-Bacon (2021) and Sun
+  and Abraham (2021) found the problem independently, within a few
+  years.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The forbidden comparison in numbers}
+\protect\phantomsection\label{the-forbidden-comparison-in-numbers}
+Both groups have flat \(Y^0\). Group \(k\) is treated at \(t = 2\), with
+an effect of \(10\) that grows by \(10\) a year. Group \(l\) is treated
+at \(t = 4\), with a constant effect of \(5\).
+
+\begin{center}\small
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{\emph{mid}: $t = 2, 3$} & \multicolumn{2}{c}{\emph{post}$(l)$: $t = 4, 5$} \\
+\midrule
+$l$ (treated in the window) & 0 & 0 & 5 & 5 \\
+$k$ (the "control") & 10 & 20 & 30 & 40 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \(l\)'s change: \(5 - 0 = 5\). \(k\)'s change: \(35 - 15 = 20\).
+\item
+  The \(2 \times 2\): \(5 - 20 = \mathbf{-15}\). The true effect is
+  \(+5\).
+\item
+  Parallel trends holds exactly. The control is not wrong about \(Y^0\);
+  it is contaminated by its \textbf{own growing effect}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The weights: group size times treatment variance}
+\protect\phantomsection\label{the-weights-group-size-times-treatment-variance}
+\[
+\hat\delta^{TWFE} = \sum_{k \ne U} s_{kU}\,\hat\delta^{2\times2}_{kU} + \sum_{k \ne U}\sum_{l > k}\big[s^{k}_{kl}\,\hat\delta^{2\times2,k}_{kl} + s^{l}_{kl}\,\hat\delta^{2\times2,l}_{lk}\big], \qquad \sum s = 1,
+\] \[
+s_{kU} = \frac{(n_k + n_U)^2\; n_{kU}(1 - n_{kU})\; \bar D_k(1 - \bar D_k)}{\widehat{\text{Var}}(\tilde D)}, \quad n_{kU} = \frac{n_k}{n_k + n_U}.
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  Similar formulas for the timing pairs. Every weight is
+  \textbf{positive}, and they come from two ingredients:
+
+  \begin{itemize}
+  \tightlist
+  \item
+    \textbf{sample shares} \(n_k\): bigger groups count more, as you
+    would expect;
+  \item
+    \textbf{treatment variance} \(\bar D_k(1-\bar D_k)\), where
+    \(\bar D_k\) is the share of the panel a group spends treated.
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Treatment variance favours the middle}
+\protect\phantomsection\label{treatment-variance-favours-the-middle}
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & New Jersey & New York \\
+\midrule
+Treated from & 1992 & 1993 \\
+Years treated, 1990--95 & 4 of 6 & 3 of 6 \\
+$\bar D$ & 0.67 & 0.50 \\
+$\bar D(1 - \bar D)$ & 0.22 & \textbf{0.25} \\
+\bottomrule
+\end{tabular}
+\end{center}
+\end{column}
+
+\begin{column}{0.5\linewidth}
+\begin{center}
+\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/var-curve-1.pdf}
+\end{center}
+
+\src{After Cunningham (2025), Figure 10.7.}
+\end{column}
+\end{columns}
+
+\begin{itemize}
+\tightlist
+\item
+  \(\bar D(1-\bar D)\) peaks at \(\bar D = 0.5\):
+  \(0.1 \times 0.9 = 0.09\), \(0.4 \times 0.6 = 0.24\),
+  \(0.5 \times 0.5 = 0.25\).
+\item
+  TWFE \textbf{over-weights groups treated near the middle of the panel}
+  and under-weights early and late adopters. Not because their
+  comparisons are better, but because OLS likes variance.
+\item
+  Change the panel's start or end date and the weights change with it.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{From arithmetic to causality}
+\protect\phantomsection\label{from-arithmetic-to-causality}
+Replace each \(2 \times 2\) by its potential-outcome content, with no
+anticipation: \[
+\operatorname{plim}\hat\delta^{TWFE} \;=\; \text{VWATT} \;+\; \text{VWPT} \;-\; \Delta\text{ATT}.
+\]
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{VWATT}: a variance-weighted average of group ATTs. Causal, but
+  weighted by the panel's dates rather than by anything you chose.
+\item
+  \textbf{VWPT}: variance-weighted parallel-trends bias. Zero if
+  parallel trends holds for every pair.
+\item
+  \(\boldsymbol{\Delta}\)\textbf{ATT}: the already-treated controls'
+  \emph{change} in effect, with a \textbf{minus sign}. Zero only if
+  effects are constant over time.
+\end{itemize}
+
+\vspace{0.3em}
+
+\begin{itemize}
+\tightlist
+\item
+  So parallel trends is \textbf{not enough} for this regression. You
+  also need effects that do not change over time.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Constant effects vs.~dynamic effects}
+\protect\phantomsection\label{constant-effects-vs.-dynamic-effects}
+\begin{columns}[T]
+\begin{column}{0.5\linewidth}
+\begin{center}
+\includegraphics[width=0.74\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/eff-const-1.pdf}
+\end{center}
+
+\begin{center}\footnotesize Constant: $\text{ATT}_1 = \text{ATT}_2$, $\Delta\text{ATT} = 0$\end{center}
+\end{column}
+
+\begin{column}{0.5\linewidth}
+\begin{center}
+\includegraphics[width=0.74\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/eff-dyn-1.pdf}
+\end{center}
+
+\begin{center}\footnotesize Dynamic: $\text{ATT}_2 > \text{ATT}_1$, $\Delta\text{ATT} > 0$\end{center}
+\end{column}
+\end{columns}
+
+\src{After Cunningham (2025), Figures 10.8 and 10.9.}
+
+\begin{itemize}
+\tightlist
+\item
+  Under parallel trends,
+  \(\hat\delta^{TWFE} = \text{VWATT} - \Delta\text{ATT}\). If effects
+  grow, TWFE is biased \textbf{toward zero}.
+\item
+  \(\text{VWATT} = 10\), \(\Delta\text{ATT} = 3\): estimate \(7\).
+  \(\Delta\text{ATT} = 11\): estimate \(-1\). \textbf{The sign flips.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The Baker simulation: the truth}
+\protect\phantomsection\label{the-baker-simulation-the-truth}
+\begin{center}
+\includegraphics[width=0.76\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/baker-raw-1.pdf}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \(1{,}000\) firms, \(1980\)--\(2009\), four equal cohorts treated in
+  \(1986\), \(1992\), \(1998\), \(2004\).
+\item
+  Every firm's \(Y^0\) grows by \(1\) a year plus noise: parallel trends
+  holds \textbf{firm by firm}. No anticipation, no omitted variables.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The Baker simulation: two outcomes}
+\protect\phantomsection\label{the-baker-simulation-two-outcomes}
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Constant} effects: \(10\), \(8\), \(6\), \(4\) by cohort,
+  forever.
+\item
+  \textbf{Dynamic} effects (the figure): the same numbers, \textbf{added
+  again every year} treated.
+
+  \begin{itemize}
+  \tightlist
+  \item
+    The 1986 cohort: \(10\) in 1986, \(20\) in 1987, \ldots, \(240\) by
+    2009.
+  \item
+    The 2004 cohort: \(4\), \(8\), \ldots, \(24\) by 2009.
+  \end{itemize}
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  Every effect is positive. Every textbook assumption holds.
+\item
+  Question: what does the regression everyone runs return?
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The Baker simulation: parameters and the regression}
+\protect\phantomsection\label{the-baker-simulation-parameters-and-the-regression}
+\begin{center}\scriptsize
+\begin{tabular}{lcccccc|c}
+\toprule
+ & ATT(1986) & ATT(1992) & ATT(1998) & ATT(2004) & Simple & Group & $\hat\delta^{TWFE}$ (s.e.) \\
+\midrule
+Constant & 10 & 8 & 6 & 4 & 8 & 7 & $7.00$ ($0.027$) \\
+Dynamic & 125 & 76 & 39 & 14 & 82 & 63.5 & $\mathbf{-6.69}$ ($0.670$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \emph{Simple ATT}: average over all treated firm-years. \emph{Group
+  ATT}: average of the four cohort averages. Both correct; they weight
+  the cells differently.
+\item
+  \textbf{Constant:} \(\Delta\text{ATT} = 0\), so only the variance
+  weights remain. The answer, \(7\), is a VWATT: causal, though not the
+  simple ATT.
+\item
+  \textbf{Dynamic:} the regression returns \(\mathbf{-6.69}\) with a
+  \(t\)-statistic of \(10\). \textbf{The sign is wrong.}
+\end{itemize}
+\end{frame}
+
+\begin{frame}{The Baker simulation: inside the coefficient}
+\protect\phantomsection\label{the-baker-simulation-inside-the-coefficient}
+Bacon's decomposition, computed by hand from group means, reproduces the
+coefficient exactly:
+
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & Weight & Average $2 \times 2$ \\
+\midrule
+Earlier treated vs later control (not-yet-treated) & $0.50$ & $51.8$ \\
+Later treated vs earlier control (already-treated) & $0.50$ & $-65.2$ \\
+\midrule
+$0.50 \times 51.8 + 0.50 \times (-65.2)$ & & $-6.69$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  No never-treated group, so all \(12\) \(2 \times 2\)'s compare two
+  cohorts.
+\item
+  Half the weight sits on comparisons whose control was \textbf{already
+  treated and still climbing}. They average \(-65.2\).
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Why constant effects were harmless}
+\protect\phantomsection\label{why-constant-effects-were-harmless}
+\begin{itemize}
+\tightlist
+\item
+  Same decomposition, constant-effect outcome: the two halves average
+  \(8.4\) and \(5.6\).
+\item
+  A control whose effect does not move is just a level shift. The
+  subtraction removes it, as a fixed effect would.
+\item
+  With dynamic effects the control's outcome \textbf{keeps climbing},
+  and that climb is read as a counterfactual trend.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  The weights are \textbf{observable}. Compute them for your design
+  before deciding whether TWFE is good enough.
+\item
+  Stata and R: \texttt{bacondecomp}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Bacon on real data: castle doctrine, all cohorts}
+\protect\phantomsection\label{bacon-on-real-data-castle-doctrine-all-cohorts}
+\begin{center}
+\includegraphics[width=0.76\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/castle-bacon-1.pdf}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Lecture 7 used the 2006 cohort against the never-treated. Now all
+  \(21\) adopting states, \(2005\)--\(2009\), plus \(29\) never
+  adopters.
+\item
+  TWFE: \(\hat\delta = 0.082\) (\(0.059\)). The dotted line marks it.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Castle doctrine: what is inside \(0.082\)}
+\protect\phantomsection\label{castle-doctrine-what-is-inside-0.082}
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & Weight & Average $2 \times 2$ \\
+\midrule
+Treated vs never treated & $0.91$ & $0.088$ \\
+Earlier treated vs later control & $0.06$ & $-0.006$ \\
+Later treated vs earlier control (forbidden) & $0.03$ & $0.070$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  \(25\) simple \(2 \times 2\)'s. The 2006-vs-never cell alone carries
+  weight \(0.59\).
+\item
+  With a large never-treated group, the forbidden comparisons get little
+  weight and TWFE is close to the clean answer.
+\item
+  That is \textbf{luck of the design}, not a property of the estimator.
+  Check it every time.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{What TWFE computes, in one slide}
+\protect\phantomsection\label{what-twfe-computes-in-one-slide}
+\begin{itemize}
+\tightlist
+\item
+  Under staggered adoption, TWFE is a weighted average of \textbf{every}
+  \(2 \times 2\) in the data, weighted by group size and treatment
+  variance.
+\item
+  Some of those \(2 \times 2\)'s use an \textbf{already-treated}
+  control. They subtract the control's own growing effect: \[
+  \operatorname{plim}\hat\delta^{TWFE} = \text{VWATT} + \text{VWPT} - \Delta\text{ATT}.
+  \]
+\item
+  Baker simulation: all effects positive, parallel trends exact. True
+  simple ATT \(82\); TWFE \(-6.69\). Weight \(0.50\) on forbidden
+  comparisons averaging \(-65.2\).
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  Next: estimators that \textbf{never} make the forbidden comparison.
+\end{itemize}
+\end{frame}
+
+\section{2. Callaway and Sant'Anna}\label{callaway-and-santanna}
 
 \begin{frame}{Stop asking for one number}
 \protect\phantomsection\label{stop-asking-for-one-number}
@@ -366,7 +907,7 @@ Cohort & 1991 (baseline) & 1995 & Role \\
 
 \begin{frame}{With covariates, and the assumptions}
 \protect\phantomsection\label{with-covariates-and-the-assumptions}
-The \(2 \times 2\) becomes 7b's IPW, OR or DR estimator, with a score
+The \(2 \times 2\) becomes 8a's IPW, OR or DR estimator, with a score
 estimated among cohort \(g\) and its controls \(C\),
 \(\hat p(X) = \Pr(G_g = 1 \mid X, G_g + C = 1)\): \[
 \text{ATT}(g,t) = \mathbb{E}\!\left[\left(\frac{G_g}{\mathbb{E}[G_g]} - \frac{\frac{\hat p(X) C}{1 - \hat p(X)}}{\mathbb{E}\!\left[\frac{\hat p(X) C}{1 - \hat p(X)}\right]}\right)\big(Y_t - Y_{g-1}\big)\right].
@@ -526,7 +1067,7 @@ Group ATT: mean of ATT($g$) & $56.00$ & $56$ & $63.5$ \\
 \begin{frame}{Event studies from building blocks}
 \protect\phantomsection\label{event-studies-from-building-blocks}
 \begin{center}
-\includegraphics[width=0.76\linewidth,height=\textheight,keepaspectratio]{07c_did_staggered_files/figure-beamer/baker-es-1.pdf}
+\includegraphics[width=0.76\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/baker-es-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -573,7 +1114,7 @@ Group ATT: mean of ATT($g$) & $56.00$ & $56$ & $63.5$ \\
   \textbf{silently drops \(\ell = 12, \dots, 17\)}.
 \item
   Those dropped post periods load onto every other coefficient (Section
-  2): a falling ``pre-trend'' and near-zero effects that do not exist.
+  3): a falling ``pre-trend'' and near-zero effects that do not exist.
 \end{itemize}
 
 \vspace{0.4em}
@@ -641,7 +1182,7 @@ CS, never-treated & $0.110$ & $0.057$ & $0.058$ & $0.097$ & $0.112$ & $0.112$ & 
 \end{itemize}
 \end{frame}
 
-\section{2. Sun and Abraham}\label{sun-and-abraham}
+\section{3. Sun and Abraham}\label{sun-and-abraham}
 
 \begin{frame}{The TWFE event study and its three assumptions}
 \protect\phantomsection\label{the-twfe-event-study-and-its-three-assumptions}
@@ -775,7 +1316,7 @@ Three periods (\(t = 0, 1, 2\)). Cohort 1 is treated in period 1, cohort
 \end{itemize}
 \end{frame}
 
-\section{3. de Chaisemartin and
+\section{4. de Chaisemartin and
 D'Haultfoeuille}\label{de-chaisemartin-and-dhaultfoeuille}
 
 \begin{frame}[fragile]{Negative weights on unit-time effects}
@@ -788,7 +1329,7 @@ D'Haultfoeuille}\label{de-chaisemartin-and-dhaultfoeuille}
   \textbf{negative}.
 \item
   Which cells? Mostly long-treated units in heavily treated periods:
-  exactly the already-treated controls of 7b.
+  exactly the already-treated controls of Section 1.
 \item
   A negative weight means a \emph{larger} effect in that cell
   \emph{lowers} the coefficient.
@@ -835,7 +1376,7 @@ At each date, average two kinds of \(2 \times 2\):
 \end{itemize}
 \end{frame}
 
-\section{4. Imputation}\label{imputation}
+\section{5. Imputation}\label{imputation}
 
 \begin{frame}{Borusyak, Jaravel and Spiess (2024)}
 \protect\phantomsection\label{borusyak-jaravel-and-spiess-2024}
@@ -976,7 +1517,7 @@ In a staggered design, report:
 \end{enumerate}
 \end{frame}
 
-\section{5. Reading an Event Study}\label{reading-an-event-study}
+\section{6. Reading an Event Study}\label{reading-an-event-study}
 
 \begin{frame}{Two ways to compute a pre-period coefficient (Roth 2024)}
 \protect\phantomsection\label{two-ways-to-compute-a-pre-period-coefficient-roth-2024}
@@ -1030,7 +1571,7 @@ Short gap & -- & 0.3 & 0.3 & 0.3 & 0.3 & 3.3 & 0.3 & 0.3 & 0.3 & 0.3 & 0.3 \\
 \begin{frame}{Roth's picture: one dataset, three ways to plot it}
 \protect\phantomsection\label{roths-picture-one-dataset-three-ways-to-plot-it}
 \begin{center}
-\includegraphics[width=1\linewidth,height=\textheight,keepaspectratio]{07c_did_staggered_files/figure-beamer/roth-panels-1.pdf}
+\includegraphics[width=1\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/roth-panels-1.pdf}
 \end{center}
 
 \src{Simulated, after Roth (2024) and Cunningham (2025), Figure 10.12: one treated and one control group; the treated group trends $0.5$ a period faster, and the true effect is zero.}
@@ -1191,7 +1732,7 @@ Short gap & -- & 0.3 & 0.3 & 0.3 & 0.3 & 3.3 & 0.3 & 0.3 & 0.3 & 0.3 & 0.3 \\
 \end{itemize}
 \end{frame}
 
-\section{6. A Checklist}\label{a-checklist}
+\section{7. A Checklist}\label{a-checklist}
 
 \begin{frame}{Ten steps, in order}
 \protect\phantomsection\label{ten-steps-in-order}
@@ -1285,7 +1826,7 @@ ATE, average person: $\tfrac{1}{10}(8 \times 0.50 - 2 \times 1.00)$ & & $0.20$ \
 \begin{frame}{Step 1: when the two averages diverge}
 \protect\phantomsection\label{step-1-when-the-two-averages-diverge}
 \begin{center}
-\includegraphics[width=0.84\linewidth,height=\textheight,keepaspectratio]{07c_did_staggered_files/figure-beamer/texas-1.pdf}
+\includegraphics[width=0.84\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/texas-1.pdf}
 \end{center}
 
 \src{Simulated, after Cunningham (2025), Figure 10.16: the people with the largest effects live in the five big urban counties.}
@@ -1565,6 +2106,10 @@ Never-treated & 3,836 & -- \\
 \begin{enumerate}
 \tightlist
 \item
+  \textbf{Under differential timing, TWFE averages every
+  \(2 \times 2\)}, including those whose control was already treated.
+  With \textbf{dynamic effects} it can get the sign wrong.
+\item
   \textbf{Build, then aggregate.} CS estimates each \(\text{ATT}(g,t)\)
   as a clean \(2 \times 2\) and averages with weights you choose.
 \item
@@ -1667,6 +2212,10 @@ Never-treated & 3,836 & -- \\
   Rubin, D. B. (2008). For Objective Causal Inference, Design Trumps
   Analysis. \emph{Annals of Applied Statistics} 2(3), 808--840.
 \item
+  Słoczyński, T. (2022). Interpreting OLS Estimands When Treatment
+  Effects Are Heterogeneous: Smaller Groups Get Larger Weights.
+  \emph{Review of Economics and Statistics} 104(3), 501--509.
+\item
   Solon, G., S. Haider and J. Wooldridge (2015). What Are We Weighting
   For? \emph{Journal of Human Resources} 50(2), 301--316.
 \item
@@ -1686,6 +2235,8 @@ Never-treated & 3,836 & -- \\
 \begin{Shaded}
 \begin{Highlighting}[]
 \KeywordTok{use}\NormalTok{ https:}\CommentTok{//raw.githubusercontent.com/scunning1975/mixtape/master/baker.dta, clear}
+\KeywordTok{areg} \FunctionTok{y}\NormalTok{ i.}\FunctionTok{year}\NormalTok{ treat, a(id) }\KeywordTok{robust}                    \CommentTok{// TWFE static = {-}6.69}
+\NormalTok{bacondecomp }\FunctionTok{y}\NormalTok{ treat, ddetail                         }\CommentTok{// Goodman{-}Bacon weights and 2x2s}
 \NormalTok{csdid2 }\FunctionTok{y}\NormalTok{, ivar(id) time(}\FunctionTok{year}\NormalTok{) gvar(treat\_date) notyet method(stdipw) long2}
 \KeywordTok{estat}\NormalTok{ simple                                         }\CommentTok{// 68.3}
 \KeywordTok{estat} \FunctionTok{group}                                          \CommentTok{// 56}
@@ -1701,11 +2252,12 @@ Never-treated & 3,836 & -- \\
 \begin{itemize}
 \tightlist
 \item
-  R equivalents: \texttt{did} (\texttt{att\_gt}, \texttt{aggte}),
-  \texttt{fixest::sunab}, \texttt{didimputation},
+  R equivalents: \texttt{bacondecomp}, \texttt{did} (\texttt{att\_gt},
+  \texttt{aggte}), \texttt{fixest::sunab}, \texttt{didimputation},
   \texttt{DIDmultiplegtDYN}, \texttt{TwoWayFEWeights},
-  \texttt{HonestDiD}. This deck computes CS and the imputation estimator
-  from group means with \texttt{fixest} and base R only.
+  \texttt{HonestDiD}. This deck computes the Bacon decomposition, CS and
+  the imputation estimator from group means with \texttt{fixest} and
+  base R only.
 \end{itemize}
 \end{frame}
 

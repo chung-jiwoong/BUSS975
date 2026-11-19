@@ -228,7 +228,7 @@ placeboplot <- function(x, P, keep, trj, vline, ylab) {
 
 ## Where we left off
 
-- Lectures 7a--7c: difference-in-differences identifies the ATT if untreated outcomes move in parallel. The staggered-adoption estimators refuse the forbidden comparison, but every one of them **still needs parallel trends for a control group you chose**.
+- Lectures 7--8: difference-in-differences identifies the ATT if untreated outcomes move in parallel. The staggered-adoption estimators refuse the forbidden comparison, but every one of them **still needs parallel trends for a control group you chose**.
 - Two questions stayed open:
   - What if the treated "group" is **one unit**: a state, a country, an exchange? One unit cannot choose its control group by regression, and there is nothing to cluster on.
   - What if no untreated group is parallel to it, but **some weighted average of them** might be?
@@ -300,7 +300,7 @@ a **nested** optimisation: a quadratic programme for $W$ inside a search over $V
 ## Three advantages (Abadie, Diamond and Hainmueller 2010)
 
 1. **No extrapolation.** The counterfactual is a convex combination of *contemporaneous* donor outcomes. It never projects forward from the treated unit's own history and never steps outside the data, where regression is most model-dependent (King and Zeng 2006).
-2. **Design before outcomes.** The weights use only pre-treatment data. Fix the model, publish the weights, and only then look at the post period (Rubin 2007, 2008): the "do not peek" principle of the 7c checklist, built into the estimator.
+2. **Design before outcomes.** The weights use only pre-treatment data. Fix the model, publish the weights, and only then look at the post period (Rubin 2007, 2008): the "do not peek" principle of the 8b checklist, built into the estimator.
 3. **Transparency.** The weights say exactly what each donor contributes. A regression also weights the donors, but the weights are buried in $(X'X)^{-1}X'$ and nobody shows them.
 
 \vspace{0.4em}
@@ -315,7 +315,7 @@ $$
 Y^0_{it} = \alpha_t + \theta_t Z_i + \lambda_t u_i + \varepsilon_{it},
 $$
 $\alpha_t$ a common shock; $Z_i$ observed characteristics with **time-varying** coefficients $\theta_t$; $u_i$ unobserved loadings on unobserved common factors $\lambda_t$; $\varepsilon_{it}$ transitory noise.
-- A model of the **outcome**, not of assignment. Propensity scores model who gets treated; synthetic control, like the outcome regression of 7b, models what the untreated outcome would have been, with a stronger structure: a few latent factors. It is 7b's "covariate-specific trend" in other clothes: grit is stable, the return to grit moves. In DiD that breaks parallel trends; here it is the model.
+- A model of the **outcome**, not of assignment. Propensity scores model who gets treated; synthetic control, like the outcome regression of 8a, models what the untreated outcome would have been, with a stronger structure: a few latent factors. It is 8a's "covariate-specific trend" in other clothes: grit is stable, the return to grit moves. In DiD that breaks parallel trends; here it is the model.
 - If $\sum_j w_j Z_j = Z_1$ **and** $\sum_j w_j u_j = u_1$, then $\sum_j w_j Y^0_{jt} = Y^0_{1t}$ up to noise in every period, treated or not. $u_i$ is unobserved, so the **pre-period fit is the evidence**: only units balanced on both $Z$ and $u$ would track the treated unit for many years. ADH show the bias vanishes as $T_0 \to \infty$ when the fit is exact.
 - Hence the rule: a **long** pre-period, **closely** tracked. The assumption is not testable; the fit is imperfect but powerful evidence.
 
@@ -332,7 +332,7 @@ twolines(yrs, y1, colMeans(Y0), c("California", "Average of 38 control states"),
 ```
 
 - Proposition 99 (passed November 1988, effective January 1989): a 25-cent tax per pack, clean-air ordinances, anti-smoking media campaigns, more than \$100 million a year earmarked for anti-tobacco programmes.
-- Outcome: cigarette sales per capita, 1970--2000: 19 pre-years, 12 post-years. Donor pool: the 38 states without comparable programmes in the period; states with similar legislation are dropped, for the reason 7b gave against comparing with the already-treated.
+- Outcome: cigarette sales per capita, 1970--2000: 19 pre-years, 12 post-years. Donor pool: the 38 states without comparable programmes in the period; states with similar legislation are dropped, for the reason 8a gave against comparing with the already-treated.
 - Sales fell after 1988. They were already falling, in California and everywhere else. The raw comparison cannot tell.
 
 ## Synthetic California
@@ -595,7 +595,7 @@ $$
 \normalsize
 
 - The bracket is the outcome model's prediction of how far the synthetic control's imbalance in $X$ translates into imbalance in $Y^0$. With a perfect fit it is zero and augmented equals classic. With an imperfect fit it corrects in proportion to the imbalance.
-- Second form: the outcome regression, debiased by a weighted average of donor residuals. The doubly robust structure of 3b and 7b again.
+- Second form: the outcome regression, debiased by a weighted average of donor residuals. The doubly robust structure of 3b and 8a again.
 - Why bother, if $T_0 \to \infty$ kills the bias? Because $T_0$ is 19 for smoking and 9 for Texas. Exact balance is rare.
 
 ## The ridge weights
@@ -789,7 +789,7 @@ Arkhangelsky et al.\ (2021), Table 1 & $-27.3$ & $-19.6$ & $-15.6$ \\
   3. **no anticipation**, or a treatment date moved back to when behaviour changed;
   4. the treated unit **inside the convex hull**: not the largest, smallest or strangest unit in the pool;
   5. a **long pre-period** and enough post-periods for the effect to appear.
-- Examples that follow the recipe: Billmeier and Nannicini (2013) on economic liberalisation; Born et al. (2019) on the Brexit vote and UK GDP; Cavallo et al. (2013) on disasters and growth. With hundreds of treated firms you are back in Lecture 7c, or in SDID and matrix completion with staggered timing.
+- Examples that follow the recipe: Billmeier and Nannicini (2013) on economic liberalisation; Born et al. (2019) on the Brexit vote and UK GDP; Cavallo et al. (2013) on disasters and growth. With hundreds of treated firms you are back in Lecture 8b, or in SDID and matrix completion with staggered timing.
 
 ## Conclusion
 

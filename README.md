@@ -21,7 +21,8 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 5b. Five IV Designs | [Slides][iv-b-pdf] | [Problem][iv-b-ps] |
 | 6a. Causal Panel Designs | [Slides][panel-a-pdf] | [Problem][panel-a-ps] |
 | 6b. Dynamic Panel Models (not covered in class) | [Slides][panel-b-pdf] | |
-| 7a. Difference-in-Differences: Fundamentals | [Slides][did-a-pdf] | |
+| 7. Difference-in-Differences: Fundamentals | [Slides][did-a-pdf] | |
+| 8a. Difference-in-Differences: Composition, Triple Differences and Covariates | [Slides][did-8a-pdf] | |
 
 
 
@@ -55,7 +56,8 @@ Course materials for BUSS975, including lecture slides and problem sets.
 [panel-b-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06b_dynamic_panel_models.pdf
 [dpanel-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06b_dynamic_panel.pdf
 
-[did-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/07_DiD/07a_did_fundamentals.pdf
+[did-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/07_DiD/07_did_fundamentals.pdf
+[did-8a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/08_DiD_complex/08a_did_covariates.pdf
 
 <!--
 

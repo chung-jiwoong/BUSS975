@@ -69,7 +69,7 @@ cs_table <- function(d, yvar, control = "notyet") {
   o$n <- as.numeric(table(d$treat_date[d$year == min(d$year)])[as.character(o$g)])
   o
 }
-# Goodman-Bacon (2021) decomposition, by hand (as in 7b).
+# Goodman-Bacon (2021) decomposition, by hand (Section 1).
 bacon <- function(d, yvar, idvar = "id", tvar = "year", gvar = "treat_date") {
   Tn <- length(unique(d[[tvar]])); t0 <- min(d[[tvar]]); tmax <- max(d[[tvar]]); N <- length(unique(d[[idvar]]))
   d$D <- as.numeric(!is.na(d[[gvar]]) & d[[tvar]] >= d[[gvar]])
@@ -110,7 +110,397 @@ bcs <- bysum(bacon(cst, "l_homicide", idvar = "sid", tvar = "year", gvar = "effy
 
 ## Where we left off
 
-- Lecture 7b: under staggered adoption, TWFE is a weighted average of **every** $2 \times 2$ in the data, weighted by group size and treatment variance.
+- Lecture 7: difference-in-differences is **four averages and three subtractions**. With one treated group, one control group and one date, the interaction, two-way fixed effects (TWFE) and the long difference give the same number.
+- Lecture 8a: three ways the single $2 \times 2$ breaks. The sample changes, a second DiD shares the bias, or parallel trends holds only among units with the same covariates.
+
+\vspace{0.4em}
+
+- Today: the fourth. **Treatment arrives at different dates.** What TWFE computes then, estimators that **never** make its forbidden comparison, how to read their event studies, and a checklist for your own design.
+
+## The plan
+
+1. **Differential timing and TWFE**: what the regression everyone runs averages, and why it can get the sign wrong.
+2. **Callaway and Sant'Anna**: build group-time $2 \times 2$'s, then aggregate.
+3. **Sun and Abraham**: what goes wrong in the TWFE *event study*, and the interaction-weighted fix.
+4. **de Chaisemartin and D'Haultfoeuille**: treatments that switch off.
+5. **Borusyak, Jaravel and Spiess**: imputation.
+6. **Reading an event study**: long differences, short gaps, honest bounds.
+7. **A checklist**, worked through Brazil's mental-health reform.
+
+\vspace{0.4em}
+
+- One running question: **which $2 \times 2$'s are inside my estimate, and what weight does each carry?**
+
+# 1. Differential Timing and Two-Way Fixed Effects
+
+## When "Post" has no meaning
+
+Card and Krueger again, but suppose New York also raised its minimum wage, in 1993.
+
+\begin{center}\scriptsize
+\begin{tabular}{lccc|lccc|lccc}
+\toprule
+Year & State & Treat & Post & Year & State & Treat & Post & Year & State & Treat & Post \\
+\midrule
+1991 & NJ & 1 & 0 & 1991 & NY & 1 & 0 & 1991 & PA & 0 & 0 \\
+1992 & NJ & 1 & 1 & 1992 & NY & 1 & 0 & 1992 & PA & 0 & ? \\
+1993 & NJ & 1 & 1 & 1993 & NY & 1 & 1 & 1993 & PA & 0 & ? \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Is Pennsylvania's "Post" relative to 1992 or 1993? The interaction regression cannot even be written down.
+- So everyone runs the version that can:
+$$
+Y_{ist} = \beta_0 + \delta D_{ist} + \tau_t + \sigma_s + \varepsilon_{ist}, \qquad D_{ist} = \mathbf{1}\{\text{unit } s \text{ is treated at } t\}.
+$$
+- Coding $D$ is trivial. The question is what $\hat\delta^{TWFE}$ *is*, in potential outcomes.
+
+## What does TWFE average?
+
+- By Frisch--Waugh--Lovell, $\hat\delta^{TWFE}$ is the slope of $Y$ on $D$ after both are demeaned by unit and by period:
+$$
+\hat\delta = \frac{\sum_{s,t} \tilde D_{st}\tilde Y_{st}}{\sum_{s,t} \tilde D_{st}^2}.
+$$
+- Goodman-Bacon (2021): this slope is **exactly** a weighted average of all the simple $2 \times 2$ DiDs in the data.
+- A warm-up: the average of $4$, $10$ and $3$ is $5.67$, weight $\tfrac13$ each. If TWFE averages nine $2 \times 2$'s, are the weights $\tfrac19$?
+- No. OLS picks weights that are best for **predicting** $Y$, not for averaging treatment effects (Słoczyński 2022).
+
+## Nine $2 \times 2$'s from three timing groups
+
+Groups $a$ (treated 1980), $b$ (1983), $c$ (1986), and a never-treated group $U$:
+
+\begin{center}\small
+\begin{tabular}{ccc}
+\toprule
+$a$ vs $b$ & $b$ vs $a$ & $c$ vs $a$ \\
+$a$ vs $c$ & $b$ vs $c$ & $c$ vs $b$ \\
+$a$ vs $U$ & $b$ vs $U$ & $c$ vs $U$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- **Bottom row**: never-treated control. Fine.
+- **Left of the diagonal** ($a$ vs $b$, $a$ vs $c$, $b$ vs $c$): the control is **not yet treated** during the window. Fine.
+- **Upper right** ($b$ vs $a$, $c$ vs $a$, $c$ vs $b$): the control was **already treated**. Three of the nine. Nobody chose them; OLS did.
+
+## The four kinds of $2 \times 2$, drawn
+
+```{r four-2x2}
+#| fig-width: 8
+#| fig-height: 4.6
+#| out-width: 80%
+#| fig-align: center
+tt <- 0:100; k <- 34; l <- 85
+yk <- 18 + 0.1 * tt + 10 * (tt >= k); yl <- 10 + 0.1 * tt + 15 * (tt >= l); yU <- 5 + 0.1 * tt
+panel <- function(title, on, win, marks, spans) {
+  plot(NA, xlim = c(0, 100), ylim = c(-4, 42), xaxt = "n", xlab = "", ylab = "y", main = title, font.main = 1, cex.main = 0.95)
+  axis(1, at = marks, labels = names(marks))
+  w <- tt >= win[1] & tt <= win[2]; ev <- tt %% 3 == 0
+  for (g in c("U", "k", "l")) {
+    y <- switch(g, k = yk, l = yl, U = yU); is_on <- g %in% on
+    col <- if (is_on) c(k = "black", l = "steelblue", U = "grey35")[g] else "grey80"
+    ww <- if (is_on) w else rep(TRUE, length(tt))
+    lines(tt[ww], y[ww], col = col, lwd = if (g == "U") 3 else 1.2)
+    if (g != "U") points(tt[ww & ev], y[ww & ev], pch = if (g == "k") 17 else 1, col = col, cex = 0.7)
+  }
+  abline(v = marks, col = "firebrick")
+  for (s in spans) { arrows(s[[1]], 0.5, s[[2]], 0.5, code = 3, length = 0.06); text(mean(c(s[[1]], s[[2]])), -2.3, s[[3]], font = 3, cex = 0.8) }
+}
+par(mfrow = c(2, 2), mar = c(2.2, 2.8, 1.6, 0.4), mgp = c(1.5, 0.45, 0), cex = 0.8, las = 1)
+panel("A. Early group vs. untreated group", c("k", "U"), c(0, 100), c(k = k), list(list(0, k, "PRE(k)"), list(k, 100, "POST(k)")))
+panel("B. Late group vs. untreated group", c("l", "U"), c(0, 100), c(l = l), list(list(0, l, "PRE(l)"), list(l, 100, "POST(l)")))
+panel("C. Early vs. late group, before l", c("k", "l"), c(0, l - 1), c(k = k, l = l), list(list(0, k, "PRE(k)"), list(k, l, "MID(k,l)")))
+panel("D. Late vs. early group, after k", c("k", "l"), c(k, 100), c(k = k, l = l), list(list(k, l, "MID(k,l)"), list(l, 100, "POST(l)")))
+legend("topleft", bty = "n", cex = 0.85, pch = c(17, 1, NA), lwd = c(1.2, 1.2, 3), col = c("black", "steelblue", "grey35"),
+  legend = c("early group k", "late group l", "never treated U"))
+```
+\src{After Goodman-Bacon (2021), Figure 1, and Cunningham (2025), Figure 10.6. Grey: the group not used in that $2 \times 2$.}
+
+## Reading the four panels
+
+- **A. Early vs. untreated.** $k$ before and after its date, against $U$. The Lecture 7 design.
+- **B. Late vs. untreated.** The same for $l$.
+- **C. Early vs. late, before $l$.** $l$ is still untreated during the window *mid*$(k,l)$: a **not-yet-treated** control. Legal.
+- **D. Late vs. early, after $k$.** $l$ switches on; $k$ is already treated throughout. The **already-treated** control: the "forbidden comparison" (Borusyak, Jaravel and Spiess).
+
+\vspace{0.4em}
+
+- In panel D, both of $k$'s windows are $Y^1$. Any change in $k$'s *effect* between the windows looks like a change in the counterfactual.
+
+## The three kinds, as formulas
+
+$$
+\begin{aligned}
+\hat\delta^{2\times2}_{kU} &= (\bar y_k^{\,post(k)} - \bar y_k^{\,pre(k)}) - (\bar y_U^{\,post(k)} - \bar y_U^{\,pre(k)}) &&\text{never-treated control} \\[2pt]
+\hat\delta^{2\times2}_{kl} &= (\bar y_k^{\,mid} - \bar y_k^{\,pre(k)}) - (\bar y_l^{\,mid} - \bar y_l^{\,pre(k)}) &&\text{not-yet-treated control} \\[2pt]
+\hat\delta^{2\times2}_{lk} &= (\bar y_l^{\,post(l)} - \bar y_l^{\,mid}) - (\bar y_k^{\,post(l)} - \bar y_k^{\,mid}) &&\text{already-treated control}
+\end{aligned}
+$$
+
+- Each is four averages and three subtractions; only the windows and the control group change.
+- Substitute potential outcomes. The first two give an ATT plus the usual parallel-trends bias.
+
+## Why the third is forbidden
+
+With no anticipation, as in Lecture 7:
+$$
+\hat\delta^{2\times2}_{lk} = \text{ATT}_l(post) + \text{PT bias} - \underbrace{\big[\text{ATT}_k(post(l)) - \text{ATT}_k(mid)\big]}_{\text{growth in } k\text{'s own effect}} .
+$$
+
+- The control $k$ is treated in both windows. Its outcome rises if its **effect** grows, and that rise is subtracted from $l$'s estimate.
+- If $k$'s effect is constant, the bracket is zero: a treated control whose effect does not move differences out like a fixed effect.
+- "Forbidden comparison" is Borusyak, Jaravel and Spiess's phrase. de Chaisemartin and D'Haultfoeuille (2020), Goodman-Bacon (2021) and Sun and Abraham (2021) found the problem independently, within a few years.
+
+## The forbidden comparison in numbers
+
+Both groups have flat $Y^0$. Group $k$ is treated at $t = 2$, with an effect of $10$ that grows by $10$ a year. Group $l$ is treated at $t = 4$, with a constant effect of $5$.
+
+\begin{center}\small
+\begin{tabular}{lcccc}
+\toprule
+ & \multicolumn{2}{c}{\emph{mid}: $t = 2, 3$} & \multicolumn{2}{c}{\emph{post}$(l)$: $t = 4, 5$} \\
+\midrule
+$l$ (treated in the window) & 0 & 0 & 5 & 5 \\
+$k$ (the "control") & 10 & 20 & 30 & 40 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- $l$'s change: $5 - 0 = 5$. $k$'s change: $35 - 15 = 20$.
+- The $2 \times 2$: $5 - 20 = \mathbf{-15}$. The true effect is $+5$.
+- Parallel trends holds exactly. The control is not wrong about $Y^0$; it is contaminated by its **own growing effect**.
+
+## The weights: group size times treatment variance
+
+$$
+\hat\delta^{TWFE} = \sum_{k \ne U} s_{kU}\,\hat\delta^{2\times2}_{kU} + \sum_{k \ne U}\sum_{l > k}\big[s^{k}_{kl}\,\hat\delta^{2\times2,k}_{kl} + s^{l}_{kl}\,\hat\delta^{2\times2,l}_{lk}\big], \qquad \sum s = 1,
+$$
+$$
+s_{kU} = \frac{(n_k + n_U)^2\; n_{kU}(1 - n_{kU})\; \bar D_k(1 - \bar D_k)}{\widehat{\text{Var}}(\tilde D)}, \quad n_{kU} = \frac{n_k}{n_k + n_U}.
+$$
+
+- Similar formulas for the timing pairs. Every weight is **positive**, and they come from two ingredients:
+  - **sample shares** $n_k$: bigger groups count more, as you would expect;
+  - **treatment variance** $\bar D_k(1-\bar D_k)$, where $\bar D_k$ is the share of the panel a group spends treated.
+
+## Treatment variance favours the middle
+
+:::: {.columns}
+::: {.column width="50%"}
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & New Jersey & New York \\
+\midrule
+Treated from & 1992 & 1993 \\
+Years treated, 1990--95 & 4 of 6 & 3 of 6 \\
+$\bar D$ & 0.67 & 0.50 \\
+$\bar D(1 - \bar D)$ & 0.22 & \textbf{0.25} \\
+\bottomrule
+\end{tabular}
+\end{center}
+:::
+::: {.column width="50%"}
+```{r var-curve}
+#| fig-width: 4.2
+#| fig-height: 2.8
+#| out-width: 72%
+#| fig-align: center
+par(mar = c(2.6, 3.4, 0.6, 0.4), mgp = c(1.7, 0.5, 0), cex = 0.9, las = 1)
+curve(x * (1 - x), 0, 1, lwd = 2, xlab = expression("share of panel treated, " * bar(D)), ylab = "", ylim = c(0, 0.27), yaxs = "i")
+mtext(expression(bar(D) * (1 - bar(D))), 2, 2.4, las = 0, cex = 0.9)
+segments(0.5, 0, 0.5, 0.25, lty = 2, col = "grey50"); segments(0, 0.25, 0.5, 0.25, lty = 2, col = "grey50")
+points(c(2/3, 0.5), c(2/9, 0.25), pch = 16, col = c("firebrick", "steelblue"))
+text(2/3, 2/9, "NJ", pos = 4, col = "firebrick", cex = 0.85); text(0.5, 0.25, "NY", pos = 3, col = "steelblue", cex = 0.85, offset = 0.3)
+```
+\src{After Cunningham (2025), Figure 10.7.}
+:::
+::::
+
+- $\bar D(1-\bar D)$ peaks at $\bar D = 0.5$: $0.1 \times 0.9 = 0.09$, $0.4 \times 0.6 = 0.24$, $0.5 \times 0.5 = 0.25$.
+- TWFE **over-weights groups treated near the middle of the panel** and under-weights early and late adopters. Not because their comparisons are better, but because OLS likes variance.
+- Change the panel's start or end date and the weights change with it.
+
+## From arithmetic to causality
+
+Replace each $2 \times 2$ by its potential-outcome content, with no anticipation:
+$$
+\operatorname{plim}\hat\delta^{TWFE} \;=\; \text{VWATT} \;+\; \text{VWPT} \;-\; \Delta\text{ATT}.
+$$
+
+- **VWATT**: a variance-weighted average of group ATTs. Causal, but weighted by the panel's dates rather than by anything you chose.
+- **VWPT**: variance-weighted parallel-trends bias. Zero if parallel trends holds for every pair.
+- $\boldsymbol{\Delta}$**ATT**: the already-treated controls' *change* in effect, with a **minus sign**. Zero only if effects are constant over time.
+
+\vspace{0.3em}
+
+- So parallel trends is **not enough** for this regression. You also need effects that do not change over time.
+
+## Constant effects vs. dynamic effects
+
+:::: {.columns}
+::: {.column width="50%"}
+```{r eff-const}
+#| fig-width: 3.8
+#| fig-height: 2.6
+#| out-width: 74%
+#| fig-align: center
+eff_plot <- function(dyn) {
+  par(mar = c(1.8, 1.8, 0.4, 0.4), mgp = c(0.6, 0, 0), cex = 0.85)
+  plot(NA, xlim = c(0, 10), ylim = c(0, 10), axes = FALSE, xlab = "time", ylab = expression(Y^0 * ", " * Y^1)); box(bty = "l")
+  abline(v = 5, lty = 2, col = "grey60")
+  segments(0, 3, 5, 3, lwd = 2); segments(5, 3, 9, 3, lty = 2, lwd = 2, col = "grey60")
+  y1 <- function(x) if (dyn) 5 + 1.1 * (x - 5) else 7
+  segments(5, y1(5), 9, y1(9), lwd = 2)
+  for (x in c(6, 8)) arrows(x, 3, x, y1(x), code = 3, length = 0.07, col = "grey40", lty = if (x == 8) 3 else 1)
+  text(6, 3 + (y1(6) - 3) / 2, expression(ATT[1]), pos = 4, cex = 0.85); text(8, 3 + (y1(8) - 3) / 2, expression(ATT[2]), pos = 4, cex = 0.85)
+  text(9.3, y1(9) + 0.35, expression(E(Y^1)), cex = 0.8); text(9.4, 3.4, expression(E(Y^0)), col = "grey50", cex = 0.8)
+}
+eff_plot(FALSE)
+```
+\begin{center}\footnotesize Constant: $\text{ATT}_1 = \text{ATT}_2$, $\Delta\text{ATT} = 0$\end{center}
+:::
+::: {.column width="50%"}
+```{r eff-dyn}
+#| fig-width: 3.8
+#| fig-height: 2.6
+#| out-width: 74%
+#| fig-align: center
+eff_plot(TRUE)
+```
+\begin{center}\footnotesize Dynamic: $\text{ATT}_2 > \text{ATT}_1$, $\Delta\text{ATT} > 0$\end{center}
+:::
+::::
+\src{After Cunningham (2025), Figures 10.8 and 10.9.}
+
+- Under parallel trends, $\hat\delta^{TWFE} = \text{VWATT} - \Delta\text{ATT}$. If effects grow, TWFE is biased **toward zero**.
+- $\text{VWATT} = 10$, $\Delta\text{ATT} = 3$: estimate $7$. $\Delta\text{ATT} = 11$: estimate $-1$. **The sign flips.**
+
+## The Baker simulation: the truth
+
+```{r baker-raw}
+#| fig-width: 8
+#| fig-height: 2.3
+#| out-width: 76%
+#| fig-align: center
+mt <- with(b, tapply(y, list(year, group), mean))
+par(mar = c(2.6, 3.2, 0.3, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
+matplot(1980:2009, mt, type = "l", lty = 1, lwd = 2, col = c("black", "firebrick", "steelblue", "darkgreen"), xlab = "year", ylab = "mean outcome", las = 1)
+abline(v = c(1986, 1992, 1998, 2004) - 0.5, col = "grey70", lty = 3)
+legend("topleft", bty = "n", lwd = 2, col = c("black", "firebrick", "steelblue", "darkgreen"), cex = 0.85, legend = c("treated 1986", "treated 1992", "treated 1998", "treated 2004"))
+```
+
+- $1{,}000$ firms, $1980$--$2009$, four equal cohorts treated in $1986$, $1992$, $1998$, $2004$.
+- Every firm's $Y^0$ grows by $1$ a year plus noise: parallel trends holds **firm by firm**. No anticipation, no omitted variables.
+
+## The Baker simulation: two outcomes
+
+- **Constant** effects: $10$, $8$, $6$, $4$ by cohort, forever.
+- **Dynamic** effects (the figure): the same numbers, **added again every year** treated.
+  - The 1986 cohort: $10$ in 1986, $20$ in 1987, ..., $240$ by 2009.
+  - The 2004 cohort: $4$, $8$, ..., $24$ by 2009.
+
+\vspace{0.4em}
+
+- Every effect is positive. Every textbook assumption holds.
+- Question: what does the regression everyone runs return?
+
+## The Baker simulation: parameters and the regression
+
+```{r baker-twfe}
+tw_c <- feols(y2 ~ treat | id + year, b, cluster = ~id)
+tw_d <- feols(y ~ treat | id + year, b, cluster = ~id)
+bk <- bacon(b, "y"); bks <- bysum(bk)
+bks_c <- bysum(bacon(b, "y2"))
+```
+
+\begin{center}\scriptsize
+\begin{tabular}{lcccccc|c}
+\toprule
+ & ATT(1986) & ATT(1992) & ATT(1998) & ATT(2004) & Simple & Group & $\hat\delta^{TWFE}$ (s.e.) \\
+\midrule
+Constant & 10 & 8 & 6 & 4 & 8 & 7 & $`r f2(coef(tw_c))`$ ($`r f3(se(tw_c))`$) \\
+Dynamic & 125 & 76 & 39 & 14 & 82 & 63.5 & $\mathbf{`r f2(coef(tw_d))`}$ ($`r f3(se(tw_d))`$) \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- *Simple ATT*: average over all treated firm-years. *Group ATT*: average of the four cohort averages. Both correct; they weight the cells differently.
+- **Constant:** $\Delta\text{ATT} = 0$, so only the variance weights remain. The answer, $7$, is a VWATT: causal, though not the simple ATT.
+- **Dynamic:** the regression returns $\mathbf{`r f2(coef(tw_d))`}$ with a $t$-statistic of $10$. **The sign is wrong.**
+
+## The Baker simulation: inside the coefficient
+
+Bacon's decomposition, computed by hand from group means, reproduces the coefficient exactly:
+
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & Weight & Average $2 \times 2$ \\
+\midrule
+Earlier treated vs later control (not-yet-treated) & $`r f2(bks$weight[1])`$ & $`r f1(bks$avg[1])`$ \\
+Later treated vs earlier control (already-treated) & $`r f2(bks$weight[2])`$ & $`r f1(bks$avg[2])`$ \\
+\midrule
+$`r f2(bks$weight[1])` \times `r f1(bks$avg[1])` + `r f2(bks$weight[2])` \times (`r f1(bks$avg[2])`)$ & & $`r f2(sum(bks$weight * bks$avg))`$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- No never-treated group, so all $`r nrow(bk)`$ $2 \times 2$'s compare two cohorts.
+- Half the weight sits on comparisons whose control was **already treated and still climbing**. They average $`r f1(bks$avg[2])`$.
+
+## Why constant effects were harmless
+
+- Same decomposition, constant-effect outcome: the two halves average $`r f1(bks_c$avg[1])`$ and $`r f1(bks_c$avg[2])`$.
+- A control whose effect does not move is just a level shift. The subtraction removes it, as a fixed effect would.
+- With dynamic effects the control's outcome **keeps climbing**, and that climb is read as a counterfactual trend.
+
+\vspace{0.4em}
+
+- The weights are **observable**. Compute them for your design before deciding whether TWFE is good enough.
+- Stata and R: `bacondecomp`.
+
+## Bacon on real data: castle doctrine, all cohorts
+
+```{r castle-bacon}
+#| fig-width: 8
+#| fig-height: 2.3
+#| out-width: 76%
+#| fig-align: center
+tw_cst <- feols(l_homicide ~ post | sid + year, cst, cluster = ~sid)
+bc <- bacon(cst, "l_homicide", idvar = "sid", tvar = "year", gvar = "effyear"); bcs <- bysum(bc)
+par(mar = c(2.6, 3.2, 0.3, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
+pchs <- c("Earlier treated vs later control" = 1, "Later treated vs earlier control" = 4, "Treated vs never treated" = 16)
+plot(bc$dd, bc$w, pch = pchs[bc$type], xlab = "2 x 2 estimate", ylab = "weight", las = 1, cex = 1.1)
+abline(v = coef(tw_cst), col = "grey50", lty = 3)
+legend("topleft", bty = "n", pch = c(16, 1, 4), cex = 0.9, legend = c("treated vs never treated", "earlier treated vs later control", "later treated vs earlier control"))
+```
+
+- Lecture 7 used the 2006 cohort against the never-treated. Now all $21$ adopting states, $2005$--$2009$, plus $29$ never adopters.
+- TWFE: $\hat\delta = `r f3(coef(tw_cst))`$ ($`r f3(se(tw_cst))`$). The dotted line marks it.
+
+## Castle doctrine: what is inside $`r f3(coef(tw_cst))`$
+
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & Weight & Average $2 \times 2$ \\
+\midrule
+Treated vs never treated & $`r f2(bcs$weight[3])`$ & $`r f3(bcs$avg[3])`$ \\
+Earlier treated vs later control & $`r f2(bcs$weight[1])`$ & $`r f3(bcs$avg[1])`$ \\
+Later treated vs earlier control (forbidden) & $`r f2(bcs$weight[2])`$ & $`r f3(bcs$avg[2])`$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- $`r nrow(bc)`$ simple $2 \times 2$'s. The 2006-vs-never cell alone carries weight $`r f2(bc$w[bc$type == "Treated vs never treated" & bc$k == 2006])`$.
+- With a large never-treated group, the forbidden comparisons get little weight and TWFE is close to the clean answer.
+- That is **luck of the design**, not a property of the estimator. Check it every time.
+
+## What TWFE computes, in one slide
+
+- Under staggered adoption, TWFE is a weighted average of **every** $2 \times 2$ in the data, weighted by group size and treatment variance.
 - Some of those $2 \times 2$'s use an **already-treated** control. They subtract the control's own growing effect:
 $$
 \operatorname{plim}\hat\delta^{TWFE} = \text{VWATT} + \text{VWPT} - \Delta\text{ATT}.
@@ -119,22 +509,9 @@ $$
 
 \vspace{0.4em}
 
-- Today: estimators that **never** make the forbidden comparison, how to read their event studies, and a checklist for your own design.
+- Next: estimators that **never** make the forbidden comparison.
 
-## The plan
-
-1. **Callaway and Sant'Anna**: build group-time $2 \times 2$'s, then aggregate.
-2. **Sun and Abraham**: what goes wrong in the TWFE *event study*, and the interaction-weighted fix.
-3. **de Chaisemartin and D'Haultfoeuille**: treatments that switch off.
-4. **Borusyak, Jaravel and Spiess**: imputation.
-5. **Reading an event study**: long differences, short gaps, honest bounds.
-6. **A checklist**, worked through Brazil's mental-health reform.
-
-\vspace{0.4em}
-
-- One running question: **which $2 \times 2$'s are inside my estimate, and what weight does each carry?**
-
-# 1. Callaway and Sant'Anna
+# 2. Callaway and Sant'Anna
 
 ## Stop asking for one number
 
@@ -174,7 +551,7 @@ a9295 <- att_gt(b, "y", 1992, 1995)
 
 ## With covariates, and the assumptions
 
-The $2 \times 2$ becomes 7b's IPW, OR or DR estimator, with a score estimated among cohort $g$ and its controls $C$, $\hat p(X) = \Pr(G_g = 1 \mid X, G_g + C = 1)$:
+The $2 \times 2$ becomes 8a's IPW, OR or DR estimator, with a score estimated among cohort $g$ and its controls $C$, $\hat p(X) = \Pr(G_g = 1 \mid X, G_g + C = 1)$:
 $$
 \text{ATT}(g,t) = \mathbb{E}\!\left[\left(\frac{G_g}{\mathbb{E}[G_g]} - \frac{\frac{\hat p(X) C}{1 - \hat p(X)}}{\mathbb{E}\!\left[\frac{\hat p(X) C}{1 - \hat p(X)}\right]}\right)\big(Y_t - Y_{g-1}\big)\right].
 $$
@@ -315,7 +692,7 @@ legend("topleft", bty = "n", lwd = 2, col = c("steelblue", "darkgreen", "firebri
 
 - The TWFE line, as usually run, gives the 2004 cohort lead dummies too. No unit is left as a reference.
 - Relative time is then collinear with the fixed effects, and fixest **silently drops $\ell = `r min(dropped)`, \dots, `r max(dropped)`$**.
-- Those dropped post periods load onto every other coefficient (Section 2): a falling "pre-trend" and near-zero effects that do not exist.
+- Those dropped post periods load onto every other coefficient (Section 3): a falling "pre-trend" and near-zero effects that do not exist.
 
 \vspace{0.4em}
 
@@ -355,7 +732,7 @@ CS, never-treated & $`r f3(simple_cs)`$ & $`r f3(evc["-3"])`$ & $`r f3(evc["-2"]
 - The event-study coefficients barely move. Here the two agree on the story.
 - In Baker, Larcker and Wang's replications they did not. You cannot know which case you are in without looking.
 
-# 2. Sun and Abraham
+# 3. Sun and Abraham
 
 ## The TWFE event study and its three assumptions
 
@@ -419,12 +796,12 @@ $$
 - The key difference from CS is the control: **not** the not-yet-treated.
 - CS and SA are the same building blocks with different default controls and aggregations. If they disagree, parallel trends holds for one control group and not the other: a fact about your design.
 
-# 3. de Chaisemartin and D'Haultfoeuille
+# 4. de Chaisemartin and D'Haultfoeuille
 
 ## Negative weights on unit-time effects
 
 - dCDH diagnose the same disease one level down. TWFE is a weighted sum of **every treated cell's effect**, and some weights are **negative**.
-- Which cells? Mostly long-treated units in heavily treated periods: exactly the already-treated controls of 7b.
+- Which cells? Mostly long-treated units in heavily treated periods: exactly the already-treated controls of Section 1.
 - A negative weight means a *larger* effect in that cell *lowers* the coefficient.
 - If you must report TWFE, report the share of negative weights (Stata: `twowayfeweights`).
 - Bacon's weights are all positive and dCDH's are not. Both are right: Bacon weights $2 \times 2$ *comparisons*; dCDH weight *treatment effects*.
@@ -442,7 +819,7 @@ At each date, average two kinds of $2 \times 2$:
 - The price is **no carryover**: the outcome at $t$ depends on treatment at $t$ only. The road is dry the moment it stops raining. That is no anticipation pointed the other way, and often harder to believe.
 - Newer work relaxes it: `did_multiplegt_dyn` lets outcomes depend on treatment history, and handles non-binary and continuous treatments.
 
-# 4. Imputation
+# 5. Imputation
 
 ## Borusyak, Jaravel and Spiess (2024)
 
@@ -512,7 +889,7 @@ In a staggered design, report:
 3. how you aggregate, and what parameter that gives;
 4. if you also report TWFE, the Bacon weights beside it.
 
-# 5. Reading an Event Study
+# 6. Reading an Event Study
 
 ## Two ways to compute a pre-period coefficient (Roth 2024)
 
@@ -644,7 +1021,7 @@ rframe("(c) BJS: imputation"); ci(-15:-1, bpre, spre, "firebrick", 15); ci(0:9, 
 - A robustness check that **removes** an assumption instead of adding a model.
 - R and Stata: `honestdid`.
 
-# 6. A Checklist
+# 7. A Checklist
 
 ## Ten steps, in order
 
@@ -859,12 +1236,13 @@ $$
 
 ## Conclusion
 
-1. **Build, then aggregate.** CS estimates each $\text{ATT}(g,t)$ as a clean $2 \times 2$ and averages with weights you choose.
-2. **Honest estimators may target less.** Cells without an untreated comparison are not identified by anyone; say what you estimate.
-3. **TWFE event studies are contaminated** when cohorts have different effect paths, or when software drops periods. Sun--Abraham's interaction weights fix it.
-4. **dCDH** handles treatments that switch off; **imputation** buys efficiency with stronger parallel trends. Choose by the assumption.
-5. **Read event studies carefully**: long differences vs. short gaps, the imputation kink, honest bounds instead of "the pre-trends look fine."
-6. **Checklist.** Parameter, cohorts, rollout, controls, covariates, balance; then the outcome, the estimator, the bounds. If it is not credible, walk away.
+1. **Under differential timing, TWFE averages every $2 \times 2$**, including those whose control was already treated. With **dynamic effects** it can get the sign wrong.
+2. **Build, then aggregate.** CS estimates each $\text{ATT}(g,t)$ as a clean $2 \times 2$ and averages with weights you choose.
+3. **Honest estimators may target less.** Cells without an untreated comparison are not identified by anyone; say what you estimate.
+4. **TWFE event studies are contaminated** when cohorts have different effect paths, or when software drops periods. Sun--Abraham's interaction weights fix it.
+5. **dCDH** handles treatments that switch off; **imputation** buys efficiency with stronger parallel trends. Choose by the assumption.
+6. **Read event studies carefully**: long differences vs. short gaps, the imputation kink, honest bounds instead of "the pre-trends look fine."
+7. **Checklist.** Parameter, cohorts, rollout, controls, covariates, balance; then the outcome, the estimator, the bounds. If it is not credible, walk away.
 
 ## References
 
@@ -893,6 +1271,7 @@ $$
 - Rambachan, A. and J. Roth (2023). A More Credible Approach to Parallel Trends. *Review of Economic Studies* 90(5), 2555--2591.
 - Roth, J. (2024). Interpreting Event-Studies from Recent Difference-in-Differences Methods. Working paper.
 - Rubin, D. B. (2008). For Objective Causal Inference, Design Trumps Analysis. *Annals of Applied Statistics* 2(3), 808--840.
+- Słoczyński, T. (2022). Interpreting OLS Estimands When Treatment Effects Are Heterogeneous: Smaller Groups Get Larger Weights. *Review of Economics and Statistics* 104(3), 501--509.
 - Solon, G., S. Haider and J. Wooldridge (2015). What Are We Weighting For? *Journal of Human Resources* 50(2), 301--316.
 - Sun, L. and S. Abraham (2021). Estimating Dynamic Treatment Effects in Event Studies with Heterogeneous Treatment Effects. *Journal of Econometrics* 225(2), 175--199.
 - Wooldridge, J. M. (2021). Two-Way Fixed Effects, the Two-Way Mundlak Regression, and Difference-in-Differences Estimators. Working paper.
@@ -903,6 +1282,8 @@ $$
 
 ```stata
 use https://raw.githubusercontent.com/scunning1975/mixtape/master/baker.dta, clear
+areg y i.year treat, a(id) robust                    // TWFE static = -6.69
+bacondecomp y treat, ddetail                         // Goodman-Bacon weights and 2x2s
 csdid2 y, ivar(id) time(year) gvar(treat_date) notyet method(stdipw) long2
 estat simple                                         // 68.3
 estat group                                          // 56
@@ -914,4 +1295,4 @@ twowayfeweights y id year treat, type(feTR)          // share of negative TWFE w
 honestdid, pre(1/4) post(5/8) mvec(0(0.5)2)          // Rambachan-Roth, after an event study
 ```
 
-- R equivalents: `did` (`att_gt`, `aggte`), `fixest::sunab`, `didimputation`, `DIDmultiplegtDYN`, `TwoWayFEWeights`, `HonestDiD`. This deck computes CS and the imputation estimator from group means with `fixest` and base R only.
+- R equivalents: `bacondecomp`, `did` (`att_gt`, `aggte`), `fixest::sunab`, `didimputation`, `DIDmultiplegtDYN`, `TwoWayFEWeights`, `HonestDiD`. This deck computes the Bacon decomposition, CS and the imputation estimator from group means with `fixest` and base R only.

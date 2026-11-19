@@ -243,7 +243,7 @@ Research}{BUSS975: Causal Inference in Financial Research}}
 \begin{itemize}
 \tightlist
 \item
-  Lectures 7a--7c: difference-in-differences identifies the ATT if
+  Lectures 7--8: difference-in-differences identifies the ATT if
   untreated outcomes move in parallel. The staggered-adoption estimators
   refuse the forbidden comparison, but every one of them \textbf{still
   needs parallel trends for a control group you chose}.
@@ -446,7 +446,7 @@ Study}\label{the-comparative-case-study}
   \textbf{Design before outcomes.} The weights use only pre-treatment
   data. Fix the model, publish the weights, and only then look at the
   post period (Rubin 2007, 2008): the ``do not peek'' principle of the
-  7c checklist, built into the estimator.
+  8b checklist, built into the estimator.
 \item
   \textbf{Transparency.} The weights say exactly what each donor
   contributes. A regression also weights the donors, but the weights are
@@ -483,8 +483,8 @@ Study}\label{the-comparative-case-study}
 \item
   A model of the \textbf{outcome}, not of assignment. Propensity scores
   model who gets treated; synthetic control, like the outcome regression
-  of 7b, models what the untreated outcome would have been, with a
-  stronger structure: a few latent factors. It is 7b's
+  of 8a, models what the untreated outcome would have been, with a
+  stronger structure: a few latent factors. It is 8a's
   ``covariate-specific trend'' in other clothes: grit is stable, the
   return to grit moves. In DiD that breaks parallel trends; here it is
   the model.
@@ -507,7 +507,7 @@ Study}\label{the-comparative-case-study}
 \begin{frame}{California, 1988}
 \protect\phantomsection\label{california-1988}
 \begin{center}
-\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/prop99-raw-1.pdf}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/prop99-raw-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -521,7 +521,7 @@ Study}\label{the-comparative-case-study}
   Outcome: cigarette sales per capita, 1970--2000: 19 pre-years, 12
   post-years. Donor pool: the 38 states without comparable programmes in
   the period; states with similar legislation are dropped, for the
-  reason 7b gave against comparing with the already-treated.
+  reason 8a gave against comparing with the already-treated.
 \item
   Sales fell after 1988. They were already falling, in California and
   everywhere else. The raw comparison cannot tell.
@@ -531,7 +531,7 @@ Study}\label{the-comparative-case-study}
 \begin{frame}{Synthetic California}
 \protect\phantomsection\label{synthetic-california}
 \begin{center}
-\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/prop99-synth-1.pdf}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/prop99-synth-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -585,7 +585,7 @@ Cigarette sales 1975  &  127.10  &  127.09  &  136.93  \\
 \begin{frame}{The gap}
 \protect\phantomsection\label{the-gap}
 \begin{center}
-\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/prop99-gap-1.pdf}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/prop99-gap-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -633,7 +633,7 @@ Cigarette sales 1975  &  127.10  &  127.09  &  136.93  \\
 \begin{frame}{Placebo gaps: all 38 donors}
 \protect\phantomsection\label{placebo-gaps-all-38-donors}
 \begin{center}
-\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/prop99-placebo-all-1.pdf}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/prop99-placebo-all-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -652,7 +652,7 @@ Cigarette sales 1975  &  127.10  &  127.09  &  136.93  \\
 \begin{frame}{Placebo gaps: states fit as well as California}
 \protect\phantomsection\label{placebo-gaps-states-fit-as-well-as-california}
 \begin{center}
-\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/prop99-placebo-good-1.pdf}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/prop99-placebo-good-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -671,7 +671,7 @@ Cigarette sales 1975  &  127.10  &  127.09  &  136.93  \\
 \begin{frame}[fragile]{The exact p-value}
 \protect\phantomsection\label{the-exact-p-value}
 \begin{center}
-\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/prop99-hist-1.pdf}
+\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/prop99-hist-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -697,7 +697,7 @@ Cigarette sales 1975  &  127.10  &  127.09  &  136.93  \\
 \begin{frame}{Ruiz v. Estelle and the construction boom}
 \protect\phantomsection\label{ruiz-v.-estelle-and-the-construction-boom}
 \begin{center}
-\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/texas-capacity-1.pdf}
+\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/texas-capacity-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -722,7 +722,7 @@ Cigarette sales 1975  &  127.10  &  127.09  &  136.93  \\
 \begin{frame}[fragile]{Texas against the rest of the country}
 \protect\phantomsection\label{texas-against-the-rest-of-the-country}
 \begin{center}
-\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/texas-raw-1.pdf}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/texas-raw-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -745,7 +745,7 @@ Cigarette sales 1975  &  127.10  &  127.09  &  136.93  \\
 \begin{frame}{Synthetic Texas}
 \protect\phantomsection\label{synthetic-texas}
 \begin{center}
-\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/texas-synth-1.pdf}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/texas-synth-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -768,7 +768,7 @@ Cigarette sales 1975  &  127.10  &  127.09  &  136.93  \\
 \begin{frame}{The gap and the balance}
 \protect\phantomsection\label{the-gap-and-the-balance}
 \begin{center}
-\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/texas-gap-1.pdf}
+\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/texas-gap-1.pdf}
 \end{center}
 
 \begin{center}\scriptsize
@@ -799,7 +799,7 @@ Percent aged 15--19, 1990  &  8  &  7  &  7  \\
 \begin{frame}{Placebos in space}
 \protect\phantomsection\label{placebos-in-space}
 \begin{center}
-\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/texas-placebo-1.pdf}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/texas-placebo-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -819,7 +819,7 @@ Percent aged 15--19, 1990  &  8  &  7  &  7  \\
 \begin{frame}{A placebo in time}
 \protect\phantomsection\label{a-placebo-in-time}
 \begin{center}
-\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/texas-intime-1.pdf}
+\includegraphics[width=0.78\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/texas-intime-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -1033,7 +1033,7 @@ Fit}\label{weights-extrapolation-and-imperfect-fit}
   imperfect fit it corrects in proportion to the imbalance.
 \item
   Second form: the outcome regression, debiased by a weighted average of
-  donor residuals. The doubly robust structure of 3b and 7b again.
+  donor residuals. The doubly robust structure of 3b and 8a again.
 \item
   Why bother, if \(T_0 \to \infty\) kills the bias? Because \(T_0\) is
   19 for smoking and 9 for Texas. Exact balance is rare.
@@ -1081,7 +1081,7 @@ Fit}\label{weights-extrapolation-and-imperfect-fit}
 \begin{frame}[fragile]{Smoking and prisons, classic and augmented}
 \protect\phantomsection\label{smoking-and-prisons-classic-and-augmented}
 \begin{center}
-\includegraphics[width=0.88\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/ascm-1.pdf}
+\includegraphics[width=0.88\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/ascm-1.pdf}
 \end{center}
 
 \begin{itemize}
@@ -1205,7 +1205,7 @@ Fit}\label{weights-extrapolation-and-imperfect-fit}
 \begin{frame}{Proposition 99 by matrix completion}
 \protect\phantomsection\label{proposition-99-by-matrix-completion}
 \begin{center}
-\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/mc-fig-1.pdf}
+\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/mc-fig-1.pdf}
 \end{center}
 
 \begin{center}\scriptsize
@@ -1346,7 +1346,7 @@ Difference-in-Differences}\label{synthetic-difference-in-differences}
 \begin{frame}{Proposition 99 by synthetic DiD}
 \protect\phantomsection\label{proposition-99-by-synthetic-did}
 \begin{center}
-\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{08_synthetic_control_files/figure-beamer/sdid-fig-1.pdf}
+\includegraphics[width=0.72\linewidth,height=\textheight,keepaspectratio]{09_synthetic_control_files/figure-beamer/sdid-fig-1.pdf}
 \end{center}
 
 \begin{center}\scriptsize
@@ -1444,7 +1444,7 @@ Arkhangelsky et al.\ (2021), Table 1 & $-27.3$ & $-19.6$ & $-15.6$ \\
   Examples that follow the recipe: Billmeier and Nannicini (2013) on
   economic liberalisation; Born et al.~(2019) on the Brexit vote and UK
   GDP; Cavallo et al.~(2013) on disasters and growth. With hundreds of
-  treated firms you are back in Lecture 7c, or in SDID and matrix
+  treated firms you are back in Lecture 8b, or in SDID and matrix
   completion with staggered timing.
 \end{itemize}
 \end{frame}

@@ -733,7 +733,7 @@ $$
 <!-- Pick the treated as the richest, the poorest, or those with the biggest gains from treatment: the equality still holds. -->
 - Levels can differ as much as you like, and the level can be the reason a unit was treated. Only the *change* has to be the same.
 - This is the world assumed by $Y_{it} = \alpha_i + \lambda_t + \delta D_{it} + \varepsilon_{it}$: the year effect $\lambda_t$ *is* the common move. A strong claim. <!-- , and the one you make when you run that regression without comment. -->
-- **Next slides: no common trend.** Each unit's $Y^0$ now moves by a different amount, so parallel trends is no longer automatic. It holds only if the treated and control groups move by the same amount *on average* --- and that depends on **how the treated were chosen**. We take the selection rules one at a time.
+<!-- - **Next slides: no common trend.** Each unit's $Y^0$ now moves by a different amount, so parallel trends is no longer automatic. It holds only if the treated and control groups move by the same amount *on average* --- and that depends on **how the treated were chosen**. We take the selection rules one at a time. --> 
 
 ## Good news: selection on the baseline $Y^0$
 
@@ -819,9 +819,11 @@ If units are assigned to treatment **without fully anticipating their future out
 - Most relevant where treatment is not self-selected on anticipated gains: an agency applies a rule, a firm is caught by a threshold, a manager acts on last year's numbers.
 - Ghanem, Sant'Anna and Wüthrich (2024): imperfect foresight does not by itself mangle parallel trends. It is also the realistic case more often than economists like to admit.
 
+<!-- 
 \vspace{0.3em}
 
 - Five mechanisms, five ways assignment can interact with $Y^0$ and leave parallel trends standing. What if none of them applies --- if units choose on the gain itself, and get it right?
+-->
 
 ## Bad news: the Perfect Doctor
 
@@ -961,5 +963,5 @@ gen dbar = l_homicide1 - l_homicide0
 reg dbar treat, cluster(sid)                              // long difference  = 0.0682359
 ```
 
-- Full file, including the no-anticipation simulation (constant and dynamic effects, clean and treated baselines): `07a_did_sim.do`.
+- Full file, including the no-anticipation simulation (constant and dynamic effects, clean and treated baselines): `07_did_sim.do`.
 --> 
