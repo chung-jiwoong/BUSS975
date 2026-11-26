@@ -23,6 +23,7 @@ Course materials for BUSS975, including lecture slides and problem sets.
 | 6b. Dynamic Panel Models (not covered in class) | [Slides][panel-b-pdf] | | |
 | 7. Difference-in-Differences: Fundamentals | [Slides][did-a-pdf] | [Problem][did-a-ps] | [Hints][did-a-hints] |
 | 8a. Difference-in-Differences: Composition, Triple Differences and Covariates | [Slides][did-8a-pdf] | | |
+| 8b. Difference-in-Differences: Staggered Adoption (incomplete draft; will change) | [Slides][did-8b-pdf] | | |
 
 
 

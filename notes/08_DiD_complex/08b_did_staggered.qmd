@@ -46,7 +46,8 @@ f2 <- function(x) sprintf("%.2f", x)
 f3 <- function(x) sprintf("%.3f", x)
 # Baker simulation (Cunningham, Remix ch. 10): 1,000 firms, 1980-2009, four cohorts of 250 treated in 1986/92/98/2004.
 b <- as.data.frame(read_dta("data/baker.dta"))
-b <- b[, c("id", "group", "year", "treat_date", "treat", "y", "y2", "time_til")]
+b$y0 <- b$firms + b$n + b$e   # untreated outcome: y = y0 + effect
+b <- b[, c("id", "group", "year", "treat_date", "treat", "y", "y2", "time_til", "y0")]
 # Cheng and Hoekstra (2013), all 50 states: cohorts 2005-2009 and 29 never-treated.
 cst <- as.data.frame(read_dta("data/castle.dta"))
 cst$treat_date <- cst$effyear; cst$id <- cst$sid
@@ -110,7 +111,7 @@ bcs <- bysum(bacon(cst, "l_homicide", idvar = "sid", tvar = "year", gvar = "effy
 
 ## Where we left off
 
-- Lecture 7: difference-in-differences is **four averages and three subtractions**. With one treated group, one control group and one date, the interaction, two-way fixed effects (TWFE) and the long difference give the same number.
+- Lecture 7: DiD is **four averages and three subtractions**. With one treated group, one control group and one date, the interaction, two-way fixed effects (TWFE) and the long difference give the same number.
 - Lecture 8a: three ways the single $2 \times 2$ breaks. The sample changes, a second DiD shares the bias, or parallel trends holds only among units with the same covariates.
 
 \vspace{0.4em}
@@ -129,7 +130,7 @@ bcs <- bysum(bacon(cst, "l_homicide", idvar = "sid", tvar = "year", gvar = "effy
 
 \vspace{0.4em}
 
-- One running question: **which $2 \times 2$'s are inside my estimate, and what weight does each carry?**
+<!-- - One running question: **which $2 \times 2$'s are inside my estimate, and what weight does each carry?** --> 
 
 # 1. Differential Timing and Two-Way Fixed Effects
 
@@ -163,7 +164,7 @@ $$
 \hat\delta = \frac{\sum_{i,t} \tilde D_{it}\tilde Y_{it}}{\sum_{i,t} \tilde D_{it}^2}.
 $$
 - Goodman-Bacon (2021): this slope is **exactly** a weighted average of all the simple $2 \times 2$ DiDs in the data.
-- A warm-up: the average of $4$, $10$ and $3$ is $5.67$, weight $\tfrac13$ each. If TWFE averages nine $2 \times 2$'s, are the weights $\tfrac19$?
+- If TWFE averages nine $2 \times 2$'s, are the weights $\tfrac19$?
 - No. OLS picks weights that are best for **predicting** $Y$, not for averaging treatment effects (Słoczyński 2022).
 
 ## Nine $2 \times 2$'s from three timing groups
@@ -217,7 +218,7 @@ panel("D. Late vs. early group, after k", c("k", "l"), c(k, 100), c(k = k, l = l
 legend("topleft", bty = "n", cex = 0.85, pch = c(17, 1, NA), lwd = c(1.2, 1.2, 3), col = c("black", "steelblue", "grey35"),
   legend = c("early group k", "late group l", "never treated U"))
 ```
-\src{After Goodman-Bacon (2021), Figure 1, and Cunningham (2025), Figure 10.6. Grey: the group not used in that $2 \times 2$.}
+\src{After Goodman-Bacon (2021), Figure 1. Grey: the group not used in that $2 \times 2$.}
 
 ## Reading the four panels
 
@@ -228,7 +229,7 @@ legend("topleft", bty = "n", cex = 0.85, pch = c(17, 1, NA), lwd = c(1.2, 1.2, 3
 
 \vspace{0.4em}
 
-- In panel D, both of $k$'s windows are $Y^1$. Any change in $k$'s *effect* between the windows looks like a change in the counterfactual.
+- In panel D, both of $k$'s windows (pre and post) are $Y^1$. Any change in $k$'s *effect* between the windows looks like a change in the counterfactual.
 
 ## The three kinds, as formulas
 
@@ -242,17 +243,73 @@ $$
 
 - Each is four averages and three subtractions; only the windows and the control group change.
 - Substitute potential outcomes. The first two give an ATT plus the usual parallel-trends bias.
+- The third does not. The next four slides show why, in five steps. On them, $post$ means $post(l)$.
 
-## Why the third is forbidden
+## The third $2 \times 2$, steps 1 and 2: name each average
 
-With no anticipation, as in Lecture 7:
+**Step 1.** Write the $2 \times 2$ in observed averages:
 $$
-\hat\delta^{2\times2}_{lk} = \text{ATT}_l(post) + \text{PT bias} - \underbrace{\big[\text{ATT}_k(post(l)) - \text{ATT}_k(mid)\big]}_{\text{growth in } k\text{'s own effect}} .
+\hat\delta^{2\times2}_{lk} = \big(\bar y_l^{\,post} - \bar y_l^{\,mid}\big) - \big(\bar y_k^{\,post} - \bar y_k^{\,mid}\big).
+$$
+
+**Step 2.** With no anticipation, say which potential outcome each average is:
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+Observed average & Estimates & Because \\
+\midrule
+$\bar y_l^{\,post}$ & $E[Y^1_l \mid post]$ & $l$ is treated \\
+$\bar y_l^{\,mid}$ & $E[Y^0_l \mid mid]$ & $l$ is not yet treated \\
+$\bar y_k^{\,post}$ & $E[Y^1_k \mid post]$ & $k$ is treated \\
+$\bar y_k^{\,mid}$ & $E[Y^{\mathbf{1}}_k \mid mid]$ & $k$ is \textbf{already} treated \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Three of the four are $Y^1$. In Lecture 7's $2 \times 2$, and in the first two kinds here, only one is.
+
+## Step 3: add zeros
+
+An effect is $Y^1$ minus $Y^0$ in the **same** group and window. Three $Y^0$'s are missing, so add and subtract each one:
+$$
+\begin{aligned}
+\hat\delta^{2\times2}_{lk} ={}& E[Y^1_l \mid post] - E[Y^0_l \mid mid] - E[Y^1_k \mid post] + E[Y^1_k \mid mid] \\[3pt]
+&+ \underbrace{E[Y^0_l \mid post] - E[Y^0_l \mid post]}_{=\,0} \\
+&+ \underbrace{E[Y^0_k \mid post] - E[Y^0_k \mid post]}_{=\,0} \\
+&+ \underbrace{E[Y^0_k \mid mid] - E[Y^0_k \mid mid]}_{=\,0} .
+\end{aligned}
+$$
+
+<!-- - Nothing has changed: we added zero three times. This is the "adding zero" move of Lecture 7, used once there and three times here. --> 
+- None of the three added $Y^0$'s is observed. They are $l$'s and $k$'s untreated outcomes in windows where both are treated.
+
+## Step 4: regroup the ten terms
+
+$$
+\begin{aligned}
+\hat\delta^{2\times2}_{lk} ={}& \underbrace{E[Y^1_l \mid post] - E[Y^0_l \mid post]}_{\text{ATT}_l(post)} \\[2pt]
+&+ \underbrace{\big(E[Y^0_l \mid post] - E[Y^0_l \mid mid]\big) - \big(E[Y^0_k \mid post] - E[Y^0_k \mid mid]\big)}_{\text{PT bias: } l\text{'s untreated change minus } k\text{'s}} \\[2pt]
+&- \underbrace{\Big[\big(E[Y^1_k \mid post] - E[Y^0_k \mid post]\big) - \big(E[Y^1_k \mid mid] - E[Y^0_k \mid mid]\big)\Big]}_{\text{ATT}_k(post) \,-\, \text{ATT}_k(mid)} .
+\end{aligned}
+$$
+
+<!-- - Check it: each of the ten terms in step 3 appears exactly once, with the same sign. --> 
+- First line: what we want. Second line: zero if $l$ and $k$ have parallel untreated trends.
+- Third line: new. It is there because $k$'s two averages were both $Y^1$.
+
+## Step 5: why the third is forbidden
+
+$$
+\hat\delta^{2\times2}_{lk} = \text{ATT}_l(post) + \text{PT bias} - \underbrace{\big[\text{ATT}_k(post) - \text{ATT}_k(mid)\big]}_{\text{growth in } k\text{'s own effect}} .
 $$
 
 - The control $k$ is treated in both windows. Its outcome rises if its **effect** grows, and that rise is subtracted from $l$'s estimate.
 - If $k$'s effect is constant, the bracket is zero: a treated control whose effect does not move differences out like a fixed effect.
-- "Forbidden comparison" is Borusyak, Jaravel and Spiess's phrase. de Chaisemartin and D'Haultfoeuille (2020), Goodman-Bacon (2021) and Sun and Abraham (2021) found the problem independently, within a few years.
+- For the first two kinds:
+$$
+\hat\delta^{2\times2}_{kU} = \text{ATT}_k(post(k)) + \text{PT bias}, \qquad \hat\delta^{2\times2}_{kl} = \text{ATT}_k(mid) + \text{PT bias}.
+$$
 
 ## The forbidden comparison in numbers
 
@@ -276,15 +333,44 @@ $k$ (the "control") & 10 & 20 & 30 & 40 \\
 ## The weights: group size times treatment variance
 
 $$
-\hat\delta^{TWFE} = \sum_{k \ne U} s_{kU}\,\hat\delta^{2\times2}_{kU} + \sum_{k \ne U}\sum_{l > k}\big[s_{kl}\,\hat\delta^{2\times2}_{kl} + s_{lk}\,\hat\delta^{2\times2}_{lk}\big], \qquad \sum s = 1,
-$$
-$$
-s_{kU} = \frac{(n_k + n_U)^2\; n_{kU}(1 - n_{kU})\; \bar D_k(1 - \bar D_k)}{\widehat{\text{Var}}(\tilde D)}, \quad n_{kU} = \frac{n_k}{n_k + n_U}.
+\hat\delta^{TWFE} = \sum_{k \ne U} s_{kU}\,\hat\delta^{2\times2}_{kU} + \sum_{k \ne U}\sum_{l > k}\big[s_{kl}\,\hat\delta^{2\times2}_{kl} + s_{lk}\,\hat\delta^{2\times2}_{lk}\big], \qquad \sum s = 1.
 $$
 
-- Similar formulas for the timing pairs. Every weight is **positive**, and they come from two ingredients:
-  - **sample shares** $n_k$: bigger groups count more, as you would expect;
-  - **treatment variance** $\bar D_k(1-\bar D_k)$, where $\bar D_k$ is the share of the panel a group spends treated.
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+$2 \times 2$ & Control & Weight \\
+\midrule
+$k$ vs $U$ & never treated & $s_{kU} = n_k\, n_U\; \bar D_k(1 - \bar D_k) \,\big/\, \widehat{\text{Var}}(\tilde D)$ \\[3pt]
+$l$ vs $U$ & never treated & $s_{lU} = n_l\, n_U\; \bar D_l(1 - \bar D_l) \,\big/\, \widehat{\text{Var}}(\tilde D)$ \\[3pt]
+$k$ vs $l$ & not yet treated & $s_{kl} = n_k\, n_l\; (\bar D_k - \bar D_l)(1 - \bar D_k) \,\big/\, \widehat{\text{Var}}(\tilde D)$ \\[3pt]
+$l$ vs $k$ & already treated & $s_{lk} = n_k\, n_l\; \bar D_l\,(\bar D_k - \bar D_l) \,\big/\, \widehat{\text{Var}}(\tilde D)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- $n_k$: group $k$'s share of the units. $\bar D_k$: the share of the panel group $k$ spends treated. $k$ is the earlier group, so $\bar D_k > \bar D_l$.
+- Every weight is **positive**, and each has two ingredients:
+  - **group sizes**, as a product: a pair of large groups counts more;
+  - **treatment variance**: how much $D$ varies inside that $2 \times 2$. 
+
+## Where the weight comes from: one $2 \times 2$ is one regression
+
+- Keep only groups $k$ and $U$. TWFE on that subsample **is** $\hat\delta^{2\times2}_{kU}$.
+- The full regression pools all such subsamples. OLS weights each by its size, squared, times the variance of its demeaned treatment:
+$$
+s_{kU} = \frac{(n_k + n_U)^2\; \hat V^D_{kU}}{\widehat{\text{Var}}(\tilde D)} .
+$$
+- In the subsample, $D_{it} = G_i \times P_t$, with $G_i = 1$ for units in $k$ and $P_t = 1$ in $post(k)$.
+  - $G_i$ has mean $n_{kU} = n_k/(n_k + n_U)$. $P_t$ has mean $\bar D_k$.
+- Demean by unit and by period:
+$$
+\tilde D_{it} = G_iP_t - G_i\bar D_k - n_{kU}P_t + n_{kU}\bar D_k = (G_i - n_{kU})(P_t - \bar D_k).
+$$
+- A $0/1$ variable with mean $p$ has variance $p(1-p)$. Here there are two of them:
+$$
+\hat V^D_{kU} = n_{kU}(1 - n_{kU}) \times \bar D_k(1 - \bar D_k), \qquad (n_k + n_U)^2\, n_{kU}(1 - n_{kU}) = n_k n_U .
+$$
 
 ## Treatment variance favours the middle
 
@@ -323,6 +409,100 @@ text(2/3, 2/9, "NJ", pos = 4, col = "firebrick", cex = 0.85); text(0.5, 0.25, "N
 - $\bar D(1-\bar D)$ peaks at $\bar D = 0.5$: $0.1 \times 0.9 = 0.09$, $0.4 \times 0.6 = 0.24$, $0.5 \times 0.5 = 0.25$.
 - TWFE **over-weights groups treated near the middle of the panel** and under-weights early and late adopters. Not because their comparisons are better, but because OLS likes variance.
 - Change the panel's start or end date and the weights change with it.
+
+## Timing pairs: the same variance, inside a shorter window
+
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & $k$ vs $l$ & $l$ vs $k$ \\
+\midrule
+Control & not yet treated & already treated \\
+Window & $pre(k)$ and $mid$ & $mid$ and $post(l)$ \\
+Window's share of the panel & $1 - \bar D_l$ & $\bar D_k$ \\
+Group that switches on & $k$ & $l$ \\
+Share of the window it is treated, $p$ & $\dfrac{\bar D_k - \bar D_l}{1 - \bar D_l}$ & $\dfrac{\bar D_l}{\bar D_k}$ \\[8pt]
+Treatment variance & $n_{kl}(1 - n_{kl}) \times p(1-p)$ & $n_{kl}(1 - n_{kl}) \times p(1-p)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+<!-- - Same derivation as for $k$ vs $U$, with the window in place of the whole panel. $n_{kl} = n_k/(n_k + n_l)$. --> 
+- The subsample's size now has a time dimension as well:
+$$
+s_{kl} = \frac{\big[(n_k + n_l)(1 - \bar D_l)\big]^2\, \hat V^{D}_{kl}}{\widehat{\text{Var}}(\tilde D)}, \qquad s_{lk} = \frac{\big[(n_k + n_l)\,\bar D_k\big]^2\, \hat V^{D}_{lk}}{\widehat{\text{Var}}(\tilde D)} .
+$$
+<!-- - Multiply out and the window shares cancel, leaving the two formulas on "The weights: group size times treatment variance". --> 
+
+## Against the never-treated group: the same table
+
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & $k$ vs $U$ & $l$ vs $U$ \\
+\midrule
+Control & never treated & never treated \\
+Window & $pre(k)$ and $post(k)$ & $pre(l)$ and $post(l)$ \\
+Window's share of the panel & $1$ & $1$ \\
+Group that switches on & $k$ & $l$ \\
+Share of the window it is treated, $p$ & $\bar D_k$ & $\bar D_l$ \\[2pt]
+Treatment variance & $n_{kU}(1 - n_{kU}) \times p(1-p)$ & $n_{lU}(1 - n_{lU}) \times p(1-p)$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+<!-- - The window is the whole panel, so its share is $1$ and $p$ is simply $\bar D_k$ or $\bar D_l$. This is the derivation on "Where the weight comes from: one $2 \times 2$ is one regression", laid out as a table. --> 
+- The weights, with $n_{lU} = n_l/(n_l + n_U)$:
+$$
+s_{kU} = \frac{\big[(n_k + n_U) \times 1\big]^2\, \hat V^{D}_{kU}}{\widehat{\text{Var}}(\tilde D)} = \frac{n_k n_U\, \bar D_k(1 - \bar D_k)}{\widehat{\text{Var}}(\tilde D)}, \qquad s_{lU} = \frac{n_l n_U\, \bar D_l(1 - \bar D_l)}{\widehat{\text{Var}}(\tilde D)} .
+$$
+- New Jersey and New York, 1990--95: $p = \tfrac46$ and $\tfrac36$, so $p(1-p) = 0.222$ and $0.250$.
+
+## The weights, read as window lengths
+
+Two dates cut the panel into three windows, with shares $pre(k) = 1 - \bar D_k$, $\;mid = \bar D_k - \bar D_l$, $\;post(l) = \bar D_l$.
+
+\begin{center}\small
+\begin{tabular}{llll}
+\toprule
+$2 \times 2$ & Term in the weight & Treated window $\times$ untreated window & NJ and NY, 1990--95 \\
+\midrule
+$k$ vs $U$ & $\bar D_k(1 - \bar D_k)$ & $[mid + post(l)] \times pre(k)$ & $\tfrac46 \times \tfrac26 = 0.222$ \\[2pt]
+$l$ vs $U$ & $\bar D_l(1 - \bar D_l)$ & $post(l) \times [pre(k) + mid]$ & $\tfrac36 \times \tfrac36 = 0.250$ \\[2pt]
+$k$ vs $l$ & $(\bar D_k - \bar D_l)(1 - \bar D_k)$ & $mid \times pre(k)$ & $\tfrac16 \times \tfrac26 = 0.056$ \\[2pt]
+$l$ vs $k$ & $\bar D_l\,(\bar D_k - \bar D_l)$ & $post(l) \times mid$ & $\tfrac36 \times \tfrac16 = 0.083$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- Each term: how long the switching group is **treated** in that $2 \times 2$, times how long **untreated**.
+- $k$ vs $l$ stops at $l$'s date: $k$ is treated only in $mid$. $l$ vs $k$ starts at $k$'s date: $l$ is untreated only in $mid$.
+- Strictly, the variance inside a window is $p(1-p)$. Each term is that times the window's share of the panel, squared.
+
+## Timing pairs: how much weight goes to the forbidden one?
+
+- Divide the two weights. Group sizes cancel:
+$$
+\frac{s_{kl}}{s_{lk}} = \frac{1 - \bar D_k}{\bar D_l} = \frac{\text{share of the panel before } k\text{'s date}}{\text{share of the panel after } l\text{'s date}} .
+$$
+- New Jersey ($k$, treated from 1992) and New York ($l$, from 1993), panel 1990--95:
+
+\begin{center}\small
+\begin{tabular}{lcc}
+\toprule
+ & NJ vs NY & NY vs NJ (forbidden) \\
+\midrule
+Window & 1990--92 & 1992--95 \\
+Window's share of the panel & $3/6$ & $4/6$ \\
+Share of the window treated, $p$ & $1/3$ (NJ) & $3/4$ (NY) \\
+$(\text{window share})^2 \times p(1-p)$ & $\tfrac14 \times \tfrac29 = 0.056$ & $\tfrac49 \times \tfrac{3}{16} = 0.083$ \\
+Share of the pair's weight & $40\%$ & $\mathbf{60\%}$ \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+- The forbidden comparison gets **more** weight when both groups are treated early: a short $pre(k)$ and a long $post(l)$.
+- Nobody chose $40/60$. It follows from the dates $1990$, $1992$, $1993$ and $1995$.
 
 ## From arithmetic to causality
 
@@ -383,23 +563,31 @@ eff_plot(TRUE)
 
 ```{r baker-raw}
 #| fig-width: 8
-#| fig-height: 2.3
-#| out-width: 76%
+#| fig-height: 3.0
+#| out-width: 78%
 #| fig-align: center
-mt <- with(b, tapply(y, list(year, group), mean))
-par(mar = c(2.6, 3.2, 0.3, 0.3), mgp = c(1.7, 0.5, 0), cex = 0.9)
-matplot(1980:2009, mt, type = "l", lty = 1, lwd = 2, col = c("black", "firebrick", "steelblue", "darkgreen"), xlab = "year", ylab = "mean outcome", las = 1)
-abline(v = c(1986, 1992, 1998, 2004) - 0.5, col = "grey70", lty = 3)
-legend("topleft", bty = "n", lwd = 2, col = c("black", "firebrick", "steelblue", "darkgreen"), cex = 0.85, legend = c("treated 1986", "treated 1992", "treated 1998", "treated 2004"))
+cols4 <- c("black", "firebrick", "steelblue", "darkgreen")
+raw_panel <- function(yvar, title, leg) {
+  mt <- tapply(b[[yvar]], list(b$year, b$group), mean)
+  matplot(1980:2009, mt, type = "l", lty = 1, lwd = 2, col = cols4, xlab = "year", ylab = "mean observed outcome", las = 1, main = title, font.main = 1, cex.main = 1)
+  lines(1980:2009, tapply(b$y0, b$year, mean), lty = "42", lwd = 3, col = "darkorange")
+  abline(v = c(1986, 1992, 1998, 2004) - 0.5, col = "grey70", lty = 3)
+  if (leg) legend("topleft", bty = "n", lwd = c(2, 2, 2, 2, 3), lty = c("solid", "solid", "solid", "solid", "42"), col = c(cols4, "darkorange"), cex = 0.8,
+    legend = c("treated 1986", "treated 1992", "treated 1998", "treated 2004", expression(Y^0 * ", all four cohorts")))
+}
+par(mfrow = c(1, 2), mar = c(2.6, 3.4, 1.5, 1.2), mgp = c(2.1, 0.5, 0), cex = 0.8)
+raw_panel("y2", "Constant effects", TRUE)
+raw_panel("y", "Dynamic effects", FALSE)
 ```
 
-- $1{,}000$ firms, $1980$--$2009$, four equal cohorts treated in $1986$, $1992$, $1998$, $2004$.
-- Every firm's $Y^0$ grows by $1$ a year plus noise: parallel trends holds **firm by firm**. No anticipation, no omitted variables.
+- $1{,}000$ firms, $1980$--$2009$, four equal cohorts treated in $1986$, $1992$, $1998$, $2004$. Same firms in both panels; the vertical scales differ.
+<!-- - Every firm's $Y^0$ grows by $1$ a year plus noise: parallel trends holds **firm by firm**. No anticipation. -->
+- Solid minus dashed (mean $Y^0$) is a cohort's ATT: a constant gap on the left, a widening one on the right.
 
 ## The Baker simulation: two outcomes
 
-- **Constant** effects: $10$, $8$, $6$, $4$ by cohort, forever.
-- **Dynamic** effects (the figure): the same numbers, **added again every year** treated.
+- **Constant** effects (left panel): $10$, $8$, $6$, $4$ by cohort, forever.
+- **Dynamic** effects (right panel): the same numbers, **added again every year** treated.
   - The 1986 cohort: $10$ in 1986, $20$ in 1987, ..., $240$ by 2009.
   - The 2004 cohort: $4$, $8$, ..., $24$ by 2009.
 
@@ -1311,7 +1499,8 @@ bacondecomp y treat, ddetail                         // Goodman-Bacon weights an
 csdid2 y, ivar(id) time(year) gvar(treat_date) notyet method(stdipw) long2
 estat simple                                         // 68.3
 estat group                                          // 56
-estat event                                          // relative-time aggregation
+estat calendar                                       // by calendar year
+estat event                                          // by relative time (event study)
 eventstudyinteract y lead* lag*, cohort(treat_date) control_cohort(last) absorb(id year)
 did_imputation y id year treat_date, autosample      // Borusyak-Jaravel-Spiess
 did_multiplegt_dyn y id year treat                   // de Chaisemartin-D'Haultfoeuille
