@@ -1,0 +1,41 @@
+---
+title: "Problem Set: Directed Acyclic Graphs --- Hints"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+## Problem 1
+
+- **(a)** Walk every route from $D$ to $Y$, ignoring the direction of the arrows and never passing through the same node twice. Then look at the middle node of each route. Do the arrows pass through it (chain), leave it in both directions (fork), or both point into it (collider)? Chains and forks are open. Colliders are closed, as long as you have not conditioned on anything.
+- **(b)** A backdoor path has to *start* with an arrow pointing into $D$. "Not causal" and "backdoor" are not the same thing, so check the first arrow of each path.
+- **(c)** "Collider" describes how two arrows meet on one particular path. Look for a variable in this graph that is a collider on one path and something else on another. The paths do not have to run from $D$ to $Y$.
+- **(d)** Take $X$ and $C$ one at a time and go down your list from (a). Conditioning on a fork closes the path. Conditioning on a collider opens it. Also ask: is $C$ caused by $D$?
+
+## Problem 2
+
+- **(a)** Same procedure as Problem 1(a). Note that nothing leaves $O$, so a path that enters $O$ has to come back out along another arrow that points into it.
+- **(b)** There are two separate questions here. Is it a backdoor path? Look at its first arrow. Is it open? Look at what $O$ is on this path.
+- **(c)** You need one conditioning variable for each open backdoor path. Which path can you no longer close once $Q$ is unobserved? If one stays open, adding more controls will not help. You need a different source of variation in $D$.
+- **(d)** One reason comes from the path in (b). The other comes from the fact that $D$ causes $O$. Then compare the referee's sentence with the graph: is there an arrow from ownership to investment? If you added one, what would $O$ become?
+
+## Problem 3
+
+- **(a)** A bad control is something the treatment itself affects. Randomization removes every arrow pointing into $D$. It cannot stop you from opening a new path by conditioning on something downstream of $D$.
+- **(b)** Building a sample is conditioning. For each study, ask what decides whether an observation ends up in the data. Then ask whether that thing is caused by two variables that are tied to the treatment and the outcome.
+- **(c)** Look for a variable that researchers routinely add as a control and that the treatment would plausibly move. Many answers work.
+- **(d)** A coefficient that moves tells you the control matters. It does not tell you which specification is right. The graph tells you that, not the data. And "the smaller estimate is the conservative one" is not an argument.

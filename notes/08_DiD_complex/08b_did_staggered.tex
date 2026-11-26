@@ -329,7 +329,7 @@ Year & State & Treat & Post & Year & State & Treat & Post & Year & State & Treat
   regression cannot even be written down.
 \item
   So everyone runs the version that can: \[
-  Y_{ist} = \beta_0 + \delta D_{ist} + \tau_t + \sigma_s + \varepsilon_{ist}, \qquad D_{ist} = \mathbf{1}\{\text{unit } s \text{ is treated at } t\}.
+  Y_{it} = \alpha_i + \lambda_t + \delta D_{it} + \varepsilon_{it}, \qquad D_{it} = \mathbf{1}\{\text{unit } i \text{ is treated at } t\}.
   \]
 \item
   Coding \(D\) is trivial. The question is what \(\hat\delta^{TWFE}\)
@@ -344,7 +344,7 @@ Year & State & Treat & Post & Year & State & Treat & Post & Year & State & Treat
 \item
   By Frisch--Waugh--Lovell, \(\hat\delta^{TWFE}\) is the slope of \(Y\)
   on \(D\) after both are demeaned by unit and by period: \[
-  \hat\delta = \frac{\sum_{s,t} \tilde D_{st}\tilde Y_{st}}{\sum_{s,t} \tilde D_{st}^2}.
+  \hat\delta = \frac{\sum_{i,t} \tilde D_{it}\tilde Y_{it}}{\sum_{i,t} \tilde D_{it}^2}.
   \]
 \item
   Goodman-Bacon (2021): this slope is \textbf{exactly} a weighted
@@ -367,25 +367,27 @@ never-treated group \(U\):
 \begin{center}\small
 \begin{tabular}{ccc}
 \toprule
-$a$ vs $b$ & $b$ vs $a$ & $c$ vs $a$ \\
-$a$ vs $c$ & $b$ vs $c$ & $c$ vs $b$ \\
+$a$ vs $b$ & \textbf{\emph{b} vs \emph{a}} & \textbf{\emph{c} vs \emph{a}} \\
+$a$ vs $c$ & $b$ vs $c$ & \textbf{\emph{c} vs \emph{b}} \\
 $a$ vs $U$ & $b$ vs $U$ & $c$ vs $U$ \\
 \bottomrule
 \end{tabular}
 \end{center}
 
+Each entry is ``treated group vs its control''.
+
 \begin{itemize}
 \tightlist
 \item
-  \textbf{Bottom row}: never-treated control. Fine.
+  \textbf{Against \(U\)} (bottom row): never-treated control. Fine.
 \item
-  \textbf{Left of the diagonal} (\(a\) vs \(b\), \(a\) vs \(c\), \(b\)
-  vs \(c\)): the control is \textbf{not yet treated} during the window.
+  \textbf{Earlier vs later} (\(a\) vs \(b\), \(a\) vs \(c\), \(b\) vs
+  \(c\)): the control is \textbf{not yet treated} during the window.
   Fine.
 \item
-  \textbf{Upper right} (\(b\) vs \(a\), \(c\) vs \(a\), \(c\) vs \(b\)):
-  the control was \textbf{already treated}. Three of the nine. Nobody
-  chose them; OLS did.
+  \textbf{Later vs earlier}, in bold (\(b\) vs \(a\), \(c\) vs \(a\),
+  \(c\) vs \(b\)): the control was \textbf{already treated}. Three of
+  the nine. Nobody chose them; OLS did.
 \end{itemize}
 \end{frame}
 
@@ -406,7 +408,8 @@ $a$ vs $U$ & $b$ vs $U$ & $c$ vs $U$ \\
   \textbf{A. Early vs.~untreated.} \(k\) before and after its date,
   against \(U\). The Lecture 7 design.
 \item
-  \textbf{B. Late vs.~untreated.} The same for \(l\).
+  \textbf{B. Late vs.~untreated.} The same for \(l\). A and B are one
+  kind, so four panels show \textbf{three kinds}.
 \item
   \textbf{C. Early vs.~late, before \(l\).} \(l\) is still untreated
   during the window \emph{mid}\((k,l)\): a \textbf{not-yet-treated}
@@ -505,7 +508,7 @@ $k$ (the "control") & 10 & 20 & 30 & 40 \\
 \begin{frame}{The weights: group size times treatment variance}
 \protect\phantomsection\label{the-weights-group-size-times-treatment-variance}
 \[
-\hat\delta^{TWFE} = \sum_{k \ne U} s_{kU}\,\hat\delta^{2\times2}_{kU} + \sum_{k \ne U}\sum_{l > k}\big[s^{k}_{kl}\,\hat\delta^{2\times2,k}_{kl} + s^{l}_{kl}\,\hat\delta^{2\times2,l}_{lk}\big], \qquad \sum s = 1,
+\hat\delta^{TWFE} = \sum_{k \ne U} s_{kU}\,\hat\delta^{2\times2}_{kU} + \sum_{k \ne U}\sum_{l > k}\big[s_{kl}\,\hat\delta^{2\times2}_{kl} + s_{lk}\,\hat\delta^{2\times2}_{lk}\big], \qquad \sum s = 1,
 \] \[
 s_{kU} = \frac{(n_k + n_U)^2\; n_{kU}(1 - n_{kU})\; \bar D_k(1 - \bar D_k)}{\widehat{\text{Var}}(\tilde D)}, \quad n_{kU} = \frac{n_k}{n_k + n_U}.
 \]
@@ -702,11 +705,12 @@ Dynamic & 125 & 76 & 39 & 14 & 82 & 63.5 & $\mathbf{-6.69}$ ($0.670$) \\
 \item
   \emph{Simple ATT}: average over all treated firm-years. \emph{Group
   ATT}: average of the four cohort averages. Both correct; they weight
-  the cells differently.
+  the firm-years differently.
 \item
   \textbf{Constant:} \(\Delta\text{ATT} = 0\), so only the variance
   weights remain. The answer, \(7\), is a VWATT: causal, though not the
-  simple ATT.
+  simple ATT. It equals the group ATT only because the four dates are
+  symmetric.
 \item
   \textbf{Dynamic:} the regression returns \(\mathbf{-6.69}\) with a
   \(t\)-statistic of \(10\). \textbf{The sign is wrong.}
@@ -803,8 +807,8 @@ Later treated vs earlier control (forbidden) & $0.03$ & $0.070$ \\
 \begin{itemize}
 \tightlist
 \item
-  \(25\) simple \(2 \times 2\)'s. The 2006-vs-never cell alone carries
-  weight \(0.59\).
+  \(25\) simple \(2 \times 2\)'s. The 2006-vs-never \(2 \times 2\) alone
+  carries weight \(0.59\).
 \item
   With a large never-treated group, the forbidden comparisons get little
   weight and TWFE is close to the clean answer.
@@ -866,6 +870,9 @@ Later treated vs earlier control (forbidden) & $0.03$ & $0.070$ \\
   \text{ATT}(g, t) = \mathbb{E}[Y^1_t - Y^0_t \mid G_g = 1].
   \]
 \item
+  \(g\) is the date of first treatment: what Section 1 called \(k\) or
+  \(l\).
+\item
   Example: \(\text{ATT}(1992, 1995)\) is the effect on firms treated in
   1992, measured in 1995, their fourth treated year.
 \item
@@ -907,11 +914,12 @@ Cohort & 1991 (baseline) & 1995 & Role \\
 
 \begin{frame}{With covariates, and the assumptions}
 \protect\phantomsection\label{with-covariates-and-the-assumptions}
-The \(2 \times 2\) becomes 8a's IPW, OR or DR estimator, with a score
-estimated among cohort \(g\) and its controls \(C\),
-\(\hat p(X) = \Pr(G_g = 1 \mid X, G_g + C = 1)\): \[
-\text{ATT}(g,t) = \mathbb{E}\!\left[\left(\frac{G_g}{\mathbb{E}[G_g]} - \frac{\frac{\hat p(X) C}{1 - \hat p(X)}}{\mathbb{E}\!\left[\frac{\hat p(X) C}{1 - \hat p(X)}\right]}\right)\big(Y_t - Y_{g-1}\big)\right].
-\]
+Each \(2 \times 2\) becomes one of 8a's estimators: IPW, outcome
+regression or doubly robust. The IPW version, with \(C = 1\) for the
+controls and the score \(p_g(X) = \Pr(G_g = 1 \mid X, G_g + C = 1)\): \[
+\text{ATT}(g,t) = \mathbb{E}\!\left[\left(\frac{G_g}{\mathbb{E}[G_g]} - \frac{\frac{p_g(X) C}{1 - p_g(X)}}{\mathbb{E}\!\left[\frac{p_g(X) C}{1 - p_g(X)}\right]}\right)\big(Y_t - Y_{g-1}\big)\right].
+\] This is 8a's ``Estimator 1'' with \(D = G_g\) and
+\(\Delta Y = Y_t - Y_{g-1}\). The assumptions:
 
 \begin{enumerate}
 \tightlist
@@ -923,25 +931,25 @@ estimated among cohort \(g\) and its controls \(C\),
   \textbf{Parallel trends}, given \(X\), between cohort \(g\) and the
   chosen controls.
 \item
-  \textbf{Weak overlap}, and one correct nuisance model if \(X\) is
-  used.
+  \textbf{Overlap}: \(p_g(X) < 1\), so every treated unit has comparable
+  controls.
 \end{enumerate}
 
-The score changes cohort by cohort, because the pool of untreated
-controls shrinks.
+The score is re-estimated for every cohort (\(\hat p_g\)), because the
+pool of untreated controls shrinks.
 \end{frame}
 
 \begin{frame}{Aggregation: the weights are yours}
 \protect\phantomsection\label{aggregation-the-weights-are-yours}
-Once you have the cells, any non-negative average of them is a valid
-parameter:
+Once you have the group-time ATTs, any non-negative average of them is a
+valid parameter:
 
 \begin{center}\small
 \begin{tabular}{lll}
 \toprule
 Parameter & Averages $\text{ATT}(g,t)$ over & Answers \\
 \midrule
-Simple ATT & all post-treatment cells, by size & average effect on treated unit-years \\
+Simple ATT & all post-treatment $(g,t)$, by size & average effect on treated unit-years \\
 Group ATT & $t \ge g$ within cohort, then cohorts & average effect per adopting cohort \\
 Event study $\theta(\ell)$ & cohorts at the same $\ell = t - g$ & how effects evolve with exposure \\
 Calendar $\theta(t)$ & cohorts treated by $t$ & effect in a given year \\
@@ -952,18 +960,19 @@ Calendar $\theta(t)$ & cohorts treated by $t$ & effect in a given year \\
 \begin{itemize}
 \tightlist
 \item
-  Compare TWFE: one average, weights set by treatment variance, some
-  cells from forbidden comparisons.
+  Compare TWFE: one average, weights set by treatment variance, some of
+  it from forbidden comparisons.
 \item
   Here the weights are written down \textbf{before} estimation and have
   a meaning.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Which cells exist}
-\protect\phantomsection\label{which-cells-exist}
-Baker data, dynamic effects. A cell is estimable only while some unit is
-still untreated at \(t\):
+\begin{frame}{Which group-time ATTs exist}
+\protect\phantomsection\label{which-group-time-atts-exist}
+Baker data, dynamic effects. Entries are the \textbf{true}
+\(\text{ATT}(g,t)\). One is estimable only while some unit is still
+untreated at \(t\):
 
 \begin{center}\scriptsize
 \begin{tabular}{lccccc}
@@ -978,8 +987,8 @@ Year & $g = 1986$ & $g = 1992$ & $g = 1998$ & $g = 2004$ & Untreated control? \\
 2004 & 190 & 104 & 42 & 4 & \textbf{no} \\
 2009 & 240 & 144 & 72 & 24 & \textbf{no} \\
 \midrule
-ATT($g$), all cells & 125 & 76 & 39 & 14 & \\
-ATT($g$), feasible cells & 95 & 52 & 21 & -- & \\
+ATT($g$), all years & 125 & 76 & 39 & 14 & \\
+ATT($g$), feasible years & 95 & 52 & 21 & -- & \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -998,7 +1007,7 @@ ATT($g$), feasible cells & 95 & 52 & 21 & -- & \\
 \tightlist
 \item
   Feasible simple ATT \(68.3\) and feasible group ATT \(56\), against
-  \(82\) and \(63.5\) using every cell.
+  \(82\) and \(63.5\) using every treated year.
 \item
   The gap is not estimator bias. The late, large effects are not
   identified by \textbf{any} honest comparison: there is no one left to
@@ -1018,8 +1027,8 @@ ATT($g$), feasible cells & 95 & 52 & 21 & -- & \\
 \end{itemize}
 \end{frame}
 
-\begin{frame}{One cell by hand, then all of them}
-\protect\phantomsection\label{one-cell-by-hand-then-all-of-them}
+\begin{frame}{One group-time ATT by hand, then all of them}
+\protect\phantomsection\label{one-group-time-att-by-hand-then-all-of-them}
 \(\text{ATT}(1986, 1986)\): the 1986 cohort's change from 1985 to 1986,
 less the change for firms not yet treated in 1986 (the 1992, 1998 and
 2004 cohorts): \[
@@ -1036,14 +1045,14 @@ less the change for firms not yet treated in 1986 (the 1992, 1998 and
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{All \(36\) feasible cells, aggregated}
-\protect\phantomsection\label{all-36-feasible-cells-aggregated}
+\begin{frame}[fragile]{All \(36\) feasible group-time ATTs, aggregated}
+\protect\phantomsection\label{all-36-feasible-group-time-atts-aggregated}
 \begin{center}\small
 \begin{tabular}{lccc}
 \toprule
  & Estimate & Feasible truth & Full truth \\
 \midrule
-Simple ATT: mean over cells & $68.34$ & $68.33$ & $82$ \\
+Simple ATT: mean over $(g,t)$ & $68.34$ & $68.33$ & $82$ \\
 Group ATT: mean of ATT($g$) & $56.00$ & $56$ & $63.5$ \\
 \bottomrule
 \end{tabular}
@@ -1073,17 +1082,18 @@ Group ATT: mean of ATT($g$) & $56.00$ & $56$ & $63.5$ \\
 \begin{itemize}
 \tightlist
 \item
-  Average the cells by \textbf{relative time} \(\ell = t - g\). Years to
-  2003, so the 2004 cohort is the untreated control.
+  Average the group-time ATTs by \textbf{relative time}
+  \(\ell = t - g\). Years to 2003, so the 2004 cohort is the untreated
+  control.
 \end{itemize}
 \end{frame}
 
-\begin{frame}{Reading the event study: CS and SA}
-\protect\phantomsection\label{reading-the-event-study-cs-and-sa}
+\begin{frame}{Reading the event study}
+\protect\phantomsection\label{reading-the-event-study}
 \begin{itemize}
 \tightlist
 \item
-  CS and SA sit on the truth.
+  CS sits on the truth.
 
   \begin{itemize}
   \tightlist
@@ -1099,35 +1109,6 @@ Group ATT: mean of ATT($g$) & $56.00$ & $56$ & $63.5$ \\
 \item
   Moving right along the axis changes both the time since treatment and
   \textbf{who is averaged}.
-\end{itemize}
-\end{frame}
-
-\begin{frame}{Reading the event study: what went wrong with TWFE}
-\protect\phantomsection\label{reading-the-event-study-what-went-wrong-with-twfe}
-\begin{itemize}
-\tightlist
-\item
-  The TWFE line, as usually run, gives the 2004 cohort lead dummies too.
-  No unit is left as a reference.
-\item
-  Relative time is then collinear with the fixed effects, and fixest
-  \textbf{silently drops \(\ell = 12, \dots, 17\)}.
-\item
-  Those dropped post periods load onto every other coefficient (Section
-  3): a falling ``pre-trend'' and near-zero effects that do not exist.
-\end{itemize}
-
-\vspace{0.4em}
-
-\begin{itemize}
-\tightlist
-\item
-  Code the 2004 cohort as never treated and TWFE is identified: leads
-  \(2.0\) to \(0.4\), \(\hat\mu_0 = 9.0\), \(\hat\mu_{6} = 61.5\),
-  against \(8\) and \(63\).
-\item
-  Contaminated, but mildly. Most of the damage in the figure came from
-  the dropped periods.
 \end{itemize}
 \end{frame}
 
@@ -1147,9 +1128,9 @@ CS, never-treated & $0.110$ & $0.057$ & $0.058$ & $0.097$ & $0.112$ & $0.112$ & 
 \begin{itemize}
 \tightlist
 \item
-  CS: \(20\) group-time cells against the \(29\) never-adopting states,
-  weighted by cohort size (\(1, 13, 4, 2, 1\) states). Each cell uses
-  the fixed baseline \(g-1\).
+  CS: \(20\) group-time ATTs against the \(29\) never-adopting states,
+  weighted by cohort size (\(1, 13, 4, 2, 1\) states). Each uses the
+  fixed baseline \(g-1\).
 \end{itemize}
 \end{frame}
 
@@ -1186,7 +1167,8 @@ CS, never-treated & $0.110$ & $0.057$ & $0.058$ & $0.097$ & $0.112$ & $0.112$ & 
 
 \begin{frame}{The TWFE event study and its three assumptions}
 \protect\phantomsection\label{the-twfe-event-study-and-its-three-assumptions}
-The canonical event study under differential timing: \[
+The canonical event study under differential timing, with \(E_i\) the
+date unit \(i\) is first treated: \[
 Y_{it} = \alpha_i + \lambda_t + \sum_{\ell \ne -1}\mu_\ell\,\mathbf{1}\{t - E_i = \ell\} + \varepsilon_{it}.
 \]
 
@@ -1212,10 +1194,28 @@ treatment'', three things must hold:
 \end{itemize}
 \end{frame}
 
+\begin{frame}{The TWFE event study on the Baker data}
+\protect\phantomsection\label{the-twfe-event-study-on-the-baker-data}
+\begin{center}
+\includegraphics[width=0.76\linewidth,height=\textheight,keepaspectratio]{08b_did_staggered_files/figure-beamer/baker-es-twfe-1.pdf}
+\end{center}
+
+\begin{itemize}
+\tightlist
+\item
+  Same data as ``Event studies from building blocks'', now with the
+  regression above.
+\item
+  TWFE shows a falling ``pre-trend'' and effects near zero. Neither
+  exists. The next slides explain why.
+\end{itemize}
+\end{frame}
+
 \begin{frame}{Contamination: what each coefficient really contains}
 \protect\phantomsection\label{contamination-what-each-coefficient-really-contains}
 Sun and Abraham (2021) write each \(\hat\mu_\ell\) in terms of
-cohort-specific effects \(\text{CATT}_{e,\ell}\):
+cohort-specific effects \(\text{CATT}_{e,\ell}\), which is Section 2's
+\(\text{ATT}(g, g + \ell)\) with \(e = g\):
 
 \[
 \hat\mu_\ell = \underbrace{\sum_e w^{\ell}_{e,\ell}\,\text{CATT}_{e,\ell}}_{\text{own period: sum to } 1} +
@@ -1229,24 +1229,25 @@ cohort-specific effects \(\text{CATT}_{e,\ell}\):
   Weights that sum to zero must contain negatives: the coefficient for
   \(\ell = -2\) can contain effects from \(\ell = +5\).
 \item
-  \textbf{Contamination}, the same disease as judge dummies in Lecture
-  5b (Goldsmith-Pinkham, Hull and Kolesár 2024).
+  \textbf{Contamination}: the same disease as in any regression with
+  several treatment dummies (Goldsmith-Pinkham, Hull and Kolesár 2024).
 \end{itemize}
 \end{frame}
 
 \begin{frame}{The two-cohort example}
 \protect\phantomsection\label{the-two-cohort-example}
 Three periods (\(t = 0, 1, 2\)). Cohort 1 is treated in period 1, cohort
-2 in period 2. Include dummies for \(\ell \in \{-2, 0\}\); exclude
-\(\{-1, +1\}\). Then \[
+2 in period 2. With no never-treated group, \textbf{two} relative
+periods must be left out: \(\ell = -1\), the usual baseline, and here
+\(\ell = +1\). Dummies for \(\ell \in \{-2, 0\}\) remain. Then \[
 \hat\mu_{-2} = \underbrace{\text{CATT}_{2,-2}}_{\text{own}} + \underbrace{\tfrac12\text{CATT}_{1,0} - \tfrac12\text{CATT}_{2,0}}_{\text{other included}} + \underbrace{\tfrac12\text{CATT}_{1,1} - \text{CATT}_{1,-1} - \tfrac12\text{CATT}_{2,-1}}_{\text{excluded}}.
 \]
 
 \begin{itemize}
 \tightlist
 \item
-  A \textbf{pre-period} coefficient, built from five cohort-period
-  effects, some of them \textbf{post-treatment}.
+  A \textbf{pre-period} coefficient, built from six cohort-period
+  effects, three of them \textbf{post-treatment}.
 \item
   Now switch on the three assumptions one at a time.
 \end{itemize}
@@ -1282,6 +1283,36 @@ Three periods (\(t = 0, 1, 2\)). Cohort 1 is treated in period 1, cohort
 \end{itemize}
 \end{frame}
 
+\begin{frame}{What went wrong in the Baker figure}
+\protect\phantomsection\label{what-went-wrong-in-the-baker-figure}
+\begin{itemize}
+\tightlist
+\item
+  The TWFE event study, as usually run, gives the 2004 cohort lead
+  dummies too. No unit is left as a reference.
+\item
+  Relative time is then collinear with the fixed effects, and fixest
+  \textbf{silently drops \(\ell = 12, \dots, 17\)}.
+\item
+  Those dropped post periods are \textbf{excluded periods}: they load
+  onto every other coefficient. Hence the falling ``pre-trend'' and the
+  near-zero effects.
+\end{itemize}
+
+\vspace{0.4em}
+
+\begin{itemize}
+\tightlist
+\item
+  Code the 2004 cohort as never treated and TWFE is identified: leads
+  \(2.0\) to \(0.4\), \(\hat\mu_0 = 9.0\), \(\hat\mu_{6} = 61.5\),
+  against \(8\) and \(63\).
+\item
+  Contaminated, but mildly. Most of the damage in the figure came from
+  the dropped periods.
+\end{itemize}
+\end{frame}
+
 \begin{frame}[fragile]{The interaction-weighted estimator}
 \protect\phantomsection\label{the-interaction-weighted-estimator}
 \begin{enumerate}
@@ -1303,8 +1334,9 @@ Three periods (\(t = 0, 1, 2\)). Cohort 1 is treated in period 1, cohort
 \begin{itemize}
 \tightlist
 \item
-  In the Baker figure it gives the truth, with the 2004 cohort as
-  control. R: \texttt{fixest::sunab(cohort,\ period)}; Stata:
+  On the Baker data, with the 2004 cohort as control, it gives
+  \(\hat\mu_0 = 8.0\) and \(\hat\mu_6 = 63.0\): the truth, \(8\) and
+  \(63\). R: \texttt{fixest::sunab(cohort,\ period)}; Stata:
   \texttt{eventstudyinteract}.
 \item
   The key difference from CS is the control: \textbf{not} the
@@ -1325,14 +1357,16 @@ D'Haultfoeuille}\label{de-chaisemartin-and-dhaultfoeuille}
 \tightlist
 \item
   dCDH diagnose the same disease one level down. TWFE is a weighted sum
-  of \textbf{every treated cell's effect}, and some weights are
-  \textbf{negative}.
+  of \textbf{the effect on every treated observation}, and some weights
+  are \textbf{negative}.
 \item
-  Which cells? Mostly long-treated units in heavily treated periods:
-  exactly the already-treated controls of Section 1.
+  Which observations? Mostly long-treated units in heavily treated
+  periods: exactly the already-treated controls of Section 1.
 \item
-  A negative weight means a \emph{larger} effect in that cell
-  \emph{lowers} the coefficient.
+  A negative weight means a \emph{larger} effect for that observation
+  \emph{lowers} the coefficient. In ``The forbidden comparison in
+  numbers'', \(k\)'s effects of \(30\) and \(40\) entered with a minus
+  sign.
 \item
   If you must report TWFE, report the share of negative weights (Stata:
   \texttt{twowayfeweights}).
@@ -1383,15 +1417,15 @@ At each date, average two kinds of \(2 \times 2\):
 \begin{enumerate}
 \tightlist
 \item
-  Using \textbf{untreated cells only} (never-treated and
+  Using \textbf{untreated observations only} (never-treated and
   not-yet-treated), fit
-  \(Y_{it} = \alpha_i + \tau_t + \varepsilon_{it}\).
+  \(Y_{it} = \alpha_i + \lambda_t + \varepsilon_{it}\).
 \item
-  Predict \(\hat Y^0_{it} = \hat\alpha_i + \hat\tau_t\) for every
-  treated cell.
+  Predict \(\hat Y^0_{it} = \hat\alpha_i + \hat\lambda_t\) for every
+  treated observation.
 \item
-  \(\hat\tau_{it} = Y_{it} - \hat Y^0_{it}\) for each treated cell;
-  average with the weights your target parameter demands.
+  \(\hat\tau_{it} = Y_{it} - \hat Y^0_{it}\) for each treated
+  observation; average with the weights your target parameter demands.
 \item
   Standard errors from the implied linear combination of outcomes.
 \end{enumerate}
@@ -1402,11 +1436,11 @@ At each date, average two kinds of \(2 \times 2\):
 \tightlist
 \item
   Intuition: the unit effect \(\hat\alpha_i\) comes from the unit's own
-  pre-treatment years; the year effect \(\hat\tau_t\) comes from whoever
-  is untreated that year.
+  pre-treatment years; the year effect \(\hat\lambda_t\) comes from
+  whoever is untreated that year.
 \item
-  Treated cells never help estimate the counterfactual, so no treated
-  unit can act as a control.
+  Treated observations never help estimate the counterfactual, so no
+  treated unit can act as a control.
 \end{itemize}
 \end{frame}
 
@@ -1433,8 +1467,9 @@ At each date, average two kinds of \(2 \times 2\):
   In exchange it uses every pre-period, and it is the most efficient
   under homoskedasticity.
 \item
-  Wooldridge (2021) is numerically the same in balanced panels; Gardner
-  (2021) is the two-stage version.
+  Wooldridge (2021), 8a's Fix 2 with cohort-by-year interactions, is
+  numerically the same in balanced panels; Gardner (2021) is the
+  two-stage version.
 \end{itemize}
 \end{frame}
 
@@ -1448,7 +1483,7 @@ At each date, average two kinds of \(2 \times 2\):
 CS & never or not-yet-treated & $g - 1$ & from $g - 1$ to $t$ & absorbing \\
 SA & never or last-treated & $\ell = -1$ & cohort vs. that control & absorbing \\
 dCDH & same status at $t-1$ and $t$ & $t - 1$ & one period at a time & can switch; no carryover \\
-BJS & all untreated cells & all pre-periods & every period, every unit & absorbing \\
+BJS & all untreated observations & all pre-periods & every period, every unit & absorbing \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -1507,7 +1542,7 @@ In a staggered design, report:
 \begin{enumerate}
 \tightlist
 \item
-  which \((g, t)\) cells are estimable;
+  which \(\text{ATT}(g, t)\) are estimable;
 \item
   which control group you use, and why;
 \item
@@ -1586,9 +1621,10 @@ Short gap & -- & 0.3 & 0.3 & 0.3 & 0.3 & 3.3 & 0.3 & 0.3 & 0.3 & 0.3 & 0.3 \\
   through the baseline, and it carries on after treatment: the
   ``effects'' are the trend.
 \item
-  \textbf{(b) CS} and \textbf{dCDH}, as plotted by default: short gaps
-  before treatment. The same trend becomes a flat row of small bumps at
-  \(0.5\). Post-treatment coefficients are the same as TWFE's.
+  \textbf{(b) CS} with its default base period, and the older
+  \textbf{dCDH} command: short gaps before treatment. The same trend
+  becomes a flat row of small bumps at \(0.5\). Post-treatment
+  coefficients are the same as TWFE's.
 \item
   \textbf{(c) BJS}: pre-coefficients rise, then the series
   \textbf{kinks} at treatment.
@@ -1635,7 +1671,8 @@ Short gap & -- & 0.3 & 0.3 & 0.3 & 0.3 & 3.3 & 0.3 & 0.3 & 0.3 & 0.3 & 0.3 \\
   \item
     R: \texttt{did::att\_gt(...,\ base\_period\ =\ "universal")};
   \item
-    dCDH: the Stata default is long; check the R package.
+    dCDH: \texttt{did\_multiplegt\_dyn} reports long differences; the
+    older \texttt{did\_multiplegt} reported short gaps.
   \end{itemize}
 \end{itemize}
 \end{frame}
@@ -1643,12 +1680,15 @@ Short gap & -- & 0.3 & 0.3 & 0.3 & 0.3 & 3.3 & 0.3 & 0.3 & 0.3 & 0.3 & 0.3 \\
 \begin{frame}{The ``all the DiDs'' plot}
 \protect\phantomsection\label{the-all-the-dids-plot}
 \begin{center}
-\includegraphics[height=4.1cm]{figs/remix10-13.png}
+\includegraphics[height=3.5cm]{figs/remix10-13.png}
 \end{center}
 \src{Braghieri, Levy and Makarin (2022), Facebook's rollout and student mental health; Cunningham (2025), Figure 10.13.}
 
 \begin{itemize}
 \tightlist
+\item
+  Treatment: Facebook's staggered arrival at US colleges, 2004--06.
+  Outcome: an index of poor student mental health.
 \item
   Five estimators, one figure. Less reassuring than it looks: different
   controls, baselines, weights and assumptions. They are not robustness
@@ -1698,12 +1738,15 @@ Short gap & -- & 0.3 & 0.3 & 0.3 & 0.3 & 3.3 & 0.3 & 0.3 & 0.3 & 0.3 & 0.3 \\
 \begin{frame}{Honest DiD in practice: legal services and welfare}
 \protect\phantomsection\label{honest-did-in-practice-legal-services-and-welfare}
 \begin{center}
-\includegraphics[height=4.4cm]{figs/remix10-14.png}
+\includegraphics[height=3.7cm]{figs/remix10-14.png}
 \end{center}
 \src{Cunningham and Goodman-Bacon (2024), Figure 5; Cunningham (2025), Figure 10.14.}
 
 \begin{itemize}
 \tightlist
+\item
+  Treatment: federal Legal Services offices opening county by county,
+  1965--75. Outcome: welfare (AFDC) cases per \(1{,}000\) women.
 \item
   Pre-trend \(m \approx 0.2\) AFDC cases per \(1{,}000\) women a year.
   Netting out linear trends of \(0.1\)--\(0.4\) leaves long-run effects
@@ -2113,8 +2156,9 @@ Never-treated & 3,836 & -- \\
   \textbf{Build, then aggregate.} CS estimates each \(\text{ATT}(g,t)\)
   as a clean \(2 \times 2\) and averages with weights you choose.
 \item
-  \textbf{Honest estimators may target less.} Cells without an untreated
-  comparison are not identified by anyone; say what you estimate.
+  \textbf{Honest estimators may target less.} A group-time ATT without
+  an untreated comparison is not identified by anyone; say what you
+  estimate.
 \item
   \textbf{TWFE event studies are contaminated} when cohorts have
   different effect paths, or when software drops periods. Sun--Abraham's

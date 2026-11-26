@@ -24,3 +24,8 @@ render.log
 *_solutions.qmd
 *_solutions.pdf
 *_solutions.tex
+
+# Long hints notes (instructor version; students get *_PS_hints_short)
+*_PS_hints.qmd
+*_PS_hints.pdf
+*_PS_hints.tex

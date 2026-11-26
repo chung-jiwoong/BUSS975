@@ -1,0 +1,57 @@
+---
+title: "Problem Set: Instrumental Variables --- Hints"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+## Problem 1
+
+- **(a)** Take the covariance of both sides of the model with $Z$ and write out every term. Two different things then happen. Some terms are zero: that is independence. One term was never in the model at all: that is exclusion.
+- **(b)** Write the outcome equation with $Z$ in it, with its own coefficient. Exclusion says that coefficient is zero. Does randomizing $Z$ make it zero?
+- **(c)** The link between $Z$ and $Y$ looks odd because the thing that explains it, $D$, has been left out of the picture. Now turn it around: if an outsider finds the link natural, what are they probably seeing?
+- **(e)** Which of the three conditions involves only variables you observe?
+
+## Problem 2
+
+- **(a)** Call the first-stage slope $\hat\pi_1$. The fitted $\hat D$ is a constant plus $\hat\pi_1 Z$, and constants do not change covariances or variances.
+- **(b)** The second stage treats $\hat D$ as if it were data. It is not. Which way does that push the standard errors?
+- **(c)** A Wald estimate needs exclusion, a strong first stage, and a single effect to estimate. Each of the three can fail for one instrument and not the other. The third case is not really a failure.
+- **(d)--(e)** Keep one sentence in mind: the test compares the instruments' estimates *with each other*, never with the truth. With one instrument there is nothing to compare. And two instruments that are wrong in the same way will agree.
+
+## Problem 3
+
+- **(a)--(b)** The first stage and the reduced form are both simple differences between men who grew up near a college and men who did not. Their ratio should give you the 2SLS estimate. Check that it does.
+- **(c)** $F$ measures how strong the instrument is, which is not the same as whether it is significant. With one instrument it is the squared robust $t$-statistic.
+- **(d)** For each explanation of the gap, first write down which way it pushes OLS. Ability bias pushes the wrong way. What is left?
+- **(e)** For each candidate $\delta_0$, compute $Y - \delta_0 D$ and ask whether the instrument still predicts it. If $\delta_0$ were the truth, it should not. Keep the values you cannot reject. Make the grid wide enough that you reject at both ends.
+- **(f)** Who goes to college *only because* one is nearby? Are they the people a policymaker has in mind?
+
+## Problem 4
+
+- **(b)** Write $D^1_i - D^0_i$ for each of the four types. Two types have zero, so they drop out by arithmetic, with no assumption. Defiers do not have zero.
+- **(c)** Substitute, evaluate at $Z_i = 1$ and at $Z_i = 0$, and take the difference. You should reach the reduced form and the first stage *before* using monotonicity. Monotonicity then turns $D^1_i - D^0_i$ into a 0/1 indicator for compliers.
+- **(d)** Split both expectations by type. The two weights add to one, but check their signs. For the example, try fewer defiers than compliers, with larger effects.
+- **(e)** For each instrument: who changes their schooling because of it, and at what level of schooling?
+
+## Problem 5
+
+The first stage is the easy part in all three designs. Spend your time on exclusion.
+
+- **(i)** What else is "distance to a bank branch" distance to?
+- **(ii)** A bankruptcy judge decides many things besides conversion. And does a judge who is lenient on average have to be lenient in every kind of case?
+- **(iii)** You met this design in Lecture 4 under another name. What else changes at the line? Can banks choose which side of it they are on?

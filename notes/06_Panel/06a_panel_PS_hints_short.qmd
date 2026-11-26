@@ -1,0 +1,57 @@
+---
+title: "Problem Set: Causal Panel Designs --- Hints"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+## Problem 1
+
+- **(a)** Pooled OLS compares the treated firm-years with the untreated ones. For the bias, compare the average firm effect in the two groups, then the average year effect.
+- **(b)** After demeaning, a firm whose treatment never changes has nothing left. So which firm is the estimate based on? And what has demeaning *not* removed?
+- **(c)** A regression on a constant and a dummy is a difference in means. Firm B contributed nothing in (b). Here it works as a control. Why, and what does that assume about B?
+- **(d)** A variable that never changes within a firm cannot be told apart from the firm effect.
+- **(e)** Firms switch after a bad year. What would you expect to happen to them the next year even with no treatment?
+
+## Problem 2
+
+With two years, every estimator here compares changes. Compute each firm's change first.
+
+- **(a)** A year effect removes only what is common to *everyone*. How much of the bust is in P's change? How much is in the average change of the comparison firms?
+- **(b)--(c)** Once each industry has its own year effect, only differences in $D$ *within* an industry are used. And a fixed effect changes the estimate only if what it absorbs is related to the treatment.
+- **(d)** Write out the industry$\times$year dummy for the treated industry in year 2 and put it next to $D_{it}$.
+- **(e)** The comparison now has to be across industries. Cluster at the level where the treatment is assigned.
+
+## Problem 3
+
+- **(a)** Firm effects remove what is fixed within a firm. Year effects remove what is common to all firms. For each study ask what is left over: feedback from past outcomes into treatment, a regressor that never changes, or a confounder that changes over time.
+- **(b)** Counties hire police *because* crime is high. That happens within a county over time, which is exactly the variation fixed effects keep. Also: if two estimates share the same bias, the gap between them does not measure it. And compute the confidence interval before you read anything into the point estimate.
+- **(c)** Draw two graphs for tenure: one where something else causes both tenure and marriage, one where marriage causes tenure. The data cannot choose between them. For iii, ask what the married dummy measures once years married is also in the regression.
+
+## Problem 4
+
+- **(a)--(b)** Differencing removes much of a signal that is persistent and none of a noise that is fresh every year. So the answer always comes from comparing how persistent the noise is with how persistent the signal is.
+- **(c)** With two periods, demeaning and differencing are the same thing. For iii, pick a true coefficient and see whether measurement error alone can reproduce both of the paper's numbers. Then ask what other transformations would show under each story.
+- **(d)** With no true effect, each estimated CEO effect is just an average of that CEO's shocks. How noisy is an average of $T$ draws? Does having more CEOs help?
+- **(e)** A probit has no way to difference the fixed effects out. They have to be estimated, each from a handful of observations.
+
+## Problem 5
+
+- **(a)** Fixed effects remove a firm's *average* error. What remains can still be correlated over time. Fixed effects are for the estimate; clustering is for the standard error.
+- **(b)** Cluster where the treatment is assigned. Then count how many independent pieces of information you really have.
+- **(c)** With two treated states, the treatment dummy soaks up those states' own shocks, so their residuals look small. For ii: a test that almost never rejects a true null will almost never reject a false one either.
+- **(d)** Each cluster gets a plus or a minus, so count the patterns. They come in mirror pairs, and the original data is one of them. What is the smallest $p$-value you could ever get?

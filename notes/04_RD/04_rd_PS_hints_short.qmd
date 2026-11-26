@@ -1,0 +1,58 @@
+---
+title: "Problem Set: Regression Discontinuity --- Hints"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+## Problem 1
+
+- **(a)** Both estimands are jumps at the cutoff. The fuzzy one divides the jump in the outcome by the jump in the probability of treatment. How big is that second jump in a sharp design?
+- **(b)** You never see a treated and an untreated unit at the same $X$. But how far away is the nearest unit on the other side? Which assumption lets you use it?
+- **(c)** The estimate is for units right at the cutoff. Policymakers usually want to know what happens if the cutoff *moves*. Build your example around that gap.
+- **(d)** Keep two things apart: the assumption that identifies the effect, and the method used to estimate it. A straight line does not have to be the truth. It only has to be a good approximation close to the cutoff.
+
+## Problem 2
+
+- **(a)** One derivative, set it to zero, solve for $h$.
+- **(b)** Read the sign of each exponent first. The surprising one is $n$: more data does not mean a wider window. You spend the extra data on getting closer to the cutoff. To see that you still gain precision, check what happens to the number of observations inside the window, $nh$.
+- **(c)** With equal weights, a bin mean estimates the conditional mean at the *middle* of the bin, not at its edge. What does that do when the outcome slopes?
+- **(d)** A global polynomial lets observations far from the cutoff decide the estimate at the cutoff. RD is a local comparison.
+
+## Problem 3
+
+- **(a)** Fix $h$; one `rdrobust` call gives you all three intervals. Your numbers will move a little with the seed. Look at the pattern.
+- **(b)** Work out how the bias and the standard error each change when $h$ goes from $0.10$ to $0.40$. One grows and the other shrinks, so the interval ends up in the wrong place *and* narrower.
+- **(c)** The bias-corrected interval is in the right place. But it treats the estimated bias as if it were known. What does that do to its length, and what does the robust version add?
+- **(d)** The error from fitting a line depends only on $X$, so everyone at the same value of $X$ shares it. What does that look like?
+- **(e)--(f)** Write down your prediction before you run it. Then count how many clusters are left as the window narrows. Two things go wrong. One is about the number of clusters. The other: is the shared error a random draw that changes from sample to sample, or the same every time?
+
+## Problem 4
+
+- **(a)** In all four settings the rule is known and people care about it. So the answer turns on whether they can actually move the running variable.
+- **(b)** The test compares the density just left of the cutoff with the density just right of it. A pile sitting *exactly on* the cutoff belongs to neither side in the limit. Software still has to put it on one side.
+- **(c)** VLBW means strictly below $1{,}500$g. Which side is a baby recorded at exactly $1{,}500$g on? What kind of births get recorded at round numbers? Would the same thing happen at $1{,}400$g?
+- **(d)** What changes at the threshold: what is done to the babies, or which babies are recorded there?
+- **(e)** Dropping observations does two things at once. It removes suspect data, and it changes what you are estimating. So a different estimate does not have a single reading.
+
+## Problem 5
+
+- **(a)** For each paper keep three things apart: the variable that crosses the threshold, the treatment the paper cares about, and the outcome. Read the data section as carefully as the results. What is in the sample decides what can be estimated.
+- **(b)** Does crossing the cutoff *guarantee* the treatment? If not, the design is fuzzy and there should be a first stage. One paper cannot show its first stage. Check which loans are in its data.
+- **(c)** Who sets the rule? Can the people being studied move themselves across it?
+- **(d)** If the treatment itself pushes a firm across the cutoff, the realized running variable is no use. Where would the firm have been *without* the treatment?
+- **(e)** What counts is the number of observations near the cutoff, not in the dataset. Think about how large a noisy estimate has to be before it is significant, and what that does to the estimates that get published.

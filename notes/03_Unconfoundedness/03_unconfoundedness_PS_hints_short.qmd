@@ -1,0 +1,50 @@
+---
+title: "Problem Set: Unconfoundedness --- Hints"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+## Problem 1
+
+- **(a)** Ask two things about each variable. Is it measured before or after the credit line is granted? Does it cause $D$, cause $Y$, cause both, or is it caused by them? One variable sits on the path from $D$ to $Y$; whether to condition on it depends on the question you are asking.
+- **(b)** "Every firm" and "the firms that got a line" are two different estimands. For the treated firms you already observe $Y^1$, so only one potential outcome has to be filled in. That is why the second estimand needs weaker assumptions.
+- **(c)** The argument has three moves: the switching equation, the assumption, the switching equation again. Notice that the assumption is used only once, and only for $Y^0$.
+- **(d)** What is a bank trying to achieve when it grants a line? What is a firm trying to achieve when it asks for one? If neither is choosing with next year's investment in mind, the defence works. Then think about when someone *would* choose with investment in mind.
+
+## Problem 2
+
+- **(a)** The within-stratum effects are the same for all three estimands. Only the weights change: all banks, treated banks, or control banks.
+- **(b)** Pool the treated means using the treated counts, and the control means using the control counts. For the selection bias term you need the treated banks' $Y^0$. Within a stratum the controls tell you what it is; weight those control means by the *treated* counts.
+- **(c)** Where did most of the waivers go? Where is the effect largest?
+- **(d)--(e)** For each estimand, list which of the six means in the table it actually uses. An empty group only hurts an estimand that needed it.
+
+## Problem 3
+
+- **(a)** Each treated bank takes the closest control in $X$. A control can be used more than once, and some are never used at all.
+- **(b)** Two comparisons that share a control share that control's noise, so they are not independent. That is why the formula counts *pairs*. A quick test: would $\sum_j K_j$ change if all four treated banks had matched the same control?
+- **(d)** There are three distinct matched controls, not four. Plot them. The correction for each bank is the slope times how far away its match is. Keep the sign of that distance.
+- **(e)** Before you compute anything, look at where the fourth control sits relative to the treated banks. What can one far-away point do to a fitted line?
+- **(f)** Distance is measured in each covariate's own units, so the covariate with the bigger spread dominates. Rescaling fixes that. Then ask whether the covariate you have just given more weight to matters much for the outcome.
+
+## Problem 4
+
+- **(a)** Balance on $X$ given the score holds by construction, whatever the truth about unconfoundedness. So a balance table checks your model for the score. It cannot check the assumption you care about.
+- **(b)** Same mean, different spread: where must the treated firms be sitting? What term would let the logit pick that up? On the $t$-test: think about what happens to a $p$-value when you simply drop observations.
+- **(c)** Write out one weight per firm, then add up the weights within each arm before doing anything else. The totals should be numbers you recognise.
+- **(d)** One estimator divides by $N$ no matter what. The other divides by the sum of the weights. Normalizing fixes the overall scale of the weights. Does it fix how large they are relative to each other?
+- **(e)** What is the score for group V? The $ATT$ can live with a region that has controls and no treated firms. Can it live with treated firms that have no controls?

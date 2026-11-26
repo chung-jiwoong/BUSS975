@@ -1,0 +1,54 @@
+---
+title: "Problem Set: Difference-in-Differences Fundamentals --- Hints"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+## Problem 1
+
+- **(a)** Four averages and four coefficients, so the regression reproduces the table exactly. Read each coefficient off the table.
+- **(b)** Each scale builds the missing counterfactual in its own way. Levels add the control group's *change*. Logs apply the control group's *growth rate*. Work out what each one says the treated banks would have had.
+- **(c)** The estimate always equals the ATT plus the DiD you would get on the untreated outcomes.
+- **(d)** Write down the untreated change that parallel trends needs on each scale. Can one number satisfy both when the two groups start at different levels? Choose the scale before you look at the estimates.
+- **(e)** A loan that moves from a control bank to a treated bank is counted twice.
+
+## Problem 2
+
+Start by writing observed investment, $Y^0$ plus the effect, for each state and each period. The rest is averages of that table.
+
+- **(b)** The pre-period is supposed to show state $k$ untreated. Is that still true after the announcement?
+- **(c)** Moving the start date gives you a clean baseline. It also changes the question you are answering.
+- **(d)** $E$ is treated in every period. So its change over time includes the change in *its own effect*. What happens if that effect is constant? If it is fading?
+- **(e)** A group treated before your window opens has no untreated period. What can you learn from it: the effect, or how the effect changes?
+
+## Problem 3
+
+- **(a)** One treated group, one control group, one date, a balanced panel: the $2 \times 2$, two-way fixed effects and the long difference are the same number. If yours differ, check your sample.
+- **(b)** Follow the hint in the problem. Write each event-study coefficient as the gap in year $t$ minus the gap in 2005. Then write the $2 \times 2$ as the average post-period gap minus the average pre-period gap.
+- **(c)** Pre-period coefficients that all have the same sign are telling you something about 2005 itself. Parallel trends is always relative to a baseline.
+- **(d)** Eleven rows for a state are not eleven independent observations.
+- **(e)** Pick an outcome the law should not affect. What would it mean if it moved anyway?
+- **(f)** Compare the two groups' falls in levels, then as a percentage of where each started. Then look at the adopting states one at a time. The log regression averages each state's log change, so one low-rate state with a big proportional change can drive it.
+- **(g)** Each control group stands for a different parallel-trends assumption. Report both.
+
+## Problem 4
+
+- **(a)** In each case, first work out *who* ends up in the treated group. Then compute the bias from the untreated outcomes, separately from the effect. Selecting on gains hurts DiD only when the gains are related to the untreated trend.
+- **(b)** Write the untreated change as a sum of shocks. Which shocks were used to pick the treated, and which arrive later? Permanent shocks stay. Transitory shocks revert. A pre-trend test cannot tell the two cases apart by itself; you have to know what the selection was based on.
+- **(c)** Parallel trends is a statement about two group averages. Does it need every firm to share one trend?
+- **(d)** Name the mechanism using the table on the slide "The assignment mechanism". Then ask what would make it fail.

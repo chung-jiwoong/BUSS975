@@ -1,0 +1,60 @@
+---
+title: "Problem Set: Five IV Designs --- Hints"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+## Problem 1
+
+- **(a)** What did the lottery randomize: the offer, or enrolment? Who chooses to enrol?
+- **(b)** The LATE is the ITT divided by the first stage. Rearrange.
+- **(c)** Were all six outcomes measured on the same people? Find out where each one came from.
+- **(d)** Define each group by what it would do after winning and after losing. The lottery does not change an always-taker's coverage, so always-takers cancel out of the comparison.
+- **(e)** The two people care about two different "treatments": being offered a place, and having coverage.
+
+## Problem 2
+
+- **(b)** The fitted value for case $i$ is essentially its judge's detention rate. Whose outcomes go into that rate? Is case $i$ one of them?
+- **(c)--(d)** Each case has exactly one judge, so $Z'Z$ is diagonal and holds the caseloads. The leverage is then easy to read off. Compute the leave-one-out mean by hand as well and compare the two.
+- **(e)** If a judge has one case and you leave it out, what is left?
+- **(f)** The controls subtract a court-and-period average. Was case $i$ used when that average was computed?
+- **(g)** Standard errors follow how the cases were assigned. In each court, what was drawn independently: a case, or a day?
+- **(h)** Compare 2SLS with OLS on the point estimate, and 2SLS with UJIVE on the standard error. One fact explains both: the in-sample first stage looks stronger than it really is.
+
+## Problem 3
+
+- **(a)** There are two things "share" could mean: the fraction of country $k$'s immigrants who live in city $l$, or the fraction of city $l$'s immigrants who come from $k$. Only one of them turns the instrument into a predicted inflow into the city.
+- **(b)** Immigrants choose where to go. What kind of city do they choose?
+- **(c)** There are two ways to defend the design: the shares are as good as random, or the national shocks are as good as random *and there are many of them*. Each asks for different evidence.
+- **(d)** One of the two defences works by averaging over many shocks. How many do you really have if one country dominates?
+- **(e)** Which defence is the referee attacking? Does the other one need exogenous shares at all? If you switch defences, say so.
+- **(f)** The instrument is meant to predict immigration that has not happened yet. So which period's wage change should it *not* be able to predict?
+
+## Problem 4
+
+- **(a)--(c)** A fuzzy RD is a Wald estimator at the cutoff. Its estimate is local in two senses. Name both.
+- **(d)** Think of a rule where crossing the cutoff wins a student one award and costs them another.
+- **(e)** What kind of price change identified the elasticity? Would buyers read a deliberate, posted price cut the same way?
+
+## Problem 5
+
+- **(a)** Every price-quantity pair you observe is a point where supply and demand cross. On some days supply moved, on others demand moved.
+- **(b)** The dependent variable is a log. When the coefficient is this large, convert it with $e^{b} - 1$; reading it directly as a percentage is only a rough approximation.
+- **(c)** On a day when demand shifts out, do price and quantity move together or in opposite directions? What does a day like that do to the fitted slope?
+- **(d)** Partial the day dummies out of all three variables once, then loop over a wide grid of $\delta_0$. Check that you reject at both ends of the grid.
+- **(e)** How could the weather affect the buyers, or the fish itself, and not just the cost of catching it?

@@ -10,19 +10,21 @@ Course materials for BUSS975, including lecture slides and problem sets.
 
 ## Lecture Notes
 
-| Topic | Slides | Problem Set |
-|---|---|---|
-| 1. Causality and Potential Outcomes | [Slides][caus-upd-pdf] | [Problem][caus-ps]  |
-| 2. Directed Acyclic Graphs | [Slides][dag-pdf] | [Problem][dag-ps] |
-| 3a. Unconfoundedness: Subclassification and Matching | [Slides][unc-a-pdf] | |
-| 3b. Unconfoundedness: Propensity Scores and Regression | [Slides][unc-b-pdf] | [Problem][unc-ps] |
-| 4. Regression Discontinuity | [Slides][rd-pdf] | [Problem][rd-ps] |
-| 5a. Instrumental Variables | [Slides][iv-a-pdf] | [Problem][iv-a-ps] |
-| 5b. Five IV Designs | [Slides][iv-b-pdf] | [Problem][iv-b-ps] |
-| 6a. Causal Panel Designs | [Slides][panel-a-pdf] | [Problem][panel-a-ps] |
-| 6b. Dynamic Panel Models (not covered in class) | [Slides][panel-b-pdf] | |
-| 7. Difference-in-Differences: Fundamentals | [Slides][did-a-pdf] | |
-| 8a. Difference-in-Differences: Composition, Triple Differences and Covariates | [Slides][did-8a-pdf] | |
+| Topic | Slides | Problem Set | Hints |
+|---|---|---|---|
+| 1. Causality and Potential Outcomes | [Slides][caus-upd-pdf] | [Problem][caus-ps] | [Hints][caus-hints] |
+| 2. Directed Acyclic Graphs | [Slides][dag-pdf] | [Problem][dag-ps] | [Hints][dag-hints] |
+| 3a. Unconfoundedness: Subclassification and Matching | [Slides][unc-a-pdf] | | |
+| 3b. Unconfoundedness: Propensity Scores and Regression | [Slides][unc-b-pdf] | [Problem][unc-ps] | [Hints][unc-hints] |
+| 4. Regression Discontinuity | [Slides][rd-pdf] | [Problem][rd-ps] | [Hints][rd-hints] |
+| 5a. Instrumental Variables | [Slides][iv-a-pdf] | [Problem][iv-a-ps] | [Hints][iv-a-hints] |
+| 5b. Five IV Designs | [Slides][iv-b-pdf] | [Problem][iv-b-ps] | [Hints][iv-b-hints] |
+| 6a. Causal Panel Designs | [Slides][panel-a-pdf] | [Problem][panel-a-ps] | [Hints][panel-a-hints] |
+| 6b. Dynamic Panel Models (not covered in class) | [Slides][panel-b-pdf] | | |
+| 7. Difference-in-Differences: Fundamentals | [Slides][did-a-pdf] | [Problem][did-a-ps] | [Hints][did-a-hints] |
+| 8a. Difference-in-Differences: Composition, Triple Differences and Covariates | [Slides][did-8a-pdf] | | |
+
+
 
 
 
@@ -57,7 +59,18 @@ Course materials for BUSS975, including lecture slides and problem sets.
 [dpanel-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06b_dynamic_panel.pdf
 
 [did-a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/07_DiD/07_did_fundamentals.pdf
+[did-a-ps]:  https://chung-jiwoong.github.io/BUSS975/notes/07_DiD/07_did_PS.pdf
 [did-8a-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/08_DiD_complex/08a_did_covariates.pdf
+[did-8b-pdf]: https://chung-jiwoong.github.io/BUSS975/notes/08_DiD_complex/08b_did_staggered.pdf
+
+[caus-hints]:    https://chung-jiwoong.github.io/BUSS975/notes/01_Causality/01_causality_PS_hints_short.pdf
+[dag-hints]:     https://chung-jiwoong.github.io/BUSS975/notes/02_DAG/02_dag_PS_hints_short.pdf
+[unc-hints]:     https://chung-jiwoong.github.io/BUSS975/notes/03_Unconfoundedness/03_unconfoundedness_PS_hints_short.pdf
+[rd-hints]:      https://chung-jiwoong.github.io/BUSS975/notes/04_RD/04_rd_PS_hints_short.pdf
+[iv-a-hints]:    https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05a_iv_PS_hints_short.pdf
+[iv-b-hints]:    https://chung-jiwoong.github.io/BUSS975/notes/05_IV/05b_iv_PS_hints_short.pdf
+[panel-a-hints]: https://chung-jiwoong.github.io/BUSS975/notes/06_Panel/06a_panel_PS_hints_short.pdf
+[did-a-hints]:   https://chung-jiwoong.github.io/BUSS975/notes/07_DiD/07_did_PS_hints_short.pdf
 
 <!--
 

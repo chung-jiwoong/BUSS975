@@ -19,7 +19,7 @@ format:
         \usepackage{booktabs}
 ---
 <!--
-*Four required problems. All of them need only a pen.*
+*Five required problems. All of them need only a pen.*
 
 *Where a part asks you to explain or evaluate, **answer in at most three sentences**. These are graded on precision, not length.*
 
@@ -45,7 +45,7 @@ C & $0,\,0$ & $2$ & $4$  \\
 
 (a) Confirm that the six outcomes follow from the truth. Then compute the pooled OLS estimate of $\delta$: a regression of $Y$ on $D$ and a constant, which here is a difference in means. Split its bias into a part due to the firm effects and a part due to the year effect.
 
-(b) **Firm effects only.** Demean $Y$ and $D$ within each firm and write out $\ddot D_{it}$ and $\ddot Y_{it}$ for all six cells. Compute $\hat\delta = \sum \ddot D_{it}\ddot Y_{it} \big/ \sum \ddot D_{it}^2$. Which firms contribute to the estimate, and what still contaminates it?
+(b) **Firm effects only.** Demean $Y$ and $D$ within each firm and write out $\ddot D_{it}$ and $\ddot Y_{it}$ for all six firm-years. Compute $\hat\delta = \sum \ddot D_{it}\ddot Y_{it} \big/ \sum \ddot D_{it}^2$. Which firms contribute to the estimate, and what still contaminates it?
 
 (c) **Firm and year effects.** With two periods, a regression with firm and year effects gives the same $\hat\delta$ as a regression of $\Delta Y_i$ on $\Delta D_i$ and a constant. Compute it. Then say what firm B contributes to the estimate in (b), and what it contributes in (c).
 

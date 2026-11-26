@@ -488,7 +488,7 @@ Suppose control $U$ was treated *before* the window: $Y_U = Y^1_U$ in both perio
 \normalsize\vspace{-0.6em}
 
 - So $\hat\delta_{DiD} = \text{ATT}_k + \text{PT bias} - \Delta\text{ATT}_U$. A **constant** control effect differences out; a **fading or growing** one looks like an effect of the opposite sign.
-- Nobody would *choose* such a control. With staggered dates, two-way fixed effects does it **silently** --- next lecture.
+- Nobody would *choose* such a control. With staggered dates, two-way fixed effects does it **silently** --- Lecture 8b.
 
 # 4. Card and Krueger
 

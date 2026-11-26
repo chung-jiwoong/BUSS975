@@ -1564,13 +1564,7 @@ every \(w_i = 1\).
   is \(9.8\) and the control residuals are \(6.4\) (young) and \(-1.6\)
   (old), as on the previous slide. Only the weights differ: \[
   \text{control term} = \frac{20}{100} \times 6.4 + \frac{80}{100} \times (-1.6) = 0 .
-  \] \textless!-- - Why \(0\): unweighted, the controls keep
-  \textbf{their own} mix, \(20\) young and \(80\) old. And \(3.6\) is
-  the controls' own average change, so its residuals average to zero
-  over that mix.
-\item
-  The error is at the \textbf{treated's} mix, where the right weights
-  found \(4.8\). The wrong weights never look there. --\textgreater{}
+  \]
 \item
   \(\hat\delta_{DR} = 9.8 - 0 = 9.8\): back to the DiD without \(X\).
 \end{itemize}
@@ -1752,7 +1746,7 @@ Weighted $\Delta Y^0$ & & 1,290 & 645 & \\
   \textbf{Within} a category, both groups would have moved alike:
   conditional parallel trends.
 \item
-  \textbf{Overall}, the treated sit in the fast-growing quadrants.
+  \textbf{Overall}, the treated sit in the fast-growing categories.
   \(\Delta Y^0\) is different.
 \end{itemize}
 \end{frame}
@@ -1863,12 +1857,12 @@ Doubly robust & $-5$ & 152 & right outcome model covers the score \\
 \begin{itemize}
 \tightlist
 \item
-  The two regression biases match the quadrant arithmetic of the
+  The two regression biases match the category arithmetic of the
   previous slides.
 \item
   IPW's score is a smooth logit in age, GPA and their squares, but the
-  true \(p(X)\) jumps at the averages. Fit the score on the four
-  quadrants instead and IPW's bias falls to \(-9\).
+  true \(p(X)\) jumps at the averages. Fit the score with a dummy for
+  each of the four categories instead and IPW's bias falls to \(-9\).
 \item
   Doubly robust uses the same imperfect score, but its outcome model is
   right, so it is centered on zero: \textbf{wrong once is fine}.

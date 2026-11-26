@@ -856,6 +856,28 @@ $$
 \delta_{DR} - \text{ATT} = \underbrace{\mathbb{E}[e(X) \mid D=1]}_{\text{error, treated's mix}} - \underbrace{\mathbb{E}[w_0\, e(X)]}_{\text{error, }p^*\text{-reweighted controls}}
 $$
 
+<!-- NOTE (Q&A, 2026-11-26). Step 2, line by line.
+Goal: rewrite the correction term, E[w0 (dY - mu*(X))], so that it shows the outcome model's error.
+Line 1 (iterated expectations): an overall average equals the average of group averages. Split the population into groups
+  that share the same D and the same X, average inside each group, then average across the groups.
+Line 2 (pull out what is fixed): inside one (D, X) group, w0 and mu*(X) are numbers, because both depend only on D and X.
+  The only thing that still varies is dY. So the inner average of w0 (dY - mu*(X)) is w0 (E[dY | D, X] - mu*(X)).
+Line 3 (who is left): treated groups have w0 = 0, so they drop out, whatever E[dY | D=1, X] is. Only control groups remain,
+  and for them E[dY | D=0, X] is mu_0(X) by definition (slide "Estimator 2: outcome regression").
+Result: correction term = E[w0 (mu_0(X) - mu*(X))] = E[w0 e(X)], the outcome model's error averaged over the reweighted controls.
+No identifying assumption is used in Step 2; conditional parallel trends enters only through the starting expression for the ATT.
+Follow-up: w0 and mu*(X) do stay inside an expectation. There are two: the inner one (within a (D, X) group) and the outer one
+  (across groups). They leave only the inner one, where they are constants, and remain inside the outer one, which is where their
+  variation across groups is averaged. Same rule as E[X Y | X] = X E[Y | X]: X is still averaged when the outer E is taken.
+
+NOTE (Q&A, 2026-11-26). Stars here, hats on "Doubly robust in the example: the formula as two means". Both are correct.
+p* and mu* are population objects: the functions the researcher's fitted models converge to in a large sample (working models,
+  possibly wrong). They are used on the slides that prove a population statement, delta_DR = ATT.
+p-hat and mu-hat are what is fitted in one sample. They appear once the slide says "In a sample".
+The link: p-hat converges to p*, mu-hat to mu*. In the running example there is no noise, so the hats equal the stars exactly.
+The truth carries neither mark: p and mu_0. This matches Sant'Anna and Zhao (2020).
+-->
+
 ## Why either model suffices: the two cases
 
 $$
@@ -880,6 +902,9 @@ $$
 - **Treated term:** the treated's change minus the model's prediction for them.
 - **Control term:** the model's residual **on controls**, averaged at the treated's mix of $X$. If the model is right, it is zero.
 - **Both models right**, heterogeneous scenario ($\hat\mu_{0,\Delta} = 10, 2$; $w = 4, 0.25$): treated term $0.8 \times (16 - 10) + 0.2 \times (3 - 2) = 5$; every control residual is $0$. So $\hat\delta_{DR} = 5 - 0 = 5$.
+
+<!-- NOTE (Q&A, 2026-11-26). Why hats here and stars on the two previous slides: see the note at the end of
+"Why either model suffices: three steps". Stars are the large-sample limits of the fitted models; hats are the fits in one sample. -->
 <!-- - Next, break one model at a time. "Wrong" means a model that ignores $X$. -->
 
 ## Wrong outcome model, right score: the weights correct it
@@ -904,9 +929,10 @@ The score ignores $X$: $\hat p = 100/200 = 0.5$ for everyone, so every $w_i = 1$
 $$
 \text{control term} = \frac{20}{100} \times 6.4 + \frac{80}{100} \times (-1.6) = 0 .
 $$
-<!-- - Why $0$: unweighted, the controls keep **their own** mix, $20$ young and $80$ old. And $3.6$ is the controls' own average change, so its residuals average to zero over that mix. 
-- The error is at the **treated's** mix, where the right weights found $4.8$. The wrong weights never look there. --> 
 - $\hat\delta_{DR} = 9.8 - 0 = 9.8$: back to the DiD without $X$.
+
+<!-- Why $0$: unweighted, the controls keep **their own** mix, $20$ young and $80$ old. And $3.6$ is the controls' own average change, so its residuals average to zero over that mix. 
+- The error is at the **treated's** mix, where the right weights found $4.8$. The wrong weights never look there. --> 
 
 ## Doubly robust in the example: summary
 
@@ -1070,6 +1096,19 @@ Weighted $\Delta Y^0$ & & `r f0(popT)` & `r f0(popC)` & \\
 
 - Population values. Within a category, age averages $\pm 7.98$ years and GPA $\pm 0.399$: older, high GPA gains $1000 + 100 \times 7.98 + 1000 \times 0.399 =2{,}197$.
 
+<!-- NOTE (Q&A, 2026-11-26). How the shares are computed (Bayes' rule).
+Each category holds a quarter of the population: age and GPA are independent and each is above its average half the time.
+Share of treated in category k = (size of k x p_k) / (sum over categories) = 0.25 p_k / (0.25 x 2.2) = p_k / 2.2,
+  where 2.2 = 0.8 + 0.6 + 0.5 + 0.3. This gives 0.36, 0.27, 0.23, 0.14.
+Share of controls in category k = (1 - p_k) / 1.8, where 1.8 = 0.2 + 0.4 + 0.5 + 0.7. This gives 0.11, 0.22, 0.28, 0.39.
+Weighted change: treated 0.36 x 2,197 + 0.27 x 1,399 + 0.23 x 601 + 0.14 x (-197) = 1,290;
+  controls 0.11 x 2,197 + 0.22 x 1,399 + 0.28 x 601 + 0.39 x (-197) = 645.
+In the code: Q$sT = p / sum(p), Q$sC = (1 - p) / sum(1 - p).
+Follow-up, with head counts. Take 1,000 workers, 250 per category.
+  Treated = 250 x p: 200, 150, 125, 75, total 550. Shares of treated: 200/550, 150/550, 125/550, 75/550 = 0.36, 0.27, 0.23, 0.14.
+  Controls = 250 x (1 - p): 50, 100, 125, 175, total 450. Shares of controls: 50/450, 100/450, 125/450, 175/450 = 0.11, 0.22, 0.28, 0.39.
+  p answers "of this category, how many are treated"; the share answers "of the treated, how many are in this category". -->
+
 ## Four categories: the picture
 
 ```{r sim-fig}
@@ -1100,7 +1139,7 @@ legend("topleft", bty = "n", lwd = c(2, 3.5), lty = c(2, 1), col = c("firebrick"
 
 - Every line is the change from pre, so the $10{,}000$ level gap is out of the picture. On the right, the treated and control lines of a category coincide.
 - **Within** a category, both groups would have moved alike: conditional parallel trends.
-- **Overall**, the treated sit in the fast-growing quadrants. $\Delta Y^0$ is different.
+- **Overall**, the treated sit in the fast-growing categories. $\Delta Y^0$ is different.
 
 ## The effect varies with age and GPA
 
@@ -1126,6 +1165,20 @@ Weighted $\tau$ & & ATT $=$ `r f0(popATT)` & `r f0(popVW)` & \\
 - Older, better students gain the most **and** are the most likely to be treated.
 - The ATT averages $\tau$ with the treated's shares: `r f0(popATT)`.
 - One $\delta$ uses variance weights $\propto p(1-p)$. They are smallest where $p = 0.8$, the largest effect, so the average is `r f0(popVW)`.
+
+<!-- NOTE (Q&A, 2026-11-26). How the variance weight is computed.
+Variance weight of category k = p_k (1 - p_k) / sum, the variance of treatment inside the category, rescaled to sum to one.
+p (1 - p) = 0.16, 0.24, 0.25, 0.21; the sum is 0.86; so the weights are 0.19, 0.28, 0.29, 0.24.
+In general the weight is (size of category) x p (1 - p); the sizes are all a quarter here and cancel.
+Weighted effect: 0.19 x 1,598 + 0.28 x 1,199 + 0.29 x 801 + 0.24 x 402 = 963, against the ATT of
+  0.36 x 1,598 + 0.27 x 1,199 + 0.23 x 801 + 0.14 x 402 = 1,145 with the treated's shares. The gap is -182.
+Why these weights: a regression with one delta puts most weight where treated and controls are most evenly mixed
+  (slide "Failure 2: why 3.5, variance weights"). The formula is exact for a regression with a dummy per category; the
+  simulation's regression uses age, GPA and their squares, so -182 is an approximation; the simulated mean bias is -187.
+In the code: Q$sV = p (1 - p) / sum(p (1 - p)).
+Follow-up, why divide by 0.86: a weighted average needs weights that sum to one. The raw p (1 - p) sum to 0.86, so using them
+  undivided would give 0.86 x 963 = 828, which is not an average of the four effects (it would shrink even a constant effect).
+  The division is not an extra step: the OLS coefficient is sum(p (1 - p) x effect) / sum(p (1 - p)), a covariance over a variance. -->
 
 ## One sample: every estimator
 
@@ -1188,9 +1241,20 @@ Doubly robust & `r f0(mb("dr"))` & `r sb("dr")` & right outcome model covers the
 \end{tabular}
 \end{center}
 
-- The two regression biases match the quadrant arithmetic of the previous slides.
-- IPW's score is a smooth logit in age, GPA and their squares, but the true $p(X)$ jumps at the averages. Fit the score on the four quadrants instead and IPW's bias falls to `r f0(mb("ipwq"))`.
+- The two regression biases match the category arithmetic of the previous slides.
+- IPW's score is a smooth logit in age, GPA and their squares, but the true $p(X)$ jumps at the averages. Fit the score with a dummy for each of the four categories instead and IPW's bias falls to `r f0(mb("ipwq"))`.
 - Doubly robust uses the same imperfect score, but its outcome model is right, so it is centered on zero: **wrong once is fine**.
+
+<!-- NOTE (Q&A, 2026-11-26). What "fit the score with a dummy for each of the four categories" means.
+The true treatment probability takes only four values (0.8, 0.6, 0.5, 0.3), one per category, and jumps at average age and average GPA.
+The logit in age, GPA and their squares is a smooth curve, so it cannot reproduce the jumps: the score is slightly misspecified.
+The alternative is a logit of D on four category dummies and nothing else. Its fitted score is simply the fraction treated
+  in each category, which estimates the true 0.8, 0.6, 0.5, 0.3. That score is correctly specified, so IPW's bias goes to about zero.
+This run is a check, not a row of the table: it shows that IPW's small bias comes from the score's functional form.
+In the code: pq is this score and ipwq the IPW estimate that uses it.
+Follow-up, why p(X) jumps: by construction. Treatment is drawn with probability 0.3 + 0.3 x 1[age above average] + 0.2 x 1[GPA above average].
+  The two terms are indicators, so the probability does not rise gradually with age: it is 0.3 (or 0.5) just below average age
+  and 0.6 (or 0.8) just above. Same for GPA. This is Cunningham's design; real scores are rarely step functions. -->
 
 ## What the simulation teaches
 

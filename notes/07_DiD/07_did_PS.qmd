@@ -46,7 +46,7 @@ Banks in $k$ & $20$ & $30$ \\
 $$
 Y_{it} = \alpha_0 + \alpha_1\,\text{Treat}_i + \alpha_2\,\text{Post}_t + \delta\,(\text{Treat}_i \times \text{Post}_t) + \varepsilon_{it},
 $$
-and say which cell or difference of cells each one is. Finally, state what the long difference regresses on what, and give its intercept and slope.
+and say which of the four averages, or which difference between them, each one is. Finally, state what the long difference regresses on what, and give its intercept and slope.
 
 (b) Recompute the estimate in logs, using the logs of the four group means. You now have two estimates from the same four numbers. For each, give the value of $\mathbb{E}[Y^0_k \mid \text{Post}]$, the treated banks' untreated year-2 originations, that the estimate implicitly assumes.
 
@@ -58,7 +58,7 @@ and say which cell or difference of cells each one is. Finally, state what the l
 
 ## Problem 2 (Dating the treatment: anticipation and already-treated controls)
 
-A state $K$ announces an investment tax credit in period 2; it takes effect in period 3. Another state $E$ introduced a similar credit before period 1. State $U$ never has one. The table gives average investment per firm without any credit, $Y^0$, and the true effect of the credit, $Y^1 - Y^0$, in each period. Untreated investment rises by $2$ per period in every state, so **parallel trends holds by construction** throughout.
+A state $k$ announces an investment tax credit in period 2; it takes effect in period 3. Another state $E$ introduced a similar credit before period 1. State $U$ never has one. The table gives average investment per firm without any credit, $Y^0$, and the true effect of the credit, $Y^1 - Y^0$, in each period. Untreated investment rises by $2$ per period in every state, so **parallel trends holds by construction** throughout.
 
 \begin{center}
 \small
@@ -68,7 +68,7 @@ A state $K$ announces an investment tax credit in period 2; it takes effect in p
 \cmidrule(lr){2-5}\cmidrule(lr){6-9}
 State & 1 & 2 & 3 & 4 & 1 & 2 & 3 & 4 \\
 \midrule
-$K$ & $12$ & $14$ & $16$ & $18$ & $0$ & $a$ & $4$ & $6$ \\
+$k$ & $12$ & $14$ & $16$ & $18$ & $0$ & $a$ & $4$ & $6$ \\
 $E$ & $10$ & $12$ & $14$ & $16$ & $3$ & $2$ & $1$ & $0$ \\
 $U$ & $7$  & $9$  & $11$ & $13$ & $0$ & $0$ & $0$ & $0$ \\
 \bottomrule
@@ -77,13 +77,13 @@ $U$ & $7$  & $9$  & $11$ & $13$ & $0$ & $0$ & $0$ & $0$ \\
 
 Observed investment is $Y^0$ plus the effect in every period in which a state's firms respond to the credit. Throughout, "pre" means the average over the pre periods and "post" the average over the post periods.
 
-(a) **No anticipation**, $a = 0$. Write out observed investment for $K$ and $U$. With pre $= \{1, 2\}$ and post $= \{3, 4\}$, compute the estimate for $K$ against $U$, and check that it equals $\text{ATT}_K(\text{Post})$.
+(a) **No anticipation**, $a = 0$. Write out observed investment for $k$ and $U$. With pre $= \{1, 2\}$ and post $= \{3, 4\}$, compute the estimate for $k$ against $U$, and check that it equals $\text{ATT}_k(\text{Post})$.
 
-(b) **Anticipation**, $a = -2$: once the credit is announced, firms postpone investment until it takes effect. Keep the same dating. Compute the estimate, and decompose it into $\text{ATT}_K(\text{Post}) + \text{PT bias} - \text{ATT}_K(\text{Pre})$. Does the estimate overstate or understate the effect of the credit after it took effect, and why?
+(b) **Anticipation**, $a = -2$: once the credit is announced, firms postpone investment until it takes effect. Keep the same dating. Compute the estimate, and decompose it into $\text{ATT}_k(\text{Post}) + \text{PT bias} - \text{ATT}_k(\text{Pre})$. Does the estimate overstate or understate the effect of the credit after it took effect, and why?
 
 (c) Still with $a = -2$, re-date the treatment from the announcement: pre $= \{1\}$ and post $= \{2, 3, 4\}$. Compute the estimate. It is an ATT, but not the one in (a): say which one, and why it is smaller. What else did you change when you moved the baseline?
 
-(d) Return to $a = 0$. A coauthor suggests using $E$ as the control instead of $U$, "because $E$ is a neighbouring state and more similar." Compute the estimate for $K$ against $E$, and decompose it into $\text{ATT}_K + \text{PT bias} - \Delta\text{ATT}_E$. What would the estimate be if $E$'s effect were constant at $3$?
+(d) Return to $a = 0$. A coauthor suggests using $E$ as the control instead of $U$, "because $E$ is a neighbouring state and more similar." Compute the estimate for $k$ against $E$, and decompose it into $\text{ATT}_k + \text{PT bias} - \Delta\text{ATT}_E$. What would the estimate be if $E$'s effect were constant at $3$?
 
 (e) Another paper studies $E$ against $U$, with pre $= \{1, 2\}$ and post $= \{3, 4\}$, and concludes that the credit **reduced** investment. What number does it find, and what has it actually estimated? What would it find if $E$'s effect were constant?
 
@@ -122,7 +122,7 @@ It is a balanced panel of $50$ US states, $2000$--$2010$. The variables you need
     iii. Go back to self-selection as in (i), but now suppose untreated earnings rise by $2$ for *both* types. Compute the DiD estimate. What does the comparison of (i) and (iii) say about *when* selection on gains biases DiD?
     iv. In (iii), a minister asks what would happen if training were made compulsory for all workers. Is the DiD estimate the answer? If not, what is?
 
-(b) **Selection on the baseline: a random walk or a dip?** Untreated earnings are $Y^0_{it} = \alpha_i + u_{it}$. Workers are treated if their earnings in the baseline period $b$ fall below a threshold, $D_i = \mathbf{1}\{Y^0_{ib} < c\}$. Treatment starts in $b + 1$; leave the treatment effect aside, since it does not affect the bias. Compare two cases, with $e_{it}$ independent over time, with mean zero:
+(b) **Selection on the baseline: a random walk or a dip?** Untreated earnings are $Y^0_{it} = \alpha_i + u_{it}$. Workers are treated if their earnings in the baseline period $b$ fall below a threshold, $D_i = \mathbf{1}\{Y^0_{ib} < c\}$. Treatment starts in $b + 1$; leave the treatment effect aside, since it does not affect the bias. Compare two cases, with $e_{it}$ independent and identically distributed over time, with mean zero:
 $$
 \text{Random walk: } u_{it} = u_{i,t-1} + e_{it}, \qquad\qquad \text{Transitory: } u_{it} = e_{it}.
 $$

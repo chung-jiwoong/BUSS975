@@ -1,0 +1,41 @@
+---
+title: "Problem Set: Causality and Potential Outcomes --- Hints"
+subtitle: "BUSS975: Causal Inference in Financial Research"
+format:
+  pdf:
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: false
+    toc: false
+    colorlinks: false
+    pdf-engine: pdflatex
+    pdf-engine-opts:
+      - "-interaction=nonstopmode"
+    include-in-header:
+      text: |
+        \newcommand{\indep}{\perp\!\!\!\perp}
+        \usepackage{booktabs}
+---
+
+## Problem 1
+
+- Start by computing $\delta_i = Y_i^1 - Y_i^0$ for every bank. Everything else in this problem is an average over some rows of that table.
+- **(c)** Selection bias asks how the two groups would have compared *without* treatment. So average $Y^0$ in each group, not the observed $Y$. You can do this only because the problem hands you the full table. An econometrician never could.
+- **(d)** The regulator chooses who gets treated. The regulator does not choose the numbers in the table. Which of $ATE$ and $ATT$ depends on who was picked?
+- **(e)** Which banks gain the most, and what shape were they in to begin with? For the colleague: does the bias come from having too few banks, or from the rule that picks them? Would that rule be any different with 10,000 banks?
+
+## Problem 2
+
+- **(a)** Two questions sort all four scenarios. Does one unit's outcome depend on whether *other* units are treated? Is "treated" really one thing, or several different things under one label? For the direction of the bias, ask what the treatment does to the control group.
+- **(b)** Randomization takes care of selection. It does nothing about spillovers. Ask what happened to the output of the firms that did *not* get the subsidy. Then ask whose question the comparison answers: a single firm deciding whether to apply, or a government deciding whether to run the program.
+- **(c)** Try making the treatment an amount, not a yes or no. Then notice that the question you can now answer is no longer the one the researcher started with.
+
+## Problem 3
+
+- **(a)--(b)** Under the sharp null, each firm would have had the same outcome whoever was treated. So the six numbers stay where they are and only the labels move. That is what lets you work out every result the lottery could have produced.
+- **(c)** You do not need to list all the assignments. Which one gives the largest possible difference? Which one is its mirror image? Is anything else as extreme?
+- **(d)** What was actually random here: which firms are in the pilot, or which of them got treated? The right method reshuffles the thing that was random.
+- **(e)** The $p$-value is a share of the assignments the experiment *could have produced*. With coin flips, is "exactly three treated" guaranteed?
+- **(f)** The observed assignment is already the most extreme one possible. So the $p$-value you found is the smallest this design can ever deliver. Worth knowing before you run a small experiment.
